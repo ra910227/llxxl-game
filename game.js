@@ -65,7 +65,7 @@ const POSTCARD_ITEMS = [
 const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 25, 27, 35, 37, 45, 47, 55, 57, 65, 67, 75];
 
 const MEMENTO_ITEMS = {
-  0:{name:`家的钥匙`, location:``, story:`「希望哥哥有空可以来找我玩！」
+  0:{name:`家的钥匙`, location:``, img:`assets/gifts/0.png`, story:`「希望哥哥有空可以来找我玩！」
 男团解散后，全团11个人，小派新房子的钥匙只送给了小远。没收到钥匙的其他人起哄着，小派笑弯了眼，小远也害羞地收下了。`},
   5:{name:`故宫小香囊`, location:`书包上的`, story:`小派上学时，同学会问书包上的香囊是去哪里买的，小派总是笑着说是哥哥送的。
 这是他们第一次一起去故宫玩，一起站在中轴线，一起共享整个世界的纪念。那天的远哥笑得很美，小派永远忘不了。`},
@@ -450,6 +450,35 @@ function refreshHome(){
     statusEl.textContent = `小远出差中 ✈️ 还有 ${info.remaining} 关回家`;
   }
   updateHomeCharacters(info);
+  updateHomeMementos();
+}
+
+/* 已收集的纪念品会以整张画布(2048x3200)贴图的形式,出现在娃娃屋里各自的定点位置(跟角色立绘同一套裁切逻辑)。
+   图档命名规则:assets/home_items/{关卡数字}.png,例如 assets/home_items/0.png。
+   还没画好的项目直接读不到图就整层隐藏,不会出现破图。 */
+let mementoHomeLayers = null;
+function setupMementoHomeLayers(){
+  if(mementoHomeLayers) return;
+  mementoHomeLayers = {};
+  const wrap = document.getElementById('home-canvas');
+  MEMENTO_LEVELS.forEach(level=>{
+    const img = document.createElement('img');
+    img.className = 'canvas-layer memento-home-layer';
+    img.alt = '';
+    img.hidden = true;
+    img.addEventListener('error', ()=>{ img.dataset.broken = '1'; img.hidden = true; });
+    img.src = `assets/home_items/${level}.png`;
+    wrap.appendChild(img);
+    mementoHomeLayers[level] = img;
+  });
+}
+function updateHomeMementos(){
+  setupMementoHomeLayers();
+  MEMENTO_LEVELS.forEach(level=>{
+    const img = mementoHomeLayers[level];
+    if(img.dataset.broken) return;
+    img.hidden = !STATE.mementos.includes(level);
+  });
 }
 
 /* 首页娃娃屋里的角色立绘:小远在家时厨房两人一起,不在家时小派独自在屋里的不同角落 */
