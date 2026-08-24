@@ -714,6 +714,21 @@ function showBoardToast(msg){
   boardToastTimer = setTimeout(()=> el.classList.remove('show'), 1600);
 }
 
+let moonBurstTimer = null;
+function showMoonBurst(){
+  let el = document.getElementById('moon-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'moon-burst';
+    el.className = 'moon-burst';
+    el.innerHTML = `<img src="assets/effects/moon_burst.jpg" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(moonBurstTimer);
+  moonBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
 function swapCells(cells,r1,c1,r2,c2){
   const tmp = cells[r1][c1];
   cells[r1][c1] = cells[r2][c2];
@@ -922,7 +937,7 @@ function resolveCascade(combo){
       }
     }
   });
-  if(bombed) showBoardToast('🌙 月亮炸开了周围的图案!');
+  if(bombed) showMoonBurst();
 
   // 解冻相邻冰冻格
   matched.forEach(key=>{
