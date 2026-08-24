@@ -449,6 +449,7 @@ function refreshMap(){
   for(let n=1; n<=TOTAL_LEVELS; n++){
     const wrap = document.createElement('div');
     wrap.className = 'map-node-wrap';
+    wrap.dataset.level = n;
 
     const btn = document.createElement('button');
     const milestone = MILESTONES.includes(n);
@@ -479,8 +480,16 @@ function refreshMap(){
 
     list.appendChild(wrap);
   }
-  // 卷动到目前关卡位置(串列是由下往上排,所以卷到底部即最新关卡附近)
-  requestAnimationFrame(()=>{ list.scrollTop = list.scrollHeight; });
+  // 卷动到目前正在挑战的那一关(而不是每次都跳回最底部的第1关)
+  requestAnimationFrame(()=>{
+    const targetLevel = Math.min(STATE.unlockedLevel, TOTAL_LEVELS);
+    const targetWrap = list.querySelector(`.map-node-wrap[data-level="${targetLevel}"]`);
+    if(targetWrap){
+      targetWrap.scrollIntoView({block:'center'});
+    } else {
+      list.scrollTop = list.scrollHeight;
+    }
+  });
 }
 
 /* ============================================================
@@ -622,6 +631,37 @@ function hasPossibleMove(cells, cfg){
     }
   }
   return false;
+}
+
+/* 盘面卡死(没有任何可交换组合)时原地洗牌,不用整关重来 */
+function reshuffleBoard(cfg){
+  let tries = 0;
+  do{
+    const flat = [];
+    for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++) flat.push(BOARD.cells[r][c].type);
+    for(let i=flat.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [flat[i], flat[j]] = [flat[j], flat[i]];
+    }
+    let idx = 0;
+    for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++) BOARD.cells[r][c].type = flat[idx++];
+    tries++;
+  }while((findMatches(BOARD.cells, cfg).matched.size>0 || !hasPossibleMove(BOARD.cells, cfg)) && tries<60);
+}
+
+let boardToastTimer = null;
+function showBoardToast(msg){
+  let el = document.getElementById('board-toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'board-toast';
+    el.className = 'board-toast';
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(boardToastTimer);
+  boardToastTimer = setTimeout(()=> el.classList.remove('show'), 1600);
 }
 
 function swapCells(cells,r1,c1,r2,c2){
@@ -804,6 +844,14 @@ function resolveCascade(combo){
   const cfg = BOARD.config;
   const {matched} = findMatches(BOARD.cells, cfg);
   if(matched.size===0){
+    const levelStillActive = BOARD.score < cfg.targetScore && BOARD.movesLeft > 0;
+    if(levelStillActive && !hasPossibleMove(BOARD.cells, cfg)){
+      reshuffleBoard(cfg);
+      renderBoard();
+      showBoardToast('没有可交换的组合了,重新排列中…');
+      BOARD.busy = false;
+      return;
+    }
     BOARD.busy = false;
     checkLevelEnd();
     return;

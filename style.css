@@ -249,6 +249,22 @@ html,body{
   touch-action:none;
   user-select:none;
 }
+.board-toast{
+  position:absolute;
+  left:50%;top:140px;
+  transform:translate(-50%,-8px);
+  background:rgba(80,60,50,0.85);
+  color:#fff;font-size:12px;font-weight:600;
+  padding:9px 18px;border-radius:999px;
+  white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  z-index:20;
+}
+.board-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
 .tile{
   border-radius:12px;
   display:flex;align-items:center;justify-content:center;
