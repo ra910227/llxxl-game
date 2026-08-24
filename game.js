@@ -30,20 +30,23 @@ const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 
 /* ---------------- 消除图案(六种,配色取自房间美术的粉/杏/紫/绿/卡其/蓝) ---------------- */
 const TILE_TYPES = [
-  { name:'bear',      bg:'#f6e8da', img:'assets/tiles/bear.png' },
-  { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
   { name:'butterfly', bg:'#e3f2fb', img:'assets/tiles/butterfly.png' },
+  { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
+  { name:'bunny',     bg:'#fbe3ef', img:'assets/tiles/bunny.png' },
+  { name:'dogface',   bg:'#eef2e0', img:'assets/tiles/dogface.png' },
+  { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
   { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
   { name:'movie',     bg:'#e8e8ef', img:'assets/tiles/movie.png' },
   { name:'mic',       bg:'#dfe9ee', img:'assets/tiles/mic.png' },
-  { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
   { name:'planet',    bg:'#eef0dc', img:'assets/tiles/planet.png' },
   { name:'rose',      bg:'#fbe0e6', img:'assets/tiles/rose.png' },
-  { name:'starface',  bg:'#fff2d6', img:'assets/tiles/starface.png' },
+  { name:'bear',      bg:'#f6e8da', img:'assets/tiles/bear.png' },
   { name:'moonface',  bg:'#ece6f7', img:'assets/tiles/moonface.png' },
-  { name:'bunny',     bg:'#fbe3ef', img:'assets/tiles/bunny.png' },
-  { name:'dogface',   bg:'#eef2e0', img:'assets/tiles/dogface.png' },
+  { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
+  { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
 ];
+// 小派/小远两张角色图不算常设图案,只在剧情日记关卡(MILESTONES)跟纪念品触发关卡(MEMENTO_LEVELS)额外加入池子
+const SPECIAL_TYPE_INDICES = [12, 13];
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
@@ -213,7 +216,9 @@ you and me"
 function generateLevelConfig(n){
   const isMilestone = MILESTONES.includes(n);
   const size = n<=12?6 : n<=30?7 : n<=50?8 : 9;               // 棋盘 6x6 → 9x9,比旧版早一点升级
-  const tileTypes = n<=4?4 : n<=8?5 : n<=11?6 : n<=14?7 : n<=17?8 : n<=19?9 : n<=34?10 : n<=49?11 : n<=64?12 : 13; // 图案种类随关卡递增,19关前用原本 9 种,19关后陆续加入新画的 4 种(星星/月亮/兔兔/狗狗)
+  const tileTypes = n<=4?4 : n<=14?5 : n<=24?6 : n<=34?7 : n<=44?8 : n<=56?9 : n<=64?10 : n<=72?11 : 12; // 图案种类随关卡递增,大多数关卡维持在4~9种(消消乐常见难度区间),12种全开只留给73关后的收尾关卡
+  const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n);
+  const extraTypeIndices = isSpecialLevel ? SPECIAL_TYPE_INDICES : []; // 小派/小远只在剧情日记关卡跟纪念品触发关卡额外出现
   let moves = Math.max(12, 22 - Math.floor(n/5));              // 步数更紧
   let targetScore = Math.round((size*size) * (15 + n*0.9));    // 目标分数基准拉高、成长更陡
   const cellCount = size*size;
@@ -224,7 +229,7 @@ function generateLevelConfig(n){
     targetScore = Math.round(targetScore*1.15);
     numFrozen = Math.min(numFrozen+2, Math.floor(cellCount*0.26));
   }
-  return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone };
+  return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone, extraTypeIndices };
 }
 
 /* ============================================================
@@ -587,6 +592,14 @@ function openBoard(levelNum){
 
 function randType(n){ return Math.floor(Math.random()*n); }
 
+/* 一般随机取图案外,剧情/纪念品关卡还要把小派/小远(cfg.extraTypeIndices)也纳入抽选池 */
+function pickType(cfg){
+  const extra = cfg.extraTypeIndices || [];
+  if(extra.length===0) return randType(cfg.tileTypes);
+  const idx = randType(cfg.tileTypes + extra.length);
+  return idx < cfg.tileTypes ? idx : extra[idx - cfg.tileTypes];
+}
+
 function generateSolvableBoard(cfg){
   let cells, tries=0;
   do{
@@ -598,7 +611,7 @@ function generateSolvableBoard(cfg){
 }
 
 function fillNoInitialMatches(cfg){
-  const {rows, cols, tileTypes} = cfg;
+  const {rows, cols} = cfg;
   const cells = [];
   for(let r=0;r<rows;r++){
     const row=[];
@@ -606,7 +619,7 @@ function fillNoInitialMatches(cfg){
       let t;
       let attempt=0;
       do{
-        t = randType(tileTypes);
+        t = pickType(cfg);
         attempt++;
       }while(attempt<10 && (
         (c>=2 && row[c-1] && row[c-2] && row[c-1].type===t && row[c-2].type===t) ||
@@ -925,7 +938,7 @@ function applyGravity(cfg){
       }
     }
     for(let r=write;r>=0;r--){
-      BOARD.cells[r][c] = { type: randType(cfg.tileTypes), frozen:false };
+      BOARD.cells[r][c] = { type: pickType(cfg), frozen:false };
     }
   }
 }
