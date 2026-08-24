@@ -450,7 +450,7 @@ function refreshHome(){
     statusEl.textContent = `小远出差中 ✈️ 还有 ${info.remaining} 关回家`;
   }
   updateHomeCharacters(info);
-  updateHomeMementos();
+  updateHomeMementos(info);
 }
 
 /* 已收集的纪念品会以整张画布(2048x3200)贴图的形式,出现在娃娃屋里各自的定点位置(跟角色立绘同一套裁切逻辑)。
@@ -472,12 +472,17 @@ function setupMementoHomeLayers(){
     mementoHomeLayers[level] = img;
   });
 }
-function updateHomeMementos(){
+function updateHomeMementos(info){
   setupMementoHomeLayers();
   MEMENTO_LEVELS.forEach(level=>{
     const img = mementoHomeLayers[level];
     if(img.dataset.broken) return;
-    img.hidden = !STATE.mementos.includes(level);
+    let show = STATE.mementos.includes(level);
+    // 蝴蝶结卫衣(7号):小派想小远的时候才会偷穿,只在小远不在家、且每 5 关才出现一次,不是常驻展示
+    if(level===7){
+      show = show && !info.isHome && (STATE.totalCleared % 5 === 0);
+    }
+    img.hidden = !show;
   });
 }
 
@@ -589,7 +594,11 @@ function openAlbum(type){
       const has = STATE.mementos.includes(level);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      div.textContent = has ? '💝' : '？';
+      if(has && item.img){
+        div.innerHTML = `<img src="${item.img}" alt="">`;
+      } else {
+        div.textContent = has ? '💝' : '？';
+      }
       div.title = has ? item.name : '尚未收集';
       if(has){
         div.style.cursor = 'pointer';

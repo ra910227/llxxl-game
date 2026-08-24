@@ -343,7 +343,9 @@ html,body{
   font-size:26px;
   background:#fff;
   box-shadow:0 4px 10px var(--shadow);
+  overflow:hidden;
 }
+.album-item img{width:100%;height:100%;object-fit:cover;display:block;}
 .album-item.locked{
   background:#ece2d8;color:#c9bcb0;
   box-shadow:none;
