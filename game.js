@@ -30,31 +30,15 @@ const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 
 /* ---------------- 消除图案(六种,配色取自房间美术的粉/杏/紫/绿/卡其/蓝) ---------------- */
 const TILE_TYPES = [
-  { name:'letter', color:'#e8899a', bg:'#fdeef1',
-    svg:`<rect x="12" y="28" width="76" height="52" rx="10" fill="#e8899a"/>
-         <path d="M14 30 L50 60 L86 30" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` },
-  { name:'gift', color:'#f0a868', bg:'#fff3e6',
-    svg:`<rect x="16" y="42" width="68" height="42" rx="7" fill="#f0a868"/>
-         <rect x="16" y="28" width="68" height="17" rx="5" fill="#f0a868"/>
-         <rect x="44" y="28" width="12" height="56" fill="#fff" opacity="0.85"/>
-         <path d="M50 28 C36 10,18 18,32 28 Z" fill="#f0a868"/>
-         <path d="M50 28 C64 10,82 18,68 28 Z" fill="#f0a868"/>` },
-  { name:'ring', color:'#b9a6d9', bg:'#f3edfa',
-    svg:`<circle cx="50" cy="62" r="23" fill="none" stroke="#b9a6d9" stroke-width="10"/>
-         <path d="M50 18 L63 38 L50 45 L37 38 Z" fill="#b9a6d9"/>` },
-  { name:'moon', color:'#8fb79b', bg:'#eaf5ee',
-    svg:`<path d="M64 18 A32 32 0 1 0 64 82 A24 24 0 1 1 64 18 Z" fill="#8fb79b"/>` },
-  { name:'cup', color:'#d9b26f', bg:'#faf1e0',
-    svg:`<path d="M24 30 H68 V56 A22 22 0 0 1 24 56 Z" fill="#d9b26f"/>
-         <path d="M68 36 h8 a10 10 0 0 1 0 18 h-8" fill="none" stroke="#d9b26f" stroke-width="7"/>
-         <rect x="20" y="78" width="52" height="7" rx="3.5" fill="#d9b26f"/>` },
-  { name:'flower', color:'#7fb3c9', bg:'#e9f4f8',
-    svg:`<g fill="#7fb3c9">
-         <ellipse cx="50" cy="30" rx="12" ry="18"/>
-         <ellipse cx="50" cy="70" rx="12" ry="18"/>
-         <ellipse cx="30" cy="50" rx="18" ry="12"/>
-         <ellipse cx="70" cy="50" rx="18" ry="12"/>
-         </g><circle cx="50" cy="50" r="9" fill="#fff"/>` },
+  { name:'bear',      bg:'#f6e8da', img:'assets/tiles/bear.png' },
+  { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
+  { name:'butterfly', bg:'#e3f2fb', img:'assets/tiles/butterfly.png' },
+  { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
+  { name:'movie',     bg:'#e8e8ef', img:'assets/tiles/movie.png' },
+  { name:'mic',       bg:'#dfe9ee', img:'assets/tiles/mic.png' },
+  { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
+  { name:'planet',    bg:'#eef0dc', img:'assets/tiles/planet.png' },
+  { name:'rose',      bg:'#fbe0e6', img:'assets/tiles/rose.png' },
 ];
 
 /* ---------------- 收藏册占位内容 ---------------- */
@@ -218,7 +202,7 @@ you and me"
 function generateLevelConfig(n){
   const isMilestone = MILESTONES.includes(n);
   const size = n<=12?6 : n<=30?7 : n<=50?8 : 9;               // 棋盘 6x6 → 9x9,比旧版早一点升级
-  const tileTypes = n<=8?4 : n<=30?5 : 6;                      // 第 5 种图案在第 9 关就出现,提早增加辨色难度
+  const tileTypes = n<=6?4 : n<=16?5 : n<=28?6 : n<=42?7 : n<=58?8 : 9; // 图案种类随关卡递增,79关内用满全部 9 种
   let moves = Math.max(12, 22 - Math.floor(n/5));              // 步数更紧
   let targetScore = Math.round((size*size) * (15 + n*0.9));    // 目标分数基准拉高、成长更陡
   const cellCount = size*size;
@@ -705,7 +689,7 @@ function renderBoard(){
       div.style.background = TILE_TYPES[cell.type].bg;
       div.dataset.r = r;
       div.dataset.c = c;
-      div.innerHTML = `<svg viewBox="0 0 100 100">${TILE_TYPES[cell.type].svg}</svg>`;
+      div.innerHTML = `<img src="${TILE_TYPES[cell.type].img}" alt="" draggable="false">`;
       div.addEventListener('pointerdown', onPointerDown);
       grid.appendChild(div);
     }

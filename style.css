@@ -257,7 +257,7 @@ html,body{
   transition:transform .12s ease, opacity .15s ease;
   position:relative;
 }
-.tile svg{width:70%;height:70%;pointer-events:none;}
+.tile img{width:76%;height:76%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;}
 .tile.selected{
   transform:scale(0.88);
   outline:3px solid #fff;
@@ -329,7 +329,7 @@ html,body{
   to{opacity:1;}
 }
 .modal-card h3{margin:0 0 8px;font-size:18px;color:var(--pink);}
-.modal-card p{font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;}
+.modal-card p{font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;text-align:left;}
 .modal-emoji{font-size:44px;margin-bottom:6px;}
 
 .modal-card.memento-mode{
@@ -392,6 +392,7 @@ html,body{
 }
 .diary-card-inner h3{margin:0 0 8px;font-size:15px;color:var(--pink);flex-shrink:0;}
 .diary-page-text{
+  text-align:left;width:100%;
   font-size:11.5px;line-height:1.65;color:var(--ink);white-space:pre-line;
   overflow:hidden;
 }
