@@ -33,17 +33,17 @@ const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 const TILE_TYPES = [
   { name:'butterfly', bg:'#e3f2fb', img:'assets/tiles/butterfly.png' },
   { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
-  { name:'bunny',     bg:'#fbe3ef', img:'assets/tiles/bunny.png' },
-  { name:'dogface',   bg:'#eef2e0', img:'assets/tiles/dogface.png' },
-  { name:'moonface',  bg:'#ece6f7', img:'assets/tiles/moonface.png' },
-  { name:'movie',     bg:'#e8e8ef', img:'assets/tiles/movie.png' },
+  { name:'bunny',     bg:'#f6b8d6', img:'assets/tiles/bunny.png' },
+  { name:'dogface',   bg:'#b9dc8f', img:'assets/tiles/dogface.png' },
+  { name:'moonface',  bg:'#c9b3ea', img:'assets/tiles/moonface.png' },
+  { name:'movie',     bg:'#f5f0e6', img:'assets/tiles/movie.png' },
   { name:'mic',       bg:'#dfe9ee', img:'assets/tiles/mic.png' },
   { name:'rose',      bg:'#fbe0e6', img:'assets/tiles/rose.png' },
   { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
   { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
   { name:'heart',     bg:'#f6d4c9', img:'assets/tiles/heart.png' },
-  { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
-  { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
+  { name:'xiaopai',   bg:'#f58aa8', img:'assets/tiles/xiaopai.png' },
+  { name:'xiaoyuan',  bg:'#7dc98a', img:'assets/tiles/xiaoyuan.png' },
 ];
 // 小派/小远两张角色图不算常设图案,只在剧情日记关卡(MILESTONES)跟纪念品触发关卡(MEMENTO_LEVELS)出现,
 // 直接顶替掉当关的兔兔(bunny)/狗狗(dogface),图案总数不变,难度不会因此变高
@@ -736,9 +736,29 @@ function openBoard(levelNum){
 
 function randType(n){ return Math.floor(Math.random()*n); }
 
+const MOON_WEIGHT = 0.5; // 月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
+
 /* 剧情/纪念品关卡:抽到兔兔/狗狗时直接顶替成小派/小远,图案总数不变 */
 function pickType(cfg){
-  const t = randType(cfg.tileTypes);
+  const n = cfg.tileTypes;
+  let t;
+  if(MOONFACE_IDX < n){
+    let totalWeight = 0;
+    const weights = [];
+    for(let i=0;i<n;i++){
+      const w = (i===MOONFACE_IDX) ? MOON_WEIGHT : 1;
+      weights.push(w);
+      totalWeight += w;
+    }
+    let r = Math.random()*totalWeight;
+    t = n-1;
+    for(let i=0;i<n;i++){
+      if(r < weights[i]){ t = i; break; }
+      r -= weights[i];
+    }
+  } else {
+    t = randType(n);
+  }
   if(cfg.isSpecialLevel){
     if(t===BUNNY_IDX) return XIAOPAI_IDX;
     if(t===DOGFACE_IDX) return XIAOYUAN_IDX;
@@ -1056,6 +1076,7 @@ function resolveCascade(combo){
   let bombed = false;
   let bonusMoves = 0;
   let specialMsg = null;
+  const burstCells = new Set(); // 蝴蝶/太阳的整排/十字爆炸特效格,消除动画会用更炫的燃烧特效取代普通淡出
   runs.forEach(run=>{
     const [rr,rc] = run[0];
     const cell = BOARD.cells[rr][rc];
@@ -1075,21 +1096,21 @@ function resolveCascade(combo){
       }
     }
 
-    // 40关后,蝴蝶4连以上:清空整排(横向连成就清空该行,纵向连成就清空该列)
+    // 40关后,蝴蝶4连以上:清空整排(横向连成就清空该行,纵向连成就清空该列),整排炸开特效
     if(type===BUTTERFLY_IDX && cfg.level>=40 && run.length>=4){
       if(isHorizontal){
-        for(let c=0;c<cfg.cols;c++) if(BOARD.cells[rr][c] && !matched.has(rr+','+c)) matched.add(rr+','+c);
+        for(let c=0;c<cfg.cols;c++) if(BOARD.cells[rr][c]){ const k=rr+','+c; matched.add(k); burstCells.add(k); }
       } else {
-        for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][rc] && !matched.has(r+','+rc)) matched.add(r+','+rc);
+        for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][rc]){ const k=r+','+rc; matched.add(k); burstCells.add(k); }
       }
       specialMsg = `"Let's run away 🏃🏻🦋"`;
     }
 
-    // 60关后,太阳配对成功:以命中点为中心,清空十字型两排(整行+整列)
-    if(type===SUN_IDX && cfg.level>=60){
+    // 60关后,太阳4连以上:以命中点为中心,清空十字型两排(整行+整列),十字炸开特效
+    if(type===SUN_IDX && cfg.level>=60 && run.length>=4){
       const [mr,mc] = run[Math.floor(run.length/2)];
-      for(let c=0;c<cfg.cols;c++) if(BOARD.cells[mr][c] && !matched.has(mr+','+c)) matched.add(mr+','+c);
-      for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][mc] && !matched.has(r+','+mc)) matched.add(r+','+mc);
+      for(let c=0;c<cfg.cols;c++) if(BOARD.cells[mr][c]){ const k=mr+','+c; matched.add(k); burstCells.add(k); }
+      for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][mc]){ const k=r+','+mc; matched.add(k); burstCells.add(k); }
       specialMsg = `"morning sunshine☀️"`;
     }
 
@@ -1130,11 +1151,11 @@ function resolveCascade(combo){
   document.getElementById('board-score-fill').style.width =
     Math.min(100, BOARD.score/cfg.targetScore*100)+'%';
 
-  // 播放消除动画
+  // 播放消除动画:蝴蝶整排/太阳十字的爆炸格用更炫的燃烧特效,其余照旧淡出
   matched.forEach(key=>{
     const [r,c] = key.split(',').map(Number);
     const el = document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
-    if(el) el.classList.add('clearing');
+    if(el) el.classList.add(burstCells.has(key) ? 'line-burst' : 'clearing');
   });
 
   setTimeout(()=>{
