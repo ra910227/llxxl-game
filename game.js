@@ -1028,22 +1028,24 @@ function resolveCascade(combo){
       specialMsg = `"morning sunshine☀️"`;
     }
 
-    // 狗狗/小远配对成功:步数 +7;兔兔/小派配对成功:步数 +9
+    // 狗狗/小远配对成功:步数 +1;兔兔/小派配对成功:步数 +1
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
-      bonusMoves += 7;
-      specialMsg = '🐾 狗狗组合!步数 +7';
+      bonusMoves += 1;
+      specialMsg = '🐾 狗狗组合!步数 +1';
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
-      bonusMoves += 9;
-      specialMsg = '🐰 兔兔组合!步数 +9';
+      bonusMoves += 1;
+      specialMsg = '🐰 兔兔组合!步数 +1';
     }
   });
   if(bonusMoves>0){
     BOARD.movesLeft += bonusMoves;
     document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
   }
-  if(bombed) showMoonBurst();
-  else if(specialMsg) showBoardToast(specialMsg);
+  if(bombed){
+    showMoonBurst();
+    showBoardToast('🌙 月亮合體炸开了阻礙!');
+  } else if(specialMsg) showBoardToast(specialMsg);
 
   // 解冻相邻冰冻格
   matched.forEach(key=>{
