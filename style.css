@@ -328,35 +328,45 @@ html,body{
   75%{transform:translateX(5px);}
 }
 
-/* ---------- 收藏册 ---------- */
+/* ---------- 收藏册:圆框照片 + 下方名字,跟纪念品卡片圆圈风格一致 ---------- */
 .album-grid{
   flex:1;overflow-y:auto;
   display:grid;grid-template-columns:repeat(3,1fr);
-  gap:12px;padding:18px;
+  gap:20px 12px;padding:18px;
   background:var(--cream-2);
   align-content:start;
 }
 .album-item{
+  display:flex;flex-direction:column;align-items:center;
+}
+.album-item-circle-wrap{
   position:relative;
   width:100%;
-  border-radius:16px;
-  background:transparent;
-  box-shadow:0 4px 10px var(--shadow);
-  overflow:hidden;
 }
 /* 用「上距 100%」的老派技巧強制正方形,比 aspect-ratio 相容性更好,在某些 App 內建瀏覽器不會被忽略導致格子擠壓變形 */
-.album-item::before{
+.album-item-circle-wrap::before{
   content:"";
   display:block;
   padding-top:100%;
 }
-.album-item-inner{
+.album-item-circle{
   position:absolute;inset:0;
+  border-radius:50%;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 4px 10px var(--shadow);
   display:flex;align-items:center;justify-content:center;
   font-size:26px;
 }
-.album-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-.album-item.locked{
+.album-item-circle img{width:100%;height:100%;object-fit:cover;display:block;}
+.album-item-label{
+  margin-top:7px;
+  font-size:11px;font-weight:700;color:var(--pink);
+  text-align:center;line-height:1.35;
+  overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.album-item.locked .album-item-circle{
   background:#ece2d8;color:#c9bcb0;
   box-shadow:none;
 }

@@ -605,11 +605,10 @@ function openAlbum(type){
       const has = STATE.mementos.includes(level);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      if(has && item.img){
-        div.innerHTML = `<img src="${item.img}" alt="">`;
-      } else {
-        div.innerHTML = `<div class="album-item-inner">${has ? '💝' : '？'}</div>`;
-      }
+      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? '💝' : '？');
+      div.innerHTML = `
+        <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
+        <div class="album-item-label">${has ? item.name : ''}</div>`;
       div.title = has ? item.name : '尚未收集';
       if(has){
         div.style.cursor = 'pointer';
@@ -625,7 +624,11 @@ function openAlbum(type){
       const has = STATE.postcards.includes(i);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      div.innerHTML = `<div class="album-item-inner">${has ? label.split(' ')[0] : '？'}</div>`;
+      const photoInner = has ? label.split(' ')[0] : '？';
+      const caption = has ? label.split(' ').slice(1).join(' ') : '';
+      div.innerHTML = `
+        <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
+        <div class="album-item-label">${caption}</div>`;
       div.title = has ? label : '尚未收集';
       grid.appendChild(div);
     });
