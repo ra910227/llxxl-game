@@ -267,6 +267,13 @@ const DIARY_MIGRATION = {10:9, 20:19, 30:29, 40:39, 50:49, 60:59, 70:69};
 function migrateState(state){
   state.mementos = [...new Set(state.mementos.map(v => MEMENTO_MIGRATION[v] ?? v))].filter(v => MEMENTO_LEVELS.includes(v));
   state.diaryUnlocked = [...new Set(state.diaryUnlocked.map(v => DIARY_MIGRATION[v] ?? v))].filter(v => MILESTONES.includes(v));
+  // 补齐:关卡进度已经超过某个纪念品/日记触发点,但因为改版跳号等原因没被正常收集到的,直接补上
+  MEMENTO_LEVELS.forEach(level=>{
+    if(level < state.unlockedLevel && !state.mementos.includes(level)) state.mementos.push(level);
+  });
+  MILESTONES.forEach(level=>{
+    if(level < state.unlockedLevel && !state.diaryUnlocked.includes(level)) state.diaryUnlocked.push(level);
+  });
   return state;
 }
 
@@ -468,7 +475,7 @@ function setupMementoHomeLayers(){
     img.alt = '';
     img.hidden = true;
     img.addEventListener('error', ()=>{ img.dataset.broken = '1'; img.hidden = true; });
-    img.src = `assets/home_items/${level}.png`;
+    // 不在这里马上设 src,等真的收集到才载入,避免首页一开始就打一堆图还没画好的请求拖慢载入
     wrap.insertBefore(img, firstCharLayer);
     mementoHomeLayers[level] = img;
   });
@@ -482,6 +489,9 @@ function updateHomeMementos(info){
     // 蝴蝶结卫衣(7号):小派想小远的时候才会偷穿,只在小远不在家、且每 5 关才出现一次,不是常驻展示
     if(level===7){
       show = show && !info.isHome && (STATE.totalCleared % 5 === 0);
+    }
+    if(show && !img.src){
+      img.src = `assets/home_items/${level}.png`; // 到这时候才真的载入图片
     }
     img.hidden = !show;
   });

@@ -421,7 +421,7 @@ html,body{
   width:100%;
   aspect-ratio:815/1198;
   max-height:100%;
-  background-image:url('assets/ui/diary_card_bg.png');
+  background-image:url('assets/ui/diary_card_bg.jpg');
   background-repeat:no-repeat;
   /* background-size/position 由 JS 依画布缩放公式动态计算,见 layoutDiaryCard() */
 }
@@ -472,7 +472,7 @@ html,body{
   width:100%;
   aspect-ratio:815/1198;
   max-height:100%;
-  background-image:url('assets/ui/memento_card_bg.png');
+  background-image:url('assets/ui/memento_card_bg.jpg');
   background-repeat:no-repeat;
   /* background-size/position 由 JS 动态计算,跟戀愛日記卡片共用同一套裁切公式,见 layoutCardBg() */
 }
