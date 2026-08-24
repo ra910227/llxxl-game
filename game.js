@@ -41,7 +41,6 @@ const TILE_TYPES = [
   { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
   { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
   { name:'heart',     bg:'#f6d4c9', img:'assets/tiles/heart.png' },
-  { name:'bear',      bg:'#f6e8da', img:'assets/tiles/bear.png' },
   { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
   { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
 ];
@@ -226,7 +225,7 @@ function generateLevelConfig(n){
 
   // 50关前整体放宽(棋盘小、图案少、步数松),50关后再逐步拉回难度
   const size = n<=20?6 : n<=35?7 : n<=50?8 : 9;
-  const tileTypes = n<=10?4 : n<=29?5 : n<=49?7 : n<=59?9 : n<=69?10 : n<=74?11 : 12; // 1-10蝴蝶/星星/兔兔/狗狗,11+月亮,30+电影板+麦克风,50+玫瑰+小狗,60+太阳,70+爱心,75+小熊(补齐第12种,原表未排小熊所以放在最后)
+  const tileTypes = n<=10?4 : n<=29?5 : n<=49?7 : n<=59?9 : n<=69?10 : 11; // 1-10蝴蝶/星星/兔兔/狗狗,11+月亮,30+电影板+麦克风,50+玫瑰+小狗,60+太阳,70+爱心
   const cellCount = size*size;
 
   let moves, targetScore, numFrozen;
