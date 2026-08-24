@@ -45,8 +45,13 @@ const TILE_TYPES = [
   { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
   { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
 ];
-// 小派/小远两张角色图不算常设图案,只在剧情日记关卡(MILESTONES)跟纪念品触发关卡(MEMENTO_LEVELS)额外加入池子
-const SPECIAL_TYPE_INDICES = [12, 13];
+// 小派/小远两张角色图不算常设图案,只在剧情日记关卡(MILESTONES)跟纪念品触发关卡(MEMENTO_LEVELS)出现,
+// 直接顶替掉当关的兔兔(bunny)/狗狗(dogface),图案总数不变,难度不会因此变高
+const BUNNY_IDX = TILE_TYPES.findIndex(t=>t.name==='bunny');
+const DOGFACE_IDX = TILE_TYPES.findIndex(t=>t.name==='dogface');
+const XIAOPAI_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaopai');
+const XIAOYUAN_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaoyuan');
+const MOONFACE_IDX = TILE_TYPES.findIndex(t=>t.name==='moonface'); // 月亮:配对时炸开周遭 3x3
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
@@ -215,21 +220,30 @@ you and me"
    ============================================================ */
 function generateLevelConfig(n){
   const isMilestone = MILESTONES.includes(n);
-  const size = n<=12?6 : n<=30?7 : n<=50?8 : 9;               // 棋盘 6x6 → 9x9,比旧版早一点升级
-  const tileTypes = n<=4?4 : n<=14?5 : n<=24?6 : n<=34?7 : n<=44?8 : n<=56?9 : n<=64?10 : n<=72?11 : 12; // 图案种类随关卡递增,大多数关卡维持在4~9种(消消乐常见难度区间),12种全开只留给73关后的收尾关卡
-  const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n);
-  const extraTypeIndices = isSpecialLevel ? SPECIAL_TYPE_INDICES : []; // 小派/小远只在剧情日记关卡跟纪念品触发关卡额外出现
-  let moves = Math.max(12, 22 - Math.floor(n/5));              // 步数更紧
-  let targetScore = Math.round((size*size) * (15 + n*0.9));    // 目标分数基准拉高、成长更陡
+  const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n); // 小派/小远只在这些关卡顶替兔兔/狗狗出现
+
+  // 50关前整体放宽(棋盘小、图案少、步数松),50关后再逐步拉回难度
+  const size = n<=20?6 : n<=35?7 : n<=50?8 : 9;
+  const tileTypes = n<=4?4 : n<=14?5 : n<=24?6 : n<=34?7 : n<=44?8 : n<=56?9 : n<=64?10 : n<=72?11 : 12; // 大多数关卡维持在4~9种,12种全开只留给73关后的收尾关卡
   const cellCount = size*size;
-  let numFrozen = Math.min(Math.floor(n/3), Math.floor(cellCount*0.22));
+
+  let moves, targetScore, numFrozen;
+  if(n<=50){
+    moves = Math.max(16, 26 - Math.floor(n/8));
+    targetScore = Math.round(cellCount * (12 + n*0.6));
+    numFrozen = Math.min(Math.floor(n/5), Math.floor(cellCount*0.15));
+  } else {
+    moves = Math.max(12, (26 - Math.floor(50/8)) - Math.floor((n-50)/3));
+    targetScore = Math.round(cellCount * (12 + 50*0.6 + (n-50)*1.1));
+    numFrozen = Math.min(Math.floor(10 + (n-50)/2), Math.floor(cellCount*0.22));
+  }
 
   if(isMilestone){
     moves += 4;
     targetScore = Math.round(targetScore*1.15);
     numFrozen = Math.min(numFrozen+2, Math.floor(cellCount*0.26));
   }
-  return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone, extraTypeIndices };
+  return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone, isSpecialLevel };
 }
 
 /* ============================================================
@@ -592,12 +606,14 @@ function openBoard(levelNum){
 
 function randType(n){ return Math.floor(Math.random()*n); }
 
-/* 一般随机取图案外,剧情/纪念品关卡还要把小派/小远(cfg.extraTypeIndices)也纳入抽选池 */
+/* 剧情/纪念品关卡:抽到兔兔/狗狗时直接顶替成小派/小远,图案总数不变 */
 function pickType(cfg){
-  const extra = cfg.extraTypeIndices || [];
-  if(extra.length===0) return randType(cfg.tileTypes);
-  const idx = randType(cfg.tileTypes + extra.length);
-  return idx < cfg.tileTypes ? idx : extra[idx - cfg.tileTypes];
+  const t = randType(cfg.tileTypes);
+  if(cfg.isSpecialLevel){
+    if(t===BUNNY_IDX) return XIAOPAI_IDX;
+    if(t===DOGFACE_IDX) return XIAOYUAN_IDX;
+  }
+  return t;
 }
 
 function generateSolvableBoard(cfg){
@@ -876,7 +892,7 @@ function attemptSwap(r1,c1,r2,c2){
 
 function resolveCascade(combo){
   const cfg = BOARD.config;
-  const {matched} = findMatches(BOARD.cells, cfg);
+  const {matched, runs} = findMatches(BOARD.cells, cfg);
   if(matched.size===0){
     const levelStillActive = BOARD.score < cfg.targetScore && BOARD.movesLeft > 0;
     if(levelStillActive && !hasPossibleMove(BOARD.cells, cfg)){
@@ -890,6 +906,23 @@ function resolveCascade(combo){
     checkLevelEnd();
     return;
   }
+
+  // 月亮特殊图案:连成一线时,以该线中点为中心炸开周遭 3x3(冰冻格也一并炸掉)
+  let bombed = false;
+  runs.forEach(run=>{
+    const [rr,rc] = run[0];
+    if(BOARD.cells[rr][rc] && BOARD.cells[rr][rc].type===MOONFACE_IDX){
+      const [mr,mc] = run[Math.floor(run.length/2)];
+      for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+        const nr=mr+dr, nc=mc+dc;
+        if(inBounds(nr,nc,cfg) && BOARD.cells[nr][nc] && !matched.has(nr+','+nc)){
+          matched.add(nr+','+nc);
+          bombed = true;
+        }
+      }
+    }
+  });
+  if(bombed) showBoardToast('🌙 月亮炸开了周围的图案!');
 
   // 解冻相邻冰冻格
   matched.forEach(key=>{

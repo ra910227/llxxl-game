@@ -281,10 +281,19 @@ html,body{
 }
 .tile.frozen::before{
   content:"";position:absolute;inset:0;border-radius:12px;
-  background:rgba(180,210,225,0.55);
-  backdrop-filter:blur(1px);
-  border:2px solid rgba(255,255,255,0.8);
+  background:rgba(70,120,160,0.78);
+  backdrop-filter:blur(1.5px);
+  border:2px solid rgba(255,255,255,0.85);
+  z-index:1;
 }
+.tile.frozen::after{
+  content:"❄️";
+  position:absolute;
+  font-size:1.15em;
+  z-index:2;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+}
+.tile.frozen img{ opacity:0.35; }
 .tile.clearing{
   transform:scale(0.3);opacity:0;
 }
