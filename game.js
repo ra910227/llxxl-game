@@ -34,14 +34,14 @@ const TILE_TYPES = [
   { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
   { name:'bunny',     bg:'#fbe3ef', img:'assets/tiles/bunny.png' },
   { name:'dogface',   bg:'#eef2e0', img:'assets/tiles/dogface.png' },
-  { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
-  { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
+  { name:'moonface',  bg:'#ece6f7', img:'assets/tiles/moonface.png' },
   { name:'movie',     bg:'#e8e8ef', img:'assets/tiles/movie.png' },
   { name:'mic',       bg:'#dfe9ee', img:'assets/tiles/mic.png' },
-  { name:'planet',    bg:'#eef0dc', img:'assets/tiles/planet.png' },
   { name:'rose',      bg:'#fbe0e6', img:'assets/tiles/rose.png' },
+  { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
+  { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
+  { name:'heart',     bg:'#f6d4c9', img:'assets/tiles/heart.png' },
   { name:'bear',      bg:'#f6e8da', img:'assets/tiles/bear.png' },
-  { name:'moonface',  bg:'#ece6f7', img:'assets/tiles/moonface.png' },
   { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
   { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
 ];
@@ -52,6 +52,8 @@ const DOGFACE_IDX = TILE_TYPES.findIndex(t=>t.name==='dogface');
 const XIAOPAI_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaopai');
 const XIAOYUAN_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaoyuan');
 const MOONFACE_IDX = TILE_TYPES.findIndex(t=>t.name==='moonface'); // 月亮:配对时炸开周遭 3x3
+const BUTTERFLY_IDX = TILE_TYPES.findIndex(t=>t.name==='butterfly'); // 40关后:4连以上清空整排/整列
+const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成功清空十字型两排
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
@@ -224,7 +226,7 @@ function generateLevelConfig(n){
 
   // 50关前整体放宽(棋盘小、图案少、步数松),50关后再逐步拉回难度
   const size = n<=20?6 : n<=35?7 : n<=50?8 : 9;
-  const tileTypes = n<=4?4 : n<=14?5 : n<=24?6 : n<=34?7 : n<=44?8 : n<=56?9 : n<=64?10 : n<=72?11 : 12; // 大多数关卡维持在4~9种,12种全开只留给73关后的收尾关卡
+  const tileTypes = n<=10?4 : n<=29?5 : n<=49?7 : n<=59?9 : n<=69?10 : n<=74?11 : 12; // 1-10蝴蝶/星星/兔兔/狗狗,11+月亮,30+电影板+麦克风,50+玫瑰+小狗,60+太阳,70+爱心,75+小熊(补齐第12种,原表未排小熊所以放在最后)
   const cellCount = size*size;
 
   let moves, targetScore, numFrozen;
@@ -922,11 +924,19 @@ function resolveCascade(combo){
     return;
   }
 
-  // 月亮特殊图案:连成一线时,以该线中点为中心炸开周遭 3x3(冰冻格也一并炸掉)
+  // 各种图案的特殊效果
   let bombed = false;
+  let bonusMoves = 0;
+  let specialMsg = null;
   runs.forEach(run=>{
     const [rr,rc] = run[0];
-    if(BOARD.cells[rr][rc] && BOARD.cells[rr][rc].type===MOONFACE_IDX){
+    const cell = BOARD.cells[rr][rc];
+    if(!cell) return;
+    const type = cell.type;
+    const isHorizontal = run[0][0]===run[run.length-1][0];
+
+    // 月亮:连成一线时,以该线中点为中心炸开周遭 3x3(冰冻格也一并炸掉)
+    if(type===MOONFACE_IDX){
       const [mr,mc] = run[Math.floor(run.length/2)];
       for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
         const nr=mr+dr, nc=mc+dc;
@@ -936,8 +946,41 @@ function resolveCascade(combo){
         }
       }
     }
+
+    // 40关后,蝴蝶4连以上:清空整排(横向连成就清空该行,纵向连成就清空该列)
+    if(type===BUTTERFLY_IDX && cfg.level>=40 && run.length>=4){
+      if(isHorizontal){
+        for(let c=0;c<cfg.cols;c++) if(BOARD.cells[rr][c] && !matched.has(rr+','+c)) matched.add(rr+','+c);
+      } else {
+        for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][rc] && !matched.has(r+','+rc)) matched.add(r+','+rc);
+      }
+      specialMsg = `"Let's run away 🏃🏻🦋"`;
+    }
+
+    // 60关后,太阳配对成功:以命中点为中心,清空十字型两排(整行+整列)
+    if(type===SUN_IDX && cfg.level>=60){
+      const [mr,mc] = run[Math.floor(run.length/2)];
+      for(let c=0;c<cfg.cols;c++) if(BOARD.cells[mr][c] && !matched.has(mr+','+c)) matched.add(mr+','+c);
+      for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][mc] && !matched.has(r+','+mc)) matched.add(r+','+mc);
+      specialMsg = `"morning sunshine☀️"`;
+    }
+
+    // 狗狗/小远配对成功:步数 +7;兔兔/小派配对成功:步数 +9
+    if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
+      bonusMoves += 7;
+      specialMsg = '🐾 狗狗组合!步数 +7';
+    }
+    if(type===BUNNY_IDX || type===XIAOPAI_IDX){
+      bonusMoves += 9;
+      specialMsg = '🐰 兔兔组合!步数 +9';
+    }
   });
+  if(bonusMoves>0){
+    BOARD.movesLeft += bonusMoves;
+    document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
+  }
   if(bombed) showMoonBurst();
+  else if(specialMsg) showBoardToast(specialMsg);
 
   // 解冻相邻冰冻格
   matched.forEach(key=>{
