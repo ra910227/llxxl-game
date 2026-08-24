@@ -461,6 +461,7 @@ function setupMementoHomeLayers(){
   if(mementoHomeLayers) return;
   mementoHomeLayers = {};
   const wrap = document.getElementById('home-canvas');
+  const firstCharLayer = document.getElementById('char-desk-read'); // 纪念品图层要插在角色立绘「之前」,确保人物站在纪念品前面,不会被小物件盖住
   MEMENTO_LEVELS.forEach(level=>{
     const img = document.createElement('img');
     img.className = 'canvas-layer memento-home-layer';
@@ -468,7 +469,7 @@ function setupMementoHomeLayers(){
     img.hidden = true;
     img.addEventListener('error', ()=>{ img.dataset.broken = '1'; img.hidden = true; });
     img.src = `assets/home_items/${level}.png`;
-    wrap.appendChild(img);
+    wrap.insertBefore(img, firstCharLayer);
     mementoHomeLayers[level] = img;
   });
 }
@@ -1245,7 +1246,7 @@ function renderModal(step){
   } else if(step.type==='memento'){
     const m = MEMENTO_ITEMS[step.level];
     const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="memento-photo-fallback">💝</div>`;
-    const combinedText = (m.location ? m.location+'\n\n' : '') + (m.story || '');
+    const combinedText = m.story || '';
     card.innerHTML = `
       <div class="memento-card">
         <div class="memento-photo-circle">${photoInner}</div>
