@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>小派与小远的家 · 消消乐原型</title>
+
+<!-- PWA:可加到手机主画面,像 App 一样打开 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e8899a">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="小派小远">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="style.css?v=10">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ 首页：娃娃屋 ============ -->
+  <section id="screen-home" class="screen active">
+    <div id="home-canvas" class="home-canvas">
+      <img class="canvas-layer" src="assets/ui/home_bg.png" alt="">
+      <img class="canvas-layer" src="assets/ui/icon_status_avatar.png" alt="">
+      <img class="canvas-layer" src="assets/ui/icon_diary.png" alt="">
+      <img class="canvas-layer" src="assets/ui/icon_gift.png" alt="">
+      <img class="canvas-layer" src="assets/ui/icon_postcard.png" alt="">
+
+      <button id="hotspot-diary" class="canvas-hotspot" title="恋爱日记"></button>
+      <button id="hotspot-gift" class="canvas-hotspot" title="已收集纪念品册">
+        <span class="hotspot-badge" id="gift-count">0</span>
+      </button>
+      <button id="hotspot-postcard" class="canvas-hotspot" title="已收集明信片册">
+        <span class="hotspot-badge" id="postcard-count">0</span>
+      </button>
+    </div>
+
+    <div id="lives-pill" class="lives-pill">♥ x 5</div>
+    <div class="progress-pill">
+      <span id="home-level-text">第 1 关 / 共 79 关</span>
+      <div class="progress-track"><div id="home-progress-fill" class="progress-fill"></div></div>
+    </div>
+
+    <div class="home-bottombar">
+      <div id="xiaoyuan-status" class="xiaoyuan-status">小远出差中 ✈️ 还有 5 关回家</div>
+      <button id="btn-backup" class="debug-reset" title="汇出/汇入存档码,换手机或存档被清掉时可以用">存档备份</button>
+      <button id="btn-reset" class="debug-reset" title="重置进度(测试用)">重置进度</button>
+    </div>
+  </section>
+
+  <!-- ============ 关卡地图 ============ -->
+  <section id="screen-map" class="screen">
+    <div class="topbar">
+      <button class="btn-back" data-back="home">←</button>
+      <h2>恋爱日记 · 关卡地图</h2>
+    </div>
+    <div id="map-list" class="map-list"></div>
+  </section>
+
+  <!-- ============ 消消乐棋盘 ============ -->
+  <section id="screen-board" class="screen">
+    <div class="board-topbar">
+      <button class="btn-back" data-back="map">←</button>
+      <div class="board-info">
+        <div id="board-level-title">第 1 关</div>
+        <div id="board-milestone-badge" class="milestone-badge" hidden>💕 感情升级关</div>
+      </div>
+      <div class="board-moves">
+        步数 <span id="board-moves-left">24</span>
+      </div>
+    </div>
+    <div class="board-score-wrap">
+      <div class="progress-track score-track"><div id="board-score-fill" class="progress-fill score-fill"></div></div>
+      <div class="score-text"><span id="board-score-current">0</span> / <span id="board-score-target">0</span></div>
+    </div>
+    <div id="board-grid" class="board-grid"></div>
+  </section>
+
+  <!-- ============ 礼物册 / 明信片册 ============ -->
+  <section id="screen-album" class="screen">
+    <div class="topbar">
+      <button class="btn-back" data-back="home">←</button>
+      <h2 id="album-title">已收集纪念品册</h2>
+    </div>
+    <div id="album-grid" class="album-grid"></div>
+  </section>
+
+  <!-- ============ 弹窗：日记 / 过关 / 失败 / 小远回家 ============ -->
+  <div id="modal-overlay" class="modal-overlay" hidden>
+    <div id="modal-card" class="modal-card"></div>
+  </div>
+
+</div>
+
+<script src="game.js?v=12"></script>
+</body>
+</html>
