@@ -608,7 +608,7 @@ function openAlbum(type){
       if(has && item.img){
         div.innerHTML = `<img src="${item.img}" alt="">`;
       } else {
-        div.textContent = has ? '💝' : '？';
+        div.innerHTML = `<div class="album-item-inner">${has ? '💝' : '？'}</div>`;
       }
       div.title = has ? item.name : '尚未收集';
       if(has){
@@ -625,7 +625,7 @@ function openAlbum(type){
       const has = STATE.postcards.includes(i);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      div.textContent = has ? label.split(' ')[0] : '？';
+      div.innerHTML = `<div class="album-item-inner">${has ? label.split(' ')[0] : '？'}</div>`;
       div.title = has ? label : '尚未收集';
       grid.appendChild(div);
     });

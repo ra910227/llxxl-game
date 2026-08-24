@@ -337,15 +337,25 @@ html,body{
   align-content:start;
 }
 .album-item{
-  aspect-ratio:1;
+  position:relative;
+  width:100%;
   border-radius:16px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;
-  background:#fff;
+  background:transparent;
   box-shadow:0 4px 10px var(--shadow);
   overflow:hidden;
 }
-.album-item img{width:100%;height:100%;object-fit:cover;display:block;}
+/* 用「上距 100%」的老派技巧強制正方形,比 aspect-ratio 相容性更好,在某些 App 內建瀏覽器不會被忽略導致格子擠壓變形 */
+.album-item::before{
+  content:"";
+  display:block;
+  padding-top:100%;
+}
+.album-item-inner{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+}
+.album-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 .album-item.locked{
   background:#ece2d8;color:#c9bcb0;
   box-shadow:none;
