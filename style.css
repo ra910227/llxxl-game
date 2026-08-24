@@ -66,14 +66,13 @@ html,body{
 .canvas-hotspot:active{transform:scale(0.93);}
 
 .hotspot-badge{
-  position:absolute;top:-6px;right:-6px;
+  position:absolute;top:-2px;right:-2px;
   background:var(--pink);
-  color:#fff;font-size:11px;font-weight:800;
-  min-width:20px;height:20px;border-radius:999px;
-  display:flex;align-items:center;justify-content:center;
+  width:13px;height:13px;border-radius:999px;
   box-shadow:0 2px 6px var(--shadow);
-  padding:0 4px;
+  border:2px solid #fff;
 }
+.hotspot-badge[hidden]{display:none;}
 
 /* 两个小资讯牌都移到房间美术本身留白的斜墙/墙面空隙里,不叠在头像或家具上 */
 .progress-pill{
@@ -458,3 +457,44 @@ html,body{
 }
 .diary-page-dots span.on{background:var(--pink);}
 .diary-close-btn{font-size:12px;padding:9px 24px;margin-top:14px;flex-shrink:0;}
+
+.modal-card.memento-mode{
+  background:none;box-shadow:none;padding:0;
+  max-width:440px;width:min(96vw,440px);
+  max-height:88vh;
+  display:flex;flex-direction:column;align-items:center;
+  animation:pop .25s ease;
+}
+.memento-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:815/1198;
+  max-height:100%;
+  background-image:url('assets/ui/memento_card_bg.png');
+  background-repeat:no-repeat;
+  /* background-size/position 由 JS 动态计算,跟戀愛日記卡片共用同一套裁切公式,见 layoutCardBg() */
+}
+.memento-card-inner{
+  position:absolute;
+  top:32%;bottom:29%;left:17%;right:17%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  text-align:center;
+  overflow:hidden;
+  touch-action:pan-y;
+}
+.memento-card-inner h3{margin:0 0 8px;font-size:15px;color:var(--pink);flex-shrink:0;}
+.memento-photo-circle{
+  position:absolute;
+  left:35.34%;top:11.02%;width:29.08%;height:19.28%;
+  border-radius:50%;
+  overflow:hidden;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,0.6);
+}
+.memento-photo-circle img{width:100%;height:100%;object-fit:cover;display:block;}
+.memento-photo-fallback{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:#fdf1e4;
+  font-size:1.8em;
+}

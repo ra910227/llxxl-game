@@ -251,7 +251,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], diaryUnlocked:[], lives:MAX_LIVES, nextRegenAt:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, lives:MAX_LIVES, nextRegenAt:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -259,6 +259,16 @@ function loadState(){
   return defaults;
 }
 function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(STATE)); }
+
+// 关卡编号中途调整过(纪念品 8/18/28...→7/17/27..., 日记 10/20/30...→9/19/29...),
+// 已经在玩的存档要把旧编号迁移成新编号,否则会出现「首页数字跟相簿/地图对不上」的孤儿资料
+const MEMENTO_MIGRATION = {8:7, 18:17, 28:27, 38:37, 48:47, 58:57, 68:67};
+const DIARY_MIGRATION = {10:9, 20:19, 30:29, 40:39, 50:49, 60:59, 70:69};
+function migrateState(state){
+  state.mementos = [...new Set(state.mementos.map(v => MEMENTO_MIGRATION[v] ?? v))].filter(v => MEMENTO_LEVELS.includes(v));
+  state.diaryUnlocked = [...new Set(state.diaryUnlocked.map(v => DIARY_MIGRATION[v] ?? v))].filter(v => MILESTONES.includes(v));
+  return state;
+}
 
 /* 存档备份碼:JSON -> UTF-8 安全的 base64,方便玩家複製貼上手動備份/還原 */
 function encodeSaveCode(state){
@@ -270,7 +280,8 @@ function decodeSaveCode(code){
   catch(e){ return null; }
 }
 
-let STATE = loadState();
+let STATE = migrateState(loadState());
+saveState();
 
 /* ============================================================
    体力(爱心)系统
@@ -426,8 +437,8 @@ function refreshHome(){
     STATE.unlockedLevel > TOTAL_LEVELS ? `完结 · 已结婚 💍` : `第 ${lvl} 关 / 共 ${TOTAL_LEVELS} 关`;
   document.getElementById('home-progress-fill').style.width =
     Math.min(100, STATE.totalCleared/TOTAL_LEVELS*100)+'%';
-  document.getElementById('gift-count').textContent = STATE.mementos.length;
-  document.getElementById('postcard-count').textContent = STATE.postcards.length;
+  document.getElementById('gift-count').hidden = STATE.mementos.length <= STATE.mementosSeen;
+  document.getElementById('postcard-count').hidden = STATE.postcards.length <= STATE.postcardsSeen;
 
   const info = xiaoyuanCycleInfo();
   const statusEl = document.getElementById('xiaoyuan-status');
@@ -467,7 +478,7 @@ document.getElementById('btn-reset').addEventListener('click', ()=>{
     refreshHome();
   }
 });
-document.getElementById('btn-backup').addEventListener('click', ()=> showModalQueue([{type:'backup'}]));
+document.getElementById('btn-backup').addEventListener('click', ()=> showModalQueue([{type:'backup'}], 'screen-home'));
 
 /* ============================================================
    关卡地图
@@ -541,7 +552,9 @@ function openAlbum(type){
   grid.innerHTML = '';
 
   if(type==='memento'){
-    document.getElementById('album-title').textContent = '已收集纪念品册';
+    STATE.mementosSeen = STATE.mementos.length;
+    saveState();
+    document.getElementById('album-title').textContent = '已收集纪念品';
     MEMENTO_LEVELS.forEach(level=>{
       const item = MEMENTO_ITEMS[level];
       const has = STATE.mementos.includes(level);
@@ -551,11 +564,13 @@ function openAlbum(type){
       div.title = has ? item.name : '尚未收集';
       if(has){
         div.style.cursor = 'pointer';
-        div.addEventListener('click', ()=> showModalQueue([{type:'memento', level, reread:true}]));
+        div.addEventListener('click', ()=> showModalQueue([{type:'memento', level, reread:true}], 'screen-home'));
       }
       grid.appendChild(div);
     });
   } else {
+    STATE.postcardsSeen = STATE.postcards.length;
+    saveState();
     document.getElementById('album-title').textContent = '已收集明信片册';
     POSTCARD_ITEMS.forEach((label,i)=>{
       const has = STATE.postcards.includes(i);
@@ -1091,14 +1106,16 @@ function onLevelFail(levelNum){
 
 /* ---------------- Modal 伫列 ---------------- */
 let modalQueue = [];
-function showModalQueue(queue){
+let modalReturnScreen = 'screen-map';
+function showModalQueue(queue, returnTo){
   modalQueue = queue.slice();
+  modalReturnScreen = returnTo || 'screen-map';
   showNextModal();
 }
 function showNextModal(){
   if(modalQueue.length===0){
     document.getElementById('modal-overlay').hidden = true;
-    showScreen('screen-map');
+    showScreen(modalReturnScreen);
     return;
   }
   const step = modalQueue.shift();
@@ -1189,14 +1206,24 @@ function renderModal(step){
       <button class="modal-btn" id="modal-next">好期待</button>`;
   } else if(step.type==='memento'){
     const m = MEMENTO_ITEMS[step.level];
-    const locLine = m.location ? `<p class="memento-location">${m.location}</p>` : '';
-    const storyLine = m.story ? `<p>${m.story}</p>` : '';
+    const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="memento-photo-fallback">💝</div>`;
+    const combinedText = (m.location ? m.location+'\n\n' : '') + (m.story || '');
     card.innerHTML = `
-      <div class="modal-emoji">💝</div>
-      <h3>${step.reread ? '' : '获得纪念品 · '}${m.name}</h3>
-      ${locLine}
-      <div class="memento-story">${storyLine}</div>
-      <button class="modal-btn" id="modal-next">${step.reread ? '关闭' : '收下'}</button>`;
+      <div class="memento-card">
+        <div class="memento-photo-circle">${photoInner}</div>
+        <div class="memento-card-inner" id="diary-inner">
+          <h3>${step.reread ? '' : '获得纪念品 · '}${m.name}</h3>
+          <div class="diary-page-text" id="diary-page-text"></div>
+          <div class="diary-page-nav" id="diary-page-nav" hidden>
+            <button class="diary-page-arrow" id="diary-prev" title="上一页">‹</button>
+            <div class="diary-page-dots" id="diary-dots"></div>
+            <button class="diary-page-arrow" id="diary-next" title="下一页">›</button>
+          </div>
+        </div>
+      </div>
+      <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '收下'}</button>`;
+    layoutCardBg('.memento-card', 'memento-mode');
+    setupDiaryPagination(combinedText);
   } else if(step.type==='diary'){
     const d = DIARY_TEXT[step.level];
     card.innerHTML = `
@@ -1212,7 +1239,7 @@ function renderModal(step){
         </div>
       </div>
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '收下这篇日记'}</button>`;
-    layoutDiaryCard();
+    layoutCardBg('.diary-card', 'diary-mode');
     setupDiaryPagination(d.text);
   }
 
@@ -1220,10 +1247,10 @@ function renderModal(step){
   if(nextBtn) nextBtn.addEventListener('click', showNextModal);
 }
 
-/* 恋爱日记卡片背景图同样是整张画布+透明背景,裁切逻辑与首页 layoutHomeCanvas() 相同原理 */
-function layoutDiaryCard(){
-  const card = document.querySelector('.diary-card');
-  const cardModal = document.querySelector('.modal-card.diary-mode');
+/* 戀愛日記卡片跟紀念品卡片共用同一张模板画布尺寸(整张画布+透明背景),裁切逻辑与首页 layoutHomeCanvas() 相同原理 */
+function layoutCardBg(cardSelector, modeClass){
+  const card = document.querySelector(cardSelector);
+  const cardModal = document.querySelector('.modal-card.'+modeClass);
   if(!card || !cardModal) return;
 
   // 卡片寬度同時要考慮「螢幕寬度」跟「螢幕高度扣掉按鈕後還能撐多高」兩個限制,
@@ -1245,7 +1272,9 @@ function layoutDiaryCard(){
   card.style.backgroundPosition = `${-DIARY_BG_BBOX.x1*scale}px ${-DIARY_BG_BBOX.y1*scale}px`;
 }
 window.addEventListener('resize', ()=>{
-  if(!document.getElementById('modal-overlay').hidden) layoutDiaryCard();
+  if(document.getElementById('modal-overlay').hidden) return;
+  if(document.querySelector('.diary-card')) layoutCardBg('.diary-card', 'diary-mode');
+  if(document.querySelector('.memento-card')) layoutCardBg('.memento-card', 'memento-mode');
 });
 
 /* ============================================================

@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="小派小远">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -36,11 +36,11 @@
       <img class="canvas-layer character-layer" id="char-kitchen-cook" src="assets/characters/xiaoyuan_kitchen_cook.png" alt="" hidden>
 
       <button id="hotspot-diary" class="canvas-hotspot" title="恋爱日记"></button>
-      <button id="hotspot-gift" class="canvas-hotspot" title="已收集纪念品册">
-        <span class="hotspot-badge" id="gift-count">0</span>
+      <button id="hotspot-gift" class="canvas-hotspot" title="已收集纪念品">
+        <span class="hotspot-badge" id="gift-count" hidden></span>
       </button>
       <button id="hotspot-postcard" class="canvas-hotspot" title="已收集明信片册">
-        <span class="hotspot-badge" id="postcard-count">0</span>
+        <span class="hotspot-badge" id="postcard-count" hidden></span>
       </button>
     </div>
 
@@ -89,7 +89,7 @@
   <section id="screen-album" class="screen">
     <div class="topbar">
       <button class="btn-back" data-back="home">←</button>
-      <h2 id="album-title">已收集纪念品册</h2>
+      <h2 id="album-title">已收集纪念品</h2>
     </div>
     <div id="album-grid" class="album-grid"></div>
   </section>
@@ -101,6 +101,6 @@
 
 </div>
 
-<script src="game.js?v=14"></script>
+<script src="game.js?v=16"></script>
 </body>
 </html>
