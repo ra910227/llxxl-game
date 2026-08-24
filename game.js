@@ -33,17 +33,17 @@ const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 const TILE_TYPES = [
   { name:'butterfly', bg:'#e3f2fb', img:'assets/tiles/butterfly.png' },
   { name:'star',      bg:'#fde9c8', img:'assets/tiles/star.png' },
-  { name:'bunny',     bg:'#f6b8d6', img:'assets/tiles/bunny.png' },
-  { name:'dogface',   bg:'#b9dc8f', img:'assets/tiles/dogface.png' },
-  { name:'moonface',  bg:'#c9b3ea', img:'assets/tiles/moonface.png' },
+  { name:'bunny',     bg:'#fbe3ef', img:'assets/tiles/bunny.png' },
+  { name:'dogface',   bg:'#eef2e0', img:'assets/tiles/dogface.png' },
+  { name:'moonface',  bg:'#ece6f7', img:'assets/tiles/moonface.png' },
   { name:'movie',     bg:'#f5f0e6', img:'assets/tiles/movie.png' },
   { name:'mic',       bg:'#dfe9ee', img:'assets/tiles/mic.png' },
   { name:'rose',      bg:'#fbe0e6', img:'assets/tiles/rose.png' },
   { name:'dog',       bg:'#fbe9dd', img:'assets/tiles/dog.png' },
   { name:'sun',       bg:'#fff3c4', img:'assets/tiles/sun.png' },
   { name:'heart',     bg:'#f6d4c9', img:'assets/tiles/heart.png' },
-  { name:'xiaopai',   bg:'#f58aa8', img:'assets/tiles/xiaopai.png' },
-  { name:'xiaoyuan',  bg:'#7dc98a', img:'assets/tiles/xiaoyuan.png' },
+  { name:'xiaopai',   bg:'#fadce6', img:'assets/tiles/xiaopai.png' },
+  { name:'xiaoyuan',  bg:'#dff0df', img:'assets/tiles/xiaoyuan.png' },
 ];
 // 小派/小远两张角色图不算常设图案,只在剧情日记关卡(MILESTONES)跟纪念品触发关卡(MEMENTO_LEVELS)出现,
 // 直接顶替掉当关的兔兔(bunny)/狗狗(dogface),图案总数不变,难度不会因此变高
