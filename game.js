@@ -24,6 +24,7 @@ const HOTSPOTS = {
   diary:    {x1:451,  y1:2453, x2:705,  y2:2703},
   gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
+  avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
 };
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -77,7 +78,7 @@ const MEMENTO_ITEMS = {
   25:{name:`狗狗玩偶`, location:`床头的`, img:`assets/gifts/25.png`, story:`一大早小派按下最后一个闹钟，锤打了床头玩偶七下。但每打一下就在心里念一句，哥哥我爱你。`},
   27:{name:`玻璃罩蝴蝶`, location:`客厅书柜上的`, img:`assets/gifts/27.png`, story:`一个周末，派预定了一家手工店，出门做手工，历经九九八十一难，终于做出【玻璃罩蝴蝶】，骄傲拍图并连发18条朋友圈。粉丝问他为什么喜欢蝴蝶，他说：「我喜欢🦋的原因，就是蝴蝶很自由……我觉得它非常的浪漫🌹」
 但其实是因为小远的明星符号就是蓝色蝴蝶，可惜不能说。`},
-  31:{name:`星星抱枕`, location:``, story:``},
+  31:{name:`星星抱枕`, location:``, img:`assets/gifts/31.png`, story:``},
   35:{name:`锁头项链、钥匙项链`, location:`情侣配饰`, img:`assets/gifts/35.png`, story:`自从异地恋生活，小派每次看到小远跟新人的合照都会小小的醋涨了一下。小远知道后，给两人买了情侣配饰【锁、钥匙】，即使小远认识很多新人，小远爱情的锁只有派派可以开。`},
   37:{name:`黑框眼镜`, location:`客厅桌上的两副`, img:`assets/gifts/37.png`, story:`小远有高度近视，但是不爱带框架眼镜，他总感觉他戴上眼镜看起来很呆，但隐形又很伤眼，有时休息不好连轴转，一戴上隐形头就晕的不得了。
 "在家里可以不用戴眼镜"，小派帮他滴完眼药水说，"框架压鼻梁，隐形伤眼睛，你把你自己全部交给我就好。"
@@ -428,12 +429,55 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
   });
 });
 
-/* 第一次打开首页时的一次性玩法导览,dismiss 后写 flag 永远不再跳出 */
+/* 第一次打开首页时,依序闪烁介绍三个按键,dismiss 后写 flag 永远不再跳出。
+   同一份文字之后也收录在头像按键(hotspot-avatar)打开的「游戏玩法」分页,方便玩家随时回看。 */
+const HOME_TOUR_STEPS = [
+  { id:'hotspot-diary',    text:`79关消消乐小关卡，解锁小派跟小远的恋爱日记。` },
+  { id:'hotspot-gift',     text:`小远送的礼物、生活回忆的纪念品……收集这些承载浪漫故事的物品，来一点点装饰家中各个角落。` },
+  { id:'hotspot-postcard', text:`收藏了小远在外巡演寄回来的明信片及两人出游的合照，可以随时翻阅。` },
+];
+let homeTourEls = null;
 function maybeShowHomeTutorial(){
   if(STATE.homeTutorialSeen) return;
   STATE.homeTutorialSeen = true;
   saveState();
-  showModalQueue([{type:'tutorial-home'}], 'screen-home');
+  runHomeTourStep(0);
+}
+function runHomeTourStep(i){
+  if(i>=HOME_TOUR_STEPS.length){ endHomeTour(); return; }
+  const step = HOME_TOUR_STEPS[i];
+  const wrap = document.getElementById('home-canvas');
+  const target = document.getElementById(step.id);
+  if(!target){ runHomeTourStep(i+1); return; }
+  if(!homeTourEls){
+    const dim = document.createElement('div'); dim.className = 'tour-dim';
+    const hi = document.createElement('div'); hi.className = 'tour-highlight';
+    const cap = document.createElement('div'); cap.className = 'tour-caption';
+    wrap.appendChild(dim); wrap.appendChild(hi); wrap.appendChild(cap);
+    homeTourEls = { dim, hi, cap };
+  }
+  const wrapRect = wrap.getBoundingClientRect();
+  const rect = target.getBoundingClientRect();
+  const left = rect.left - wrapRect.left, top = rect.top - wrapRect.top;
+  homeTourEls.hi.style.left = left+'px';
+  homeTourEls.hi.style.top = top+'px';
+  homeTourEls.hi.style.width = rect.width+'px';
+  homeTourEls.hi.style.height = rect.height+'px';
+
+  let capTop = top + rect.height + 12;
+  if(capTop + 130 > wrapRect.height) capTop = Math.max(10, top - 130 - 12);
+  let capLeft = left + rect.width/2 - 110;
+  capLeft = Math.max(10, Math.min(capLeft, wrapRect.width - 230));
+  homeTourEls.cap.style.left = capLeft+'px';
+  homeTourEls.cap.style.top = capTop+'px';
+  const isLast = i===HOME_TOUR_STEPS.length-1;
+  homeTourEls.cap.innerHTML = `<p>${step.text}</p><button id="tour-next">${isLast?'知道了':'下一步'}</button>`;
+  document.getElementById('tour-next').addEventListener('click', ()=> runHomeTourStep(i+1));
+}
+function endHomeTour(){
+  if(!homeTourEls) return;
+  homeTourEls.dim.remove(); homeTourEls.hi.remove(); homeTourEls.cap.remove();
+  homeTourEls = null;
 }
 
 /* ============================================================
@@ -524,6 +568,7 @@ function updateHomeCharacters(info){
   }
 }
 
+document.getElementById('hotspot-avatar').addEventListener('click', ()=> showModalQueue([{type:'about'}], 'screen-home'));
 document.getElementById('hotspot-diary').addEventListener('click', ()=> showScreen('screen-map'));
 document.getElementById('hotspot-gift').addEventListener('click', ()=> openAlbum('memento'));
 document.getElementById('hotspot-postcard').addEventListener('click', ()=> openAlbum('postcard'));
@@ -1200,17 +1245,40 @@ function renderModal(step){
   card.classList.toggle('diary-mode', step.type==='diary');
   card.classList.toggle('memento-mode', step.type==='memento');
 
-  if(step.type==='tutorial-home'){
+  if(step.type==='about'){
     card.innerHTML = `
-      <div class="modal-emoji">🏠</div>
-      <h3>欢迎来到小派与小远的家</h3>
-      <div class="tutorial-list">
-        <div class="tutorial-row"><span class="tutorial-icon">💕</span><div><b>爱心</b><br>体力值,每次挑战扣1颗,过一段时间会自动恢复。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">📖</span><div><b>恋爱日记</b><br>点这里进入关卡地图,开始消除游戏。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🎁</span><div><b>纪念品</b><br>过关收集到的纪念品都收藏在这里。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">💌</span><div><b>明信片</b><br>小远出差回来会带回明信片,集满全部看看有什么惊喜。</div></div>
+      <div class="about-tabs">
+        <button class="about-tab-btn active" id="about-tab-play">游戏玩法</button>
+        <button class="about-tab-btn" id="about-tab-credits">主创团队</button>
       </div>
-      <button class="modal-btn" id="modal-next">开始游戏</button>`;
+      <div class="about-panel active" id="about-panel-play">
+        <div class="tutorial-list">
+          <div class="tutorial-row"><span class="tutorial-icon">📖</span><div>${HOME_TOUR_STEPS[0].text}</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">🎁</span><div>${HOME_TOUR_STEPS[1].text}</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">💌</span><div>${HOME_TOUR_STEPS[2].text}</div></div>
+        </div>
+      </div>
+      <div class="about-panel" id="about-panel-credits">
+        <div class="about-credits-title">HHYY【谁是卧底】</div>
+        <div class="about-credits-row"><b>主美：</b>英招招</div>
+        <div class="about-credits-row"><b>主架：</b>易烊珺</div>
+        <div class="about-credits-row"><b>美术：</b>叭叭叭、硬梆梆</div>
+        <div class="about-credits-row"><b>文字：</b>姜姜姜姜、无敌小可</div>
+        <div class="about-credits-row"><b>特别感谢：</b>南十字星老师</div>
+      </div>
+      <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
+    const playTab = card.querySelector('#about-tab-play');
+    const creditsTab = card.querySelector('#about-tab-credits');
+    const playPanel = card.querySelector('#about-panel-play');
+    const creditsPanel = card.querySelector('#about-panel-credits');
+    playTab.addEventListener('click', ()=>{
+      playTab.classList.add('active'); creditsTab.classList.remove('active');
+      playPanel.classList.add('active'); creditsPanel.classList.remove('active');
+    });
+    creditsTab.addEventListener('click', ()=>{
+      creditsTab.classList.add('active'); playTab.classList.remove('active');
+      creditsPanel.classList.add('active'); playPanel.classList.remove('active');
+    });
   } else if(step.type==='tutorial-level'){
     card.innerHTML = `
       <div class="modal-emoji">🧩</div>
