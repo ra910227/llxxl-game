@@ -1044,7 +1044,7 @@ function resolveCascade(combo){
   }
   if(bombed){
     showMoonBurst();
-    showBoardToast('🌙 月亮合體炸开了阻礙!');
+    showBoardToast('🌙 月兔合體炸开了阻礙!');
   } else if(specialMsg) showBoardToast(specialMsg);
 
   // 解冻相邻冰冻格
