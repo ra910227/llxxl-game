@@ -397,6 +397,16 @@ html,body{
 .modal-card h3{margin:0 0 8px;font-size:18px;color:var(--pink);}
 .modal-card p{font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;text-align:left;}
 .modal-emoji{font-size:44px;margin-bottom:6px;}
+.tutorial-list{
+  display:flex;flex-direction:column;gap:14px;
+  text-align:left;margin:14px 0;
+}
+.tutorial-row{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:12.5px;line-height:1.6;color:var(--ink);
+}
+.tutorial-row b{color:var(--pink);}
+.tutorial-icon{font-size:20px;flex-shrink:0;line-height:1.4;}
 
 .modal-card.memento-mode{
   max-width:360px;

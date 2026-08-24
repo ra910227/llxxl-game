@@ -253,7 +253,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, lives:MAX_LIVES, nextRegenAt:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -416,6 +416,7 @@ function showScreen(id){
     refreshHome();
     layoutHomeCanvas();
     startLivesTimer();
+    maybeShowHomeTutorial();
   }
   if(id==='screen-map') refreshMap();
 }
@@ -426,6 +427,14 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
     showScreen(target==='home' ? 'screen-home' : 'screen-'+target);
   });
 });
+
+/* 第一次打开首页时的一次性玩法导览,dismiss 后写 flag 永远不再跳出 */
+function maybeShowHomeTutorial(){
+  if(STATE.homeTutorialSeen) return;
+  STATE.homeTutorialSeen = true;
+  saveState();
+  showModalQueue([{type:'tutorial-home'}], 'screen-home');
+}
 
 /* ============================================================
    首页
@@ -672,6 +681,12 @@ function openBoard(levelNum){
   selectedCell = null;
   showScreen('screen-board');
   renderBoard();
+
+  if(!STATE.levelTutorialSeen){
+    STATE.levelTutorialSeen = true;
+    saveState();
+    showModalQueue([{type:'tutorial-level'}], 'screen-board');
+  }
 }
 
 function randType(n){ return Math.floor(Math.random()*n); }
@@ -1185,7 +1200,28 @@ function renderModal(step){
   card.classList.toggle('diary-mode', step.type==='diary');
   card.classList.toggle('memento-mode', step.type==='memento');
 
-  if(step.type==='backup'){
+  if(step.type==='tutorial-home'){
+    card.innerHTML = `
+      <div class="modal-emoji">🏠</div>
+      <h3>欢迎来到小派与小远的家</h3>
+      <div class="tutorial-list">
+        <div class="tutorial-row"><span class="tutorial-icon">💕</span><div><b>爱心</b><br>体力值,每次挑战扣1颗,过一段时间会自动恢复。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">📖</span><div><b>恋爱日记</b><br>点这里进入关卡地图,开始消除游戏。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🎁</span><div><b>纪念品</b><br>过关收集到的纪念品都收藏在这里。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">💌</span><div><b>明信片</b><br>小远出差回来会带回明信片,集满全部看看有什么惊喜。</div></div>
+      </div>
+      <button class="modal-btn" id="modal-next">开始游戏</button>`;
+  } else if(step.type==='tutorial-level'){
+    card.innerHTML = `
+      <div class="modal-emoji">🧩</div>
+      <h3>消除玩法</h3>
+      <div class="tutorial-list">
+        <div class="tutorial-row"><span class="tutorial-icon">1️⃣</span><div>拖曳交换相邻的两个图案。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑满3个以上相同图案就会消除。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>步数用完前要达到目标分数才算过关。</div></div>
+      </div>
+      <button class="modal-btn" id="modal-next">开始挑战</button>`;
+  } else if(step.type==='backup'){
     const code = encodeSaveCode(STATE);
     card.innerHTML = `
       <h3>存档备份</h3>
