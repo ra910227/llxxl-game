@@ -240,7 +240,7 @@ function generateLevelConfig(n){
     targetScore = Math.round(cellCount * (12 + n*0.6));
     numFrozen = Math.min(Math.floor(n/5), Math.floor(cellCount*0.15));
   } else {
-    moves = Math.max(12, (26 - Math.floor(50/8)) - Math.floor((n-50)/3));
+    moves = Math.max(15, (26 - Math.floor(50/8)) - Math.floor((n-50)/5));
     targetScore = Math.round(cellCount * (12 + 50*0.6 + (n-50)*1.1));
     numFrozen = Math.min(Math.floor(10 + (n-50)/2), Math.floor(cellCount*0.22));
   }
