@@ -254,9 +254,10 @@ function generateLevelConfig(n){
     numFrozen = Math.min(Math.floor(n/5), Math.floor(cellCount*0.15));
   } else {
     moves = Math.max(15, (26 - Math.floor(50/8)) - Math.floor((n-50)/5));
-    // 目标分数改成直接用「每步预期分数」反推,不再跟着棋盘格数(50关后8x8跳9x9)一起跳涨,
-    // 每步预期分数从50关的134分缓步涨到79关的170分,涨幅远比之前温和,避免跟图案种类/冰冻格同时飙升
-    const scorePerMove = 134 + (n-50) * (36/29);
+    // 目标分数用「每步预期分数」反推,依 59关7799分/79关9977分 两个锚点校准斜率(59/79都是里程碑关卡,
+    // 分数还会再乘1.15)。50关后连击加成(4连*1.5/5连*2)跟狗狗兔兔组合的步数奖励(+7/+9)都大幅提高,
+    // 靠这些「爽度」撑住比之前更高的分数门槛,而不是单纯调低目标。
+    const scorePerMove = 257.377 + (n-50) * 11.06896;
     targetScore = Math.round(moves * scorePerMove);
     numFrozen = Math.min(Math.floor(10 + (n-50)/2), Math.floor(cellCount*0.22));
   }
@@ -1192,14 +1193,16 @@ function resolveCascade(combo){
       sunBursted = true;
     }
 
-    // 狗狗/小远配对成功:步数 +1;兔兔/小派配对成功:步数 +1
+    // 狗狗/小远配对成功:步数 +1(50关后+7);兔兔/小派配对成功:步数 +1(50关后+9),50关后步数吃紧,加大奖励帮玩家撑住后期关卡
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
-      bonusMoves += 1;
-      specialMsg = '🐾 狗狗组合!步数 +1';
+      const add = cfg.level>=50 ? 7 : 1;
+      bonusMoves += add;
+      specialMsg = `🐾 狗狗组合!步数 +${add}`;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
-      bonusMoves += 1;
-      specialMsg = '🐰 兔兔组合!步数 +1';
+      const add = cfg.level>=50 ? 9 : 1;
+      bonusMoves += add;
+      specialMsg = `🐰 兔兔组合!步数 +${add}`;
     }
   });
   if(bonusMoves>0){
@@ -1224,9 +1227,16 @@ function resolveCascade(combo){
     });
   });
 
-  // 计分:每格 10 分 * 连锁倍数,额外长串奖励
-  let gained = matched.size * 10 * combo;
-  matched.forEach(()=>{});
+  // 计分:每格 10 分,4连*1.5倍、5连以上*2倍(爽度加成),额外炸开的格子(月亮3x3/蝴蝶整排/太阳十字)算基础分,最后再乘上连锁倍数
+  let gained = 0;
+  const runCellKeys = new Set();
+  runs.forEach(run=>{
+    run.forEach(([r,c])=> runCellKeys.add(r+','+c));
+    const lengthMult = run.length>=5 ? 2 : run.length>=4 ? 1.5 : 1;
+    gained += run.length * 10 * lengthMult;
+  });
+  matched.forEach(key=>{ if(!runCellKeys.has(key)) gained += 10; });
+  gained = Math.round(gained * combo);
   BOARD.score += gained;
   document.getElementById('board-score-current').textContent = BOARD.score;
   document.getElementById('board-score-fill').style.width =
