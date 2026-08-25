@@ -1,5 +1,5 @@
 /* 離線快取:第一次打開後把遊戲需要的檔案都存起來,之後沒網路也能開 */
-const CACHE_NAME = 'llxxl-cache-v14';
+const CACHE_NAME = 'llxxl-cache-v15';
 const ASSETS = [
   './',
   './index.html',

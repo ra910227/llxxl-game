@@ -1508,7 +1508,8 @@ function renderModal(step){
   const card = document.getElementById('modal-card');
   overlay.hidden = false;
   card.classList.toggle('diary-mode', step.type==='diary');
-  card.classList.toggle('memento-mode', step.type==='memento');
+  card.classList.toggle('memento-mode', step.type==='memento' && step.source!=='couple');
+  card.classList.toggle('couple-mode', step.type==='memento' && step.source==='couple');
 
   if(step.type==='about'){
     card.innerHTML = `
@@ -1645,27 +1646,39 @@ function renderModal(step){
   } else if(step.type==='memento'){
     const isCouple = step.source==='couple';
     const m = isCouple ? COUPLE_PHOTO_ITEMS[step.level] : MEMENTO_ITEMS[step.level];
-    const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="memento-photo-fallback">💝</div>`;
     const combinedText = m.story || '';
     const headingPrefix = step.reread ? '' : (isCouple ? '获得合照 · ' : '获得纪念品 · ');
     const albumBtnText = isCouple ? '去明信片册看看' : '去纪念品册看看';
-    card.innerHTML = `
-      <div class="memento-card">
-        <div class="memento-photo-circle">${photoInner}</div>
-        <div class="memento-card-inner" id="diary-inner">
+    if(isCouple){
+      const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="couple-photo-fallback"><span>💌</span></div>`;
+      card.innerHTML = `
+        <div class="couple-photo-frame">${photoInner}</div>
+        <div class="couple-photo-inner">
           <h3>${headingPrefix}${m.name}</h3>
-          <div class="diary-page-text" id="diary-page-text"></div>
-          <div class="diary-page-nav" id="diary-page-nav" hidden>
-            <button class="diary-page-arrow" id="diary-prev" title="上一页">‹</button>
-            <div class="diary-page-dots" id="diary-dots"></div>
-            <button class="diary-page-arrow" id="diary-next" title="下一页">›</button>
+          <p class="couple-photo-story">${combinedText}</p>
+        </div>
+        <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
+        ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">${albumBtnText}</button>`}`;
+    } else {
+      const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="memento-photo-fallback">💝</div>`;
+      card.innerHTML = `
+        <div class="memento-card">
+          <div class="memento-photo-circle">${photoInner}</div>
+          <div class="memento-card-inner" id="diary-inner">
+            <h3>${headingPrefix}${m.name}</h3>
+            <div class="diary-page-text" id="diary-page-text"></div>
+            <div class="diary-page-nav" id="diary-page-nav" hidden>
+              <button class="diary-page-arrow" id="diary-prev" title="上一页">‹</button>
+              <div class="diary-page-dots" id="diary-dots"></div>
+              <button class="diary-page-arrow" id="diary-next" title="下一页">›</button>
+            </div>
           </div>
         </div>
-      </div>
-      <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
-      ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">${albumBtnText}</button>`}`;
-    layoutCardBg('.memento-card', 'memento-mode');
-    setupDiaryPagination(combinedText);
+        <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
+        ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">${albumBtnText}</button>`}`;
+      layoutCardBg('.memento-card', 'memento-mode');
+      setupDiaryPagination(combinedText);
+    }
   } else if(step.type==='diary'){
     const d = DIARY_TEXT[step.level];
     card.innerHTML = `

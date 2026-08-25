@@ -672,3 +672,45 @@ html,body{
   background:#fdf1e4;
   font-size:1.8em;
 }
+
+/* 明信片册里的合照:不用纪念品那套复古卡册背景,改成简单的白边照片(像拍立得)+ 下方直接放文字 */
+.modal-card.couple-mode{
+  max-width:400px;
+  max-height:86vh;
+  overflow-y:auto;
+}
+.couple-photo-frame{
+  width:100%;
+  padding:8px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 6px 16px var(--shadow);
+  margin-bottom:16px;
+  box-sizing:border-box;
+}
+.couple-photo-frame img{
+  width:100%;
+  display:block;
+  border-radius:6px;
+}
+.couple-photo-fallback{
+  width:100%;
+  position:relative;
+  background:#fdf1e4;
+  border-radius:6px;
+  font-size:2.4em;
+}
+.couple-photo-fallback::before{ content:""; display:block; padding-top:100%; }
+.couple-photo-fallback span{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.couple-photo-inner h3{
+  text-align:center;
+  color:var(--pink);
+  margin:0 0 8px;
+  font-size:15px;
+}
+.couple-photo-story{
+  margin:0;
+}
