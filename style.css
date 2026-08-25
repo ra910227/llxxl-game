@@ -64,6 +64,14 @@ html,body{
   -webkit-tap-highlight-color:transparent;
 }
 .canvas-hotspot:active{transform:scale(0.93);}
+.hotspot-label{
+  position:absolute;
+  color:#fff;
+  font-size:12px;font-weight:700;
+  white-space:nowrap;
+  pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 6px rgba(0,0,0,0.25);
+}
 
 /* ---------- 首页按键导览(第一次进首页时依序闪烁介绍) ---------- */
 .tour-dim{
@@ -321,6 +329,9 @@ html,body{
   opacity:1;
   transform:translate(-50%,-50%) scale(1);
 }
+.sun-burst{
+  box-shadow:0 8px 28px rgba(230,170,60,0.45);
+}
 .tile{
   border-radius:12px;
   display:flex;align-items:center;justify-content:center;
@@ -516,6 +527,9 @@ html,body{
 .modal-btn.secondary{
   background:#eee0d8;color:var(--ink);
   margin-left:8px;
+}
+.modal-btn.secondary.diary-close-btn{
+  margin-left:0;margin-top:10px;
 }
 
 .modal-card.diary-mode{

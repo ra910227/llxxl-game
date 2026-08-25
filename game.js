@@ -63,7 +63,7 @@ const POSTCARD_ITEMS = [
 ];
 // 跟恋爱日记撞关的几个(原本 10/20/30/40/50/60/70)刻意往前错开几关,
 // 避免「获得纪念品」跟「戀愛日記」两个弹窗同一整数关卡一次全部跳出来。
-const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 21, 25, 27, 31, 35, 37, 45, 47, 55, 57, 65, 67, 75];
+const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 21, 25, 27, 31, 35, 37, 41, 45, 47, 55, 57, 65, 67, 75];
 
 const MEMENTO_ITEMS = {
   0:{name:`家的钥匙`, location:``, img:`assets/gifts/0.png`, story:`「希望哥哥有空可以来找我玩！」
@@ -86,6 +86,14 @@ const MEMENTO_ITEMS = {
 "干嘛？"小远不满意地嘟囔，只模糊看到小派的脸慢慢凑近。
 "你别凑这么近，我看不清…"说着小远便要推开小派，没料到被人反手捉住压在沙发上，含着雾气的话喷得睫毛重重下垂，随着湿漉漉的吻压下来—— "你不用看清我，我们接吻吧。"
 隔天他们一起去配了两副一样的黑框眼镜，一起带就不呆了。`},
+  41:{name:`环球影城合照`, location:`二楼窗台矮柜上的`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
+小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
+伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
+近点，再近点，姐姐指挥到。
+两人的脚尖靠拢，再靠拢，最终在快门按下的瞬间，小派揽住了伯远的肩膀。
+不愧是英勇的格兰芬多，但下一秒，拿剑的勇士便涨红了脸，因为那位带着黄色围巾的巫师悄悄垫脚，在他耳边低声道：「我以为刚刚我们应该接吻的。」
+
+近些，再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
   45:{name:`辣子鸡`, location:`餐桌上的（只有小远小派一起在厨房的画面才出现）`, img:`assets/gifts/45.png`, story:`晚上放学回到家，小远竟然在家，两个人亲密了一番后小派就被远叫去写作业了。小派吭哧吭哧写完作业，发现远做了小派最爱吃的辣子鸡。
 男团刚成立的时候，小派刚从泰国来到中国，对中国料理说不上多热爱，直到小远深夜做了【辣子鸡】给他吃，从此这就是他最爱的料理了。他永远都会记得那个夜晚，整个团小远只叫他一个人来吃，他第一次感受到小远的温柔与关爱，他是他最特别的小孩。`},
   47:{name:`便条纸`, location:`冰箱上的`, img:`assets/gifts/47.jpg`, story:`「派，
@@ -95,14 +103,8 @@ const MEMENTO_ITEMS = {
   55:{name:`垂耳兔粉绿帽`, location:``, story:`这个帽子是小远个人巡演的服装，每当他想到小派无法参加自己的演出就感到难受，但只要他还是偶像歌手，他们就不能公开。
 因为这样，小远喜欢在演出里加入一些只有两个人才看得懂的符号，就像这顶垂耳兔粉绿帽——小派的应援色跟动物设定就是粉色的兔子。
 演出结束后，小远把这顶帽子寄给了小派，弥补小派参与不了小远个人巡演的遗憾。`},
-  57:{name:`环球影城合照`, location:`二楼窗台矮柜上的`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
-小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
-伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
-近点，再近点，姐姐指挥到。
-两人的脚尖靠拢，再靠拢，最终在快门按下的瞬间，小派揽住了伯远的肩膀。
-不愧是英勇的格兰芬多，但下一秒，拿剑的勇士便涨红了脸，因为那位带着黄色围巾的巫师悄悄垫脚，在他耳边低声道：「我以为刚刚我们应该接吻的。」
-
-近些，再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
+  57:{name:`泰国行合照`, location:``, story:`那是伯远第二次跟尹浩宇去泰国见家长，还记得第一次见到玫瑰女士，玫瑰女士直接推开小派拥抱小远，两个人是不用明说也能让家人感知到爱的亲密关系。
+浪漫少女尹小派不知道从哪里知道了在摩天轮最高点接吻就能永远在一起的都市传说，拉着小远再访了他们男团解散前去过的摩天轮。`},
   65:{name:`小王子氛围灯`, location:`二楼窗台矮柜上的`, img:`assets/gifts/65.png`, story:`小派跟小远说过小王子的故事，小王子守着他的玫瑰在小小的星球上，他们拥有彼此而不再孤单。看到这个礼物，小派哈特软软，气消了大半，别扭地发消息问伯远是不是你买的……
 ｛聊天内容｝`},
   67:{name:`专辑《闪闪》`, location:`客厅桌上的`, img:`assets/gifts/67.jpg`, story:`因为小远在歌手的路上越走越远，小派除了演员外对于音乐制作也有天赋，俩人在音乐上有了更多合作。派派写曲子、英文歌词，小远再帮小派填成中文、帮录和声。
@@ -400,6 +402,13 @@ function layoutHomeCanvas(){
     el.style.top = (layerTop + b.y1*scale)+'px';
     el.style.width = ((b.x2-b.x1)*scale)+'px';
     el.style.height = ((b.y2-b.y1)*scale)+'px';
+
+    const label = document.getElementById('hotspot-'+key+'-label');
+    if(label){
+      label.style.left = (layerLeft + (b.x1+b.x2)/2*scale)+'px';
+      label.style.top = (layerTop + b.y1*scale - 8)+'px';
+      label.style.transform = 'translate(-50%,-100%)';
+    }
   });
 }
 window.addEventListener('resize', ()=>{
@@ -738,17 +747,22 @@ function openBoard(levelNum){
 
 function randType(n){ return Math.floor(Math.random()*n); }
 
-const MOON_WEIGHT = 0.5; // 月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
+const MOON_WEIGHT = 0.5;       // 60关前:月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
+const LATE_BOOST_WEIGHT = 1.6; // 60关后:月亮/太阳/蝴蝶出现权重提高,帮助玩家更容易凑出特殊清版效果,抵消图案种类变多的难度
 
 /* 剧情/纪念品关卡:抽到兔兔/狗狗时直接顶替成小派/小远,图案总数不变 */
 function pickType(cfg){
   const n = cfg.tileTypes;
   let t;
-  if(MOONFACE_IDX < n){
+  const lateGame = cfg.level>=60;
+  const hasWeighting = MOONFACE_IDX<n || (lateGame && (SUN_IDX<n || BUTTERFLY_IDX<n));
+  if(hasWeighting){
     let totalWeight = 0;
     const weights = [];
     for(let i=0;i<n;i++){
-      const w = (i===MOONFACE_IDX) ? MOON_WEIGHT : 1;
+      let w = 1;
+      if(i===MOONFACE_IDX) w = lateGame ? LATE_BOOST_WEIGHT : MOON_WEIGHT;
+      else if(lateGame && (i===SUN_IDX || i===BUTTERFLY_IDX)) w = LATE_BOOST_WEIGHT;
       weights.push(w);
       totalWeight += w;
     }
@@ -879,6 +893,21 @@ function showMoonBurst(){
   el.classList.add('show');
   clearTimeout(moonBurstTimer);
   moonBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
+let sunBurstTimer = null;
+function showSunBurst(){
+  let el = document.getElementById('sun-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'sun-burst';
+    el.className = 'moon-burst sun-burst';
+    el.innerHTML = `<img src="assets/effects/sun_burst.png" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(sunBurstTimer);
+  sunBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
 }
 
 function swapCells(cells,r1,c1,r2,c2){
@@ -1076,6 +1105,7 @@ function resolveCascade(combo){
 
   // 各种图案的特殊效果
   let bombed = false;
+  let sunBursted = false;
   let bonusMoves = 0;
   let specialMsg = null;
   const burstCells = new Set(); // 蝴蝶/太阳的整排/十字爆炸特效格,消除动画会用更炫的燃烧特效取代普通淡出
@@ -1114,6 +1144,7 @@ function resolveCascade(combo){
       for(let c=0;c<cfg.cols;c++) if(BOARD.cells[mr][c]){ const k=mr+','+c; matched.add(k); burstCells.add(k); }
       for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][mc]){ const k=r+','+mc; matched.add(k); burstCells.add(k); }
       specialMsg = `"morning sunshine☀️"`;
+      sunBursted = true;
     }
 
     // 狗狗/小远配对成功:步数 +1;兔兔/小派配对成功:步数 +1
@@ -1133,6 +1164,9 @@ function resolveCascade(combo){
   if(bombed){
     showMoonBurst();
     showBoardToast('🌙 月兔合體炸开了阻礙!');
+  } else if(sunBursted){
+    showSunBurst();
+    showBoardToast(specialMsg);
   } else if(specialMsg) showBoardToast(specialMsg);
 
   // 解冻相邻冰冻格
@@ -1405,7 +1439,8 @@ function renderModal(step){
           </div>
         </div>
       </div>
-      <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '收下'}</button>`;
+      <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
+      ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">去纪念品册看看</button>`}`;
     layoutCardBg('.memento-card', 'memento-mode');
     setupDiaryPagination(combinedText);
   } else if(step.type==='diary'){
@@ -1435,6 +1470,13 @@ function renderModal(step){
 
   const nextBtn = card.querySelector('#modal-next');
   if(nextBtn) nextBtn.addEventListener('click', showNextModal);
+  const gotoAlbumBtn = card.querySelector('#modal-goto-album');
+  if(gotoAlbumBtn) gotoAlbumBtn.addEventListener('click', ()=>{
+    modalQueue = [];
+    document.getElementById('modal-overlay').hidden = true;
+    showScreen('screen-home');
+    openAlbum('memento');
+  });
 }
 
 /* 戀愛日記卡片跟紀念品卡片共用同一张模板画布尺寸(整张画布+透明背景),裁切逻辑与首页 layoutHomeCanvas() 相同原理 */
