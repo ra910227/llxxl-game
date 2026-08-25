@@ -797,15 +797,23 @@ const MOON_BOOST_WEIGHT = 1.6; // 60关后:月亮出现权重提高,帮助玩家
 
 // 蝴蝶整排特效40关解锁、太阳十字特效60关解锁(见 resolveCascade);各自从解锁关卡起,
 // 出现权重跟着关卡难度线性提高,越晚的关卡加成越大,79关同样封顶在2.8倍,让玩家更容易凑到四连触发特效,抵消变难的曲线
+// 有了月兔捣药机制帮忙撑住后期难度,蝴蝶/太阳的出现权重加成不用像之前那么高,改成小幅提高就好,
+// 权重改由兔兔/狗狗(能凑出月兔组合)分摊过去
 function butterflyBoostWeight(level){
   if(level < 40) return 1;
   const t = Math.min(level, 79);
-  return 1.6 + (t-40) * (1.2/39);
+  return 1.2 + (t-40) * (0.4/39);
 }
 function sunBoostWeight(level){
   if(level < 60) return 1;
   const t = Math.min(level, 79);
-  return 1.6 + (t-60) * (1.2/19);
+  return 1.2 + (t-60) * (0.4/19);
+}
+// 40关起,兔兔/小派、狗狗/小远出现权重提高,帮玩家更容易凑出「一组狗狗+一组兔兔」召唤月兔
+function bunnyDogfaceBoostWeight(level){
+  if(level < 40) return 1;
+  const t = Math.min(level, 79);
+  return 1.4 + (t-40) * (1.0/39);
 }
 
 /* 剧情/纪念品关卡:抽到兔兔/狗狗时直接顶替成小派/小远,图案总数不变 */
@@ -819,6 +827,7 @@ function pickType(cfg){
     if(i===MOONFACE_IDX) w = level>=60 ? MOON_BOOST_WEIGHT : MOON_WEIGHT;
     else if(i===SUN_IDX) w = sunBoostWeight(level);
     else if(i===BUTTERFLY_IDX) w = butterflyBoostWeight(level);
+    else if(i===BUNNY_IDX || i===DOGFACE_IDX) w = bunnyDogfaceBoostWeight(level);
     weights.push(w);
     totalWeight += w;
   }
@@ -1306,7 +1315,7 @@ function resolveCascade(combo){
   }
   if(bombed){
     showMoonBurst();
-    showBoardToast('🌙 月兔合體炸开了阻礙!');
+    showBoardToast('🌙 🐇月兔合體——炸开了阻礙！');
   } else if(sunBursted){
     showSunBurst();
     showBoardToast(specialMsg);
