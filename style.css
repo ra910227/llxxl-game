@@ -291,7 +291,13 @@ html,body{
   background:var(--cream);
   min-height:0;
 }
-.rabbit-tray .rabbit-icon{ font-size:20px; }
+.rabbit-tray .rabbit-icon{
+  width:30px;height:30px;
+  object-fit:contain;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 5px var(--shadow);
+}
 .rabbit-tray .fullmoon-icon{
   font-size:30px;
   cursor:grab;
