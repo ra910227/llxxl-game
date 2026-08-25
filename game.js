@@ -61,9 +61,24 @@ const POSTCARD_ITEMS = [
   '🏝️ 厦门出差','🌃 深圳出差','🎆 上海出差','🍁 南京出差','🐼 成都出差',
   '🌸 杭州出差','⛰️ 贵州出差','🌴 海南出差'
 ];
+
+// 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
+const COUPLE_PHOTO_LEVELS = [41, 57];
+const COUPLE_PHOTO_ITEMS = {
+  41:{name:`环球影城合照`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
+小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
+伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
+近点，再近点，姐姐指挥到。
+两人的脚尖靠拢，再靠拢，最终在快门按下的瞬间，小派揽住了伯远的肩膀。
+不愧是英勇的格兰芬多，但下一秒，拿剑的勇士便涨红了脸，因为那位带着黄色围巾的巫师悄悄垫脚，在他耳边低声道：「我以为刚刚我们应该接吻的。」
+
+近些，再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
+  57:{name:`泰国行合照`, img:`assets/gifts/57.jpg`, story:`那是伯远第二次跟尹浩宇去泰国见家长，还记得第一次见到玫瑰女士，玫瑰女士直接推开小派拥抱小远，两个人是不用明说也能让家人感知到爱的亲密关系。
+浪漫少女尹小派不知道从哪里知道了在摩天轮最高点接吻就能永远在一起的都市传说，拉着小远再访了他们男团解散前去过的摩天轮。`},
+};
 // 跟恋爱日记撞关的几个(原本 10/20/30/40/50/60/70)刻意往前错开几关,
 // 避免「获得纪念品」跟「戀愛日記」两个弹窗同一整数关卡一次全部跳出来。
-const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 21, 25, 27, 31, 35, 37, 41, 45, 47, 55, 57, 65, 67, 71, 75];
+const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 21, 25, 27, 31, 35, 37, 45, 47, 55, 65, 67, 71, 75];
 
 const MEMENTO_ITEMS = {
   0:{name:`家的钥匙`, location:``, img:`assets/gifts/0.png`, story:`「希望哥哥有空可以来找我玩！」
@@ -86,14 +101,6 @@ const MEMENTO_ITEMS = {
 "干嘛？"小远不满意地嘟囔，只模糊看到小派的脸慢慢凑近。
 "你别凑这么近，我看不清…"说着小远便要推开小派，没料到被人反手捉住压在沙发上，含着雾气的话喷得睫毛重重下垂，随着湿漉漉的吻压下来—— "你不用看清我，我们接吻吧。"
 隔天他们一起去配了两副一样的黑框眼镜，一起带就不呆了。`},
-  41:{name:`环球影城合照`, location:`二楼窗台矮柜上的`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
-小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
-伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
-近点，再近点，姐姐指挥到。
-两人的脚尖靠拢，再靠拢，最终在快门按下的瞬间，小派揽住了伯远的肩膀。
-不愧是英勇的格兰芬多，但下一秒，拿剑的勇士便涨红了脸，因为那位带着黄色围巾的巫师悄悄垫脚，在他耳边低声道：「我以为刚刚我们应该接吻的。」
-
-近些，再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
   45:{name:`辣子鸡`, location:`餐桌上的（只有小远小派一起在厨房的画面才出现）`, img:`assets/gifts/45.png`, story:`晚上放学回到家，小远竟然在家，两个人亲密了一番后小派就被远叫去写作业了。小派吭哧吭哧写完作业，发现远做了小派最爱吃的辣子鸡。
 男团刚成立的时候，小派刚从泰国来到中国，对中国料理说不上多热爱，直到小远深夜做了【辣子鸡】给他吃，从此这就是他最爱的料理了。他永远都会记得那个夜晚，整个团小远只叫他一个人来吃，他第一次感受到小远的温柔与关爱，他是他最特别的小孩。`},
   47:{name:`便条纸`, location:`冰箱上的`, img:`assets/gifts/47.jpg`, story:`「派，
@@ -103,8 +110,6 @@ const MEMENTO_ITEMS = {
   55:{name:`垂耳兔粉绿帽`, location:``, img:`assets/gifts/55.jpg`, story:`这个帽子是小远个人巡演的服装，每当他想到小派无法参加自己的演出就感到难受，但只要他还是偶像歌手，他们就不能公开。
 因为这样，小远喜欢在演出里加入一些只有两个人才看得懂的符号，就像这顶垂耳兔粉绿帽——小派的应援色跟动物设定就是粉色的兔子。
 演出结束后，小远把这顶帽子寄给了小派，弥补小派参与不了小远个人巡演的遗憾。`},
-  57:{name:`泰国行合照`, location:``, img:`assets/gifts/57.jpg`, story:`那是伯远第二次跟尹浩宇去泰国见家长，还记得第一次见到玫瑰女士，玫瑰女士直接推开小派拥抱小远，两个人是不用明说也能让家人感知到爱的亲密关系。
-浪漫少女尹小派不知道从哪里知道了在摩天轮最高点接吻就能永远在一起的都市传说，拉着小远再访了他们男团解散前去过的摩天轮。`},
   65:{name:`小王子氛围灯`, location:`二楼窗台矮柜上的`, img:`assets/gifts/65.png`, story:`小派跟小远说过小王子的故事，小王子守着他的玫瑰在小小的星球上，他们拥有彼此而不再孤单。看到这个礼物，小派哈特软软，气消了大半，别扭地发消息问伯远是不是你买的……
 ｛聊天内容｝`},
   67:{name:`专辑《闪闪》`, location:`客厅桌上的`, img:`assets/gifts/67.jpg`, story:`因为小远在歌手的路上越走越远，小派除了演员外对于音乐制作也有天赋，俩人在音乐上有了更多合作。派派写曲子、英文歌词，小远再帮小派填成中文、帮录和声。
@@ -257,7 +262,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -276,6 +281,10 @@ function migrateState(state){
   // 补齐:关卡进度已经超过某个纪念品/日记触发点,但因为改版跳号等原因没被正常收集到的,直接补上
   MEMENTO_LEVELS.forEach(level=>{
     if(level < state.unlockedLevel && !state.mementos.includes(level)) state.mementos.push(level);
+  });
+  // 环球影城合照/泰国行合照原本算纪念品(41/57),现在移到明信片册的合照,同样用「关卡进度补齐」逻辑迁移
+  COUPLE_PHOTO_LEVELS.forEach(level=>{
+    if(level < state.unlockedLevel && !state.couplePhotos.includes(level)) state.couplePhotos.push(level);
   });
   MILESTONES.forEach(level=>{
     if(level < state.unlockedLevel && !state.diaryUnlocked.includes(level)) state.diaryUnlocked.push(level);
@@ -510,7 +519,8 @@ function refreshHome(){
   document.getElementById('home-progress-fill').style.width =
     Math.min(100, STATE.totalCleared/TOTAL_LEVELS*100)+'%';
   document.getElementById('gift-count').hidden = STATE.mementos.length <= STATE.mementosSeen;
-  document.getElementById('postcard-count').hidden = STATE.postcards.length <= STATE.postcardsSeen;
+  document.getElementById('postcard-count').hidden =
+    (STATE.postcards.length + STATE.couplePhotos.length) <= (STATE.postcardsSeen + STATE.couplePhotosSeen);
 
   const info = xiaoyuanCycleInfo();
   const statusEl = document.getElementById('xiaoyuan-status');
@@ -686,6 +696,7 @@ function openAlbum(type){
     });
   } else {
     STATE.postcardsSeen = STATE.postcards.length;
+    STATE.couplePhotosSeen = STATE.couplePhotos.length;
     saveState();
     document.getElementById('album-title').textContent = '已收集明信片册';
     POSTCARD_ITEMS.forEach((label,i)=>{
@@ -698,6 +709,21 @@ function openAlbum(type){
         <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
         <div class="album-item-label">${caption}</div>`;
       div.title = has ? label : '尚未收集';
+      grid.appendChild(div);
+    });
+    // 两人出游的合照:相簿格只显示照片本身,不带文字说明,点进去才看故事
+    COUPLE_PHOTO_LEVELS.forEach(level=>{
+      const item = COUPLE_PHOTO_ITEMS[level];
+      const has = STATE.couplePhotos.includes(level);
+      const div = document.createElement('div');
+      div.className = 'album-item album-item-photo-only ' + (has ? '' : 'locked');
+      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? '💌' : '？');
+      div.innerHTML = `<div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>`;
+      div.title = has ? item.name : '尚未收集';
+      if(has){
+        div.style.cursor = 'pointer';
+        div.addEventListener('click', ()=> showModalQueue([{type:'memento', level, source:'couple', reread:true}], 'screen-home'));
+      }
       grid.appendChild(div);
     });
   }
@@ -1260,6 +1286,12 @@ function onLevelWin(levelNum){
       queue.push({type:'memento', level:levelNum});
     }
 
+    if(COUPLE_PHOTO_LEVELS.includes(levelNum) && !STATE.couplePhotos.includes(levelNum)){
+      STATE.couplePhotos.push(levelNum);
+      saveState();
+      queue.push({type:'memento', level:levelNum, source:'couple'});
+    }
+
     const info = xiaoyuanCycleInfo();
     if(info.isHome){
       // 16 张明信片收满后就不再重复,之后小远回家只单纯是回家,不再附赠明信片
@@ -1432,14 +1464,17 @@ function renderModal(step){
       <p>${bodyLine}</p>
       <button class="modal-btn" id="modal-next">好期待</button>`;
   } else if(step.type==='memento'){
-    const m = MEMENTO_ITEMS[step.level];
+    const isCouple = step.source==='couple';
+    const m = isCouple ? COUPLE_PHOTO_ITEMS[step.level] : MEMENTO_ITEMS[step.level];
     const photoInner = m.img ? `<img src="${m.img}" alt="">` : `<div class="memento-photo-fallback">💝</div>`;
     const combinedText = m.story || '';
+    const headingPrefix = step.reread ? '' : (isCouple ? '获得合照 · ' : '获得纪念品 · ');
+    const albumBtnText = isCouple ? '去明信片册看看' : '去纪念品册看看';
     card.innerHTML = `
       <div class="memento-card">
         <div class="memento-photo-circle">${photoInner}</div>
         <div class="memento-card-inner" id="diary-inner">
-          <h3>${step.reread ? '' : '获得纪念品 · '}${m.name}</h3>
+          <h3>${headingPrefix}${m.name}</h3>
           <div class="diary-page-text" id="diary-page-text"></div>
           <div class="diary-page-nav" id="diary-page-nav" hidden>
             <button class="diary-page-arrow" id="diary-prev" title="上一页">‹</button>
@@ -1449,7 +1484,7 @@ function renderModal(step){
         </div>
       </div>
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
-      ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">去纪念品册看看</button>`}`;
+      ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">${albumBtnText}</button>`}`;
     layoutCardBg('.memento-card', 'memento-mode');
     setupDiaryPagination(combinedText);
   } else if(step.type==='diary'){
@@ -1484,7 +1519,7 @@ function renderModal(step){
     modalQueue = [];
     document.getElementById('modal-overlay').hidden = true;
     showScreen('screen-home');
-    openAlbum('memento');
+    openAlbum(step.source==='couple' ? 'postcard' : 'memento');
   });
 }
 
