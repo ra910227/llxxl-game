@@ -63,8 +63,11 @@ const POSTCARD_ITEMS = [
 ];
 
 // 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
-const COUPLE_PHOTO_LEVELS = [41, 57];
+const COUPLE_PHOTO_LEVELS = [12, 23, 41, 57];
 const COUPLE_PHOTO_ITEMS = {
+  12:{name:`男团毕业抓拍照片`, img:`assets/gifts/12.jpg`, story:`最后的告别舞台，小远忍不住在台上哭了。小派一直以为，如果分别来临时第一个会哭的肯定是情绪明显的自己，没想到却是他心目中最坚强的远哥。`},
+  23:{name:`男团访谈截图照片`, img:`assets/gifts/23.jpg`, story:`偷偷摸摸地谈恋爱，小远虽然因为男团道德很小心，但有时仍会情不自禁地做出亲密动作。不像小派身为团内最小的外国籍成员，怎么撒娇都没有人奇怪。而那几次稀少的情不自禁，总是让小派甜蜜许久。
+这次访谈是挑战互相对视看谁先笑，结果小远笑出来同时忍不住摸了摸小派的鼻头，一扫而过的碰触像春风轻捎过心尖，笑容映在小派的眼眸闪闪发亮。`},
   41:{name:`环球影城合照`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
 小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
 伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
@@ -240,7 +243,7 @@ function niceScore(raw){
    ============================================================ */
 function generateLevelConfig(n){
   const isMilestone = MILESTONES.includes(n);
-  const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n); // 小派/小远只在这些关卡顶替兔兔/狗狗出现
+  const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n) || COUPLE_PHOTO_LEVELS.includes(n); // 小派/小远只在这些关卡顶替兔兔/狗狗出现
 
   // 50关前整体放宽(棋盘小、图案少、步数松),50关后再逐步拉回难度
   const size = n<=20?6 : n<=35?7 : n<=50?8 : 9;
