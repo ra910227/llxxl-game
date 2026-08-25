@@ -462,6 +462,7 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
     showScreen(target==='home' ? 'screen-home' : 'screen-'+target);
   });
 });
+document.getElementById('btn-board-help').addEventListener('click', ()=> showModalQueue([{type:'skills'}], 'screen-board'));
 
 /* 第一次打开首页时,依序闪烁介绍三个按键,dismiss 后写 flag 永远不再跳出。
    同一份文字之后也收录在头像按键(hotspot-avatar)打开的「游戏玩法」分页,方便玩家随时回看。 */
@@ -1504,6 +1505,19 @@ function renderModal(step){
       creditsTab.classList.add('active'); playTab.classList.remove('active');
       creditsPanel.classList.add('active'); playPanel.classList.remove('active');
     });
+  } else if(step.type==='skills'){
+    card.innerHTML = `
+      <h3 style="text-align:center;">特殊技能说明</h3>
+      <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
+        <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮</b>:连成3个以上,以中心炸开周围3x3区域(冰冻格也一并解除)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>蝴蝶</b>(40关起):4连以上,清空整排或整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>太阳</b>(60关起):4连以上,以中心十字型清空一整排+一整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div><b>狗狗/小远</b>:配对成功加步数(50关前+1,50关后+7)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div><b>兔兔/小派</b>:配对成功加步数(50关前+1,50关后+9)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>月兔捣药</b>:凑齐一组狗狗+一组兔兔就吸引一只月兔,3只合体成一颗满月🌝,可拖到棋盘任一非冰冻格,直接变出一颗月亮(不消耗步数)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4连消除得分*1.5倍,5连以上*2倍。</div></div>
+      </div>
+      <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
   } else if(step.type==='tutorial-level'){
     card.innerHTML = `
       <div class="modal-emoji">🧩</div>
