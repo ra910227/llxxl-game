@@ -1001,7 +1001,7 @@ function renderRabbitTray(){
   const rabbitCount = BOARD.rabbitCount||0, fullMoonCount = BOARD.fullMoonCount||0;
   tray.hidden = rabbitCount===0 && fullMoonCount===0;
   let html = '';
-  for(let i=0;i<rabbitCount;i++) html += `<img class="rabbit-icon" src="assets/effects/moon_rabbit.jpg" alt="月兔">`;
+  for(let i=0;i<rabbitCount;i++) html += `<img class="rabbit-icon" src="assets/effects/moon_rabbit.png" alt="月兔">`;
   for(let i=0;i<fullMoonCount;i++) html += `<span class="fullmoon-icon" title="拖到棋盘上任一格,变出一颗月亮">🌝</span>`;
   tray.innerHTML = html;
 }
