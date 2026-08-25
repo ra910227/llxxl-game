@@ -929,7 +929,7 @@ function reshuffleBoard(cfg){
 }
 
 let boardToastTimer = null;
-function showBoardToast(msg){
+function showBoardToast(msg, duration){
   let el = document.getElementById('board-toast');
   if(!el){
     el = document.createElement('div');
@@ -940,7 +940,7 @@ function showBoardToast(msg){
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(boardToastTimer);
-  boardToastTimer = setTimeout(()=> el.classList.remove('show'), 1600);
+  boardToastTimer = setTimeout(()=> el.classList.remove('show'), duration||1600);
 }
 
 let moonBurstTimer = null;
@@ -1047,8 +1047,10 @@ function applyFullMoon(r,c){
   BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
   BOARD.busy = true;
   renderBoard();
-  showBoardToast('🌝 满月许愿成真!');
-  setTimeout(()=> resolveCascade(1), 200);
+  // 「满月许愿成真」这句话延长展示,并且晚一点再判定连锁,
+  // 避免刚好凑成月亮爆炸时,月兔合体的提示秒盖掉这句话,两个效果前后分开比较看得清楚
+  showBoardToast('🌝 满月许愿成真!', 2400);
+  setTimeout(()=> resolveCascade(1), 2000);
 }
 
 function swapCells(cells,r1,c1,r2,c2){

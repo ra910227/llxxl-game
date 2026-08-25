@@ -301,9 +301,9 @@ html,body{
   min-height:0;
 }
 .rabbit-tray .rabbit-icon{
-  width:30px;height:30px;
+  width:36px;height:36px;
   object-fit:contain;
-  border-radius:50%;
+  border-radius:10px;
   background:#fff;
   box-shadow:0 2px 5px var(--shadow);
 }
