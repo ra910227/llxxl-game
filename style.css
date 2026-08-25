@@ -340,7 +340,11 @@ html,body{
   transition:transform .12s ease, opacity .15s ease;
   position:relative;
 }
-.tile img{width:76%;height:76%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;}
+.tile-icon{
+  position:absolute;inset:12%;
+  background-size:contain;background-position:center;background-repeat:no-repeat;
+  pointer-events:none;
+}
 .tile.selected{
   transform:scale(0.88);
   outline:3px solid #fff;
@@ -360,7 +364,7 @@ html,body{
   z-index:2;
   filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3));
 }
-.tile.frozen img{ opacity:0.35; }
+.tile.frozen .tile-icon{ opacity:0.35; }
 .tile.clearing{
   transform:scale(0.3);opacity:0;
 }

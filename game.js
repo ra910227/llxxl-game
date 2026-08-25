@@ -1018,6 +1018,7 @@ function renderBoard(){
   grid.style.gridTemplateColumns = `repeat(${cfg.cols}, ${size}px)`;
   grid.style.gridTemplateRows = `repeat(${cfg.rows}, ${size}px)`;
 
+  const frag = document.createDocumentFragment();
   for(let r=0;r<cfg.rows;r++){
     for(let c=0;c<cfg.cols;c++){
       const cell = BOARD.cells[r][c];
@@ -1028,11 +1029,14 @@ function renderBoard(){
       div.style.background = TILE_TYPES[cell.type].bg;
       div.dataset.r = r;
       div.dataset.c = c;
-      div.innerHTML = `<img src="${TILE_TYPES[cell.type].img}" alt="" draggable="false">`;
-      div.addEventListener('pointerdown', onPointerDown);
-      grid.appendChild(div);
+      const icon = document.createElement('div');
+      icon.className = 'tile-icon';
+      icon.style.backgroundImage = `url(${TILE_TYPES[cell.type].img})`;
+      div.appendChild(icon);
+      frag.appendChild(div);
     }
   }
+  grid.appendChild(frag);
   markSelected();
 }
 
@@ -1043,13 +1047,16 @@ function markSelected(){
   });
 }
 
-function onPointerDown(e){
+// 用事件委派统一挂在棋盘容器上,而不是每次 renderBoard() 都替 81 颗格子各自绑一次监听器,减少重排卡顿
+document.getElementById('board-grid').addEventListener('pointerdown', (e)=>{
   if(BOARD.busy) return;
-  const r = +e.currentTarget.dataset.r, c = +e.currentTarget.dataset.c;
+  const tile = e.target.closest('.tile');
+  if(!tile) return;
+  const r = +tile.dataset.r, c = +tile.dataset.c;
   pointerDrag = { r, c, x:e.clientX, y:e.clientY, dragged:false };
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
-}
+});
 
 function onPointerMove(e){
   if(!pointerDrag || pointerDrag.dragged || BOARD.busy) return;
