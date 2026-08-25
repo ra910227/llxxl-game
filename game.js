@@ -1509,12 +1509,12 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">特殊技能说明</h3>
       <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
-        <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮</b>:连成3个以上,以中心炸开周围3x3区域(冰冻格也一并解除)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>蝴蝶</b>(40关起):4连以上,清空整排或整列。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>太阳</b>(60关起):4连以上,以中心十字型清空一整排+一整列。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div><b>狗狗/小远</b>:配对成功加步数(50关前+1,50关后+7)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div><b>兔兔/小派</b>:配对成功加步数(50关前+1,50关后+9)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>月兔捣药</b>:凑齐一组狗狗+一组兔兔就吸引一只月兔,3只合体成一颗满月🌝,可拖到棋盘任一非冰冻格,直接变出一颗月亮(不消耗步数)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成3个以上,以中心炸开周围3x3区域(冰冻格也一并解除)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>(40关起):4连以上,清空整排或整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>早安太阳</b>(60关起):4连以上,以中心十字型清空一整排+一整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>月兔捣药</b>:凑齐一组狗狗+一组兔兔就吸引一只月兔,三只一起捣药捣出一轮满月🌝。可拖到棋盘任一非冰冻格,直接变出一颗月亮(不消耗步数)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4连消除得分*1.5倍,5连以上*2倍。</div></div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
