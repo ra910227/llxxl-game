@@ -745,35 +745,36 @@ function openBoard(levelNum){
   }
 }
 
-function randType(n){ return Math.floor(Math.random()*n); }
-
 const MOON_WEIGHT = 0.5;       // 60关前:月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
-const LATE_BOOST_WEIGHT = 1.6; // 60关后:月亮/太阳/蝴蝶出现权重提高,帮助玩家更容易凑出特殊清版效果,抵消图案种类变多的难度
+const MOON_BOOST_WEIGHT = 1.6; // 60关后:月亮出现权重提高,帮助玩家更容易凑出特殊清版效果
+
+// 50关起(图案种类跳增、目标分数拉高,难度明显上升),蝴蝶/太阳出现权重跟着关卡难度线性提高,
+// 越晚的关卡加成越大(50关1.6倍~79关2.8倍),让玩家更容易凑到四连触发整排/十字爆炸,抵消变难的曲线
+function specialBoostWeight(level){
+  if(level < 50) return 1;
+  const t = Math.min(level, 79);
+  return 1.6 + (t-50) * (1.2/29);
+}
 
 /* 剧情/纪念品关卡:抽到兔兔/狗狗时直接顶替成小派/小远,图案总数不变 */
 function pickType(cfg){
   const n = cfg.tileTypes;
-  let t;
-  const lateGame = cfg.level>=60;
-  const hasWeighting = MOONFACE_IDX<n || (lateGame && (SUN_IDX<n || BUTTERFLY_IDX<n));
-  if(hasWeighting){
-    let totalWeight = 0;
-    const weights = [];
-    for(let i=0;i<n;i++){
-      let w = 1;
-      if(i===MOONFACE_IDX) w = lateGame ? LATE_BOOST_WEIGHT : MOON_WEIGHT;
-      else if(lateGame && (i===SUN_IDX || i===BUTTERFLY_IDX)) w = LATE_BOOST_WEIGHT;
-      weights.push(w);
-      totalWeight += w;
-    }
-    let r = Math.random()*totalWeight;
-    t = n-1;
-    for(let i=0;i<n;i++){
-      if(r < weights[i]){ t = i; break; }
-      r -= weights[i];
-    }
-  } else {
-    t = randType(n);
+  const level = cfg.level;
+  const specialWeight = specialBoostWeight(level);
+  let totalWeight = 0;
+  const weights = [];
+  for(let i=0;i<n;i++){
+    let w = 1;
+    if(i===MOONFACE_IDX) w = level>=60 ? MOON_BOOST_WEIGHT : MOON_WEIGHT;
+    else if(i===SUN_IDX || i===BUTTERFLY_IDX) w = specialWeight;
+    weights.push(w);
+    totalWeight += w;
+  }
+  let r = Math.random()*totalWeight;
+  let t = n-1;
+  for(let i=0;i<n;i++){
+    if(r < weights[i]){ t = i; break; }
+    r -= weights[i];
   }
   if(cfg.isSpecialLevel){
     if(t===BUNNY_IDX) return XIAOPAI_IDX;
