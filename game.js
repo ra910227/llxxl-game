@@ -227,6 +227,14 @@ you and me"
 只有你和我`},
 };
 
+// 把分数尾数取成玩家喜欢的 7 或 9,只会往下取整(不会让目标分数变得更高),例如 5184 -> 5179
+function niceScore(raw){
+  const lastDigit = raw % 10;
+  if(lastDigit >= 9) return raw - (lastDigit - 9);
+  if(lastDigit >= 7) return raw - (lastDigit - 7);
+  return Math.floor(raw/10)*10 - 1;
+}
+
 /* ============================================================
    关卡参数化生成
    ============================================================ */
@@ -246,7 +254,10 @@ function generateLevelConfig(n){
     numFrozen = Math.min(Math.floor(n/5), Math.floor(cellCount*0.15));
   } else {
     moves = Math.max(15, (26 - Math.floor(50/8)) - Math.floor((n-50)/5));
-    targetScore = Math.round(cellCount * (12 + 50*0.6 + (n-50)*1.1));
+    // 目标分数改成直接用「每步预期分数」反推,不再跟着棋盘格数(50关后8x8跳9x9)一起跳涨,
+    // 每步预期分数从50关的134分缓步涨到79关的170分,涨幅远比之前温和,避免跟图案种类/冰冻格同时飙升
+    const scorePerMove = 134 + (n-50) * (36/29);
+    targetScore = Math.round(moves * scorePerMove);
     numFrozen = Math.min(Math.floor(10 + (n-50)/2), Math.floor(cellCount*0.22));
   }
 
@@ -255,6 +266,7 @@ function generateLevelConfig(n){
     targetScore = Math.round(targetScore*1.15);
     numFrozen = Math.min(numFrozen+2, Math.floor(cellCount*0.26));
   }
+  targetScore = niceScore(targetScore);
   return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone, isSpecialLevel };
 }
 
@@ -1362,8 +1374,8 @@ function renderModal(step){
         <div class="about-credits-row"><b>主美：</b>英招招</div>
         <div class="about-credits-row"><b>主架：</b>易烊珺</div>
         <div class="about-credits-row"><b>美术：</b>叭叭叭、硬梆梆</div>
-        <div class="about-credits-row"><b>文字：</b>姜姜姜姜、无敌小可</div>
-        <div class="about-credits-row"><b>特别感谢：</b>南十字星老师</div>
+        <div class="about-credits-row"><b>文字：</b>不吃生姜、无敌小可</div>
+        <div class="about-credits-row"><b>特别感谢：</b>南十字星老师、D老师</div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
     const playTab = card.querySelector('#about-tab-play');
