@@ -902,7 +902,7 @@ function showSunBurst(){
     el = document.createElement('div');
     el.id = 'sun-burst';
     el.className = 'moon-burst sun-burst';
-    el.innerHTML = `<img src="assets/effects/sun_burst.png" alt="">`;
+    el.innerHTML = `<img src="assets/effects/sun_burst.jpg" alt="">`;
     document.getElementById('screen-board').appendChild(el);
   }
   el.classList.add('show');
@@ -1194,6 +1194,8 @@ function resolveCascade(combo){
     if(el) el.classList.add(burstCells.has(key) ? 'line-burst' : 'clearing');
   });
 
+  // 有爆炸特效格时,消除动作延后一拍(1.1秒),让玩家先感受到爆炸的震撼感,一般消除维持原本的快节奏
+  const clearDelay = burstCells.size>0 ? 1100 : 180;
   setTimeout(()=>{
     matched.forEach(key=>{
       const [r,c] = key.split(',').map(Number);
@@ -1202,7 +1204,7 @@ function resolveCascade(combo){
     applyGravity(cfg);
     renderBoard();
     setTimeout(()=> resolveCascade(combo+1), 180);
-  }, 180);
+  }, clearDelay);
 }
 
 function applyGravity(cfg){
