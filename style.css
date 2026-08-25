@@ -313,10 +313,11 @@ html,body{
 }
 .moon-burst{
   position:absolute;
-  left:50%;top:38%;
+  left:50%;top:50%;
   transform:translate(-50%,-50%) scale(0.6);
-  width:150px;height:150px;
-  border-radius:50%;
+  width:82vw;height:82vw;
+  max-width:380px;max-height:380px;
+  border-radius:20px;
   overflow:hidden;
   box-shadow:0 8px 28px rgba(150,90,120,0.4);
   border:3px solid #fff;
@@ -324,7 +325,7 @@ html,body{
   transition:opacity .3s ease, transform .3s ease;
   z-index:21;
 }
-.moon-burst img{width:100%;height:100%;object-fit:cover;display:block;}
+.moon-burst img{width:100%;height:100%;object-fit:contain;display:block;}
 .moon-burst.show{
   opacity:1;
   transform:translate(-50%,-50%) scale(1);
