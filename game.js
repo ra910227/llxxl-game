@@ -259,13 +259,15 @@ function generateLevelConfig(n){
     // 靠这些「爽度」撑住比之前更高的分数门槛,而不是单纯调低目标。
     const scorePerMove = 257.377 + (n-50) * 11.06896;
     targetScore = Math.round(moves * scorePerMove);
-    numFrozen = Math.min(Math.floor(10 + (n-50)/2), Math.floor(cellCount*0.22));
+    // 50关后图案种类从7种跳到9种,光是这样就更难凑成,冰冻格改用更缓的曲线跟更低的上限,
+    // 避免开局动没两步就卡死重排
+    numFrozen = Math.min(Math.floor(6 + (n-50)/3), Math.floor(cellCount*0.16));
   }
 
   if(isMilestone){
     moves += 4;
     targetScore = Math.round(targetScore*1.15);
-    numFrozen = Math.min(numFrozen+2, Math.floor(cellCount*0.26));
+    numFrozen = Math.min(numFrozen+2, Math.floor(cellCount*0.20));
   }
   targetScore = niceScore(targetScore);
   return { level:n, rows:size, cols:size, tileTypes, moves, targetScore, numFrozen, isMilestone, isSpecialLevel };
@@ -763,8 +765,13 @@ function openBoard(levelNum){
     score: 0,
     movesLeft: cfg.moves,
     busy: false,
+    dogfacePending: 0,
+    bunnyPending: 0,
+    rabbitCount: 0,
+    fullMoonCount: 0,
   };
   BOARD.cells = generateSolvableBoard(cfg);
+  renderRabbitTray();
 
   document.getElementById('board-level-title').textContent = `第 ${levelNum} 关`;
   const badge = document.getElementById('board-milestone-badge');
@@ -954,6 +961,84 @@ function showSunBurst(){
   el.classList.add('show');
   clearTimeout(sunBurstTimer);
   sunBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
+/* ============================================================
+   月兔捣药:狗狗+兔兔各凑一组就吸引一只月兔,3只月兔合体成一个满月,
+   满月可以拖到棋盘上任一格,把该格直接变成月亮图案
+   ============================================================ */
+function updateRabbitProgress(){
+  let gainedRabbit = false;
+  while(BOARD.dogfacePending>=1 && BOARD.bunnyPending>=1){
+    BOARD.dogfacePending--;
+    BOARD.bunnyPending--;
+    BOARD.rabbitCount++;
+    gainedRabbit = true;
+  }
+  let gainedMoon = false;
+  while(BOARD.rabbitCount>=3){
+    BOARD.rabbitCount -= 3;
+    BOARD.fullMoonCount++;
+    gainedMoon = true;
+  }
+  if(gainedRabbit || gainedMoon) renderRabbitTray();
+  if(gainedMoon) showBoardToast('🌝 满月许愿:拖到棋盘上任一格,变出一颗月亮!');
+}
+
+function renderRabbitTray(){
+  const tray = document.getElementById('rabbit-tray');
+  if(!tray || !BOARD) return;
+  const rabbitCount = BOARD.rabbitCount||0, fullMoonCount = BOARD.fullMoonCount||0;
+  tray.hidden = rabbitCount===0 && fullMoonCount===0;
+  let html = '';
+  for(let i=0;i<rabbitCount;i++) html += `<span class="rabbit-icon">🐇</span>`;
+  for(let i=0;i<fullMoonCount;i++) html += `<span class="fullmoon-icon" title="拖到棋盘上任一格,变出一颗月亮">🌝</span>`;
+  tray.innerHTML = html;
+}
+
+let moonDrag = null;
+document.getElementById('rabbit-tray').addEventListener('pointerdown', (e)=>{
+  if(BOARD.busy) return;
+  const el = e.target.closest('.fullmoon-icon');
+  if(!el) return;
+  e.preventDefault();
+  const ghost = document.createElement('div');
+  ghost.className = 'moon-drag-ghost';
+  ghost.textContent = '🌝';
+  document.body.appendChild(ghost);
+  moonDrag = { ghost };
+  moveMoonGhost(e.clientX, e.clientY);
+  window.addEventListener('pointermove', onMoonDragMove);
+  window.addEventListener('pointerup', onMoonDragEnd);
+});
+function moveMoonGhost(x,y){
+  if(!moonDrag) return;
+  moonDrag.ghost.style.left = x+'px';
+  moonDrag.ghost.style.top = y+'px';
+}
+function onMoonDragMove(e){ moveMoonGhost(e.clientX, e.clientY); }
+function onMoonDragEnd(e){
+  window.removeEventListener('pointermove', onMoonDragMove);
+  window.removeEventListener('pointerup', onMoonDragEnd);
+  if(!moonDrag) return;
+  moonDrag.ghost.remove();
+  moonDrag = null;
+  const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+  const tile = dropEl && dropEl.closest('.tile');
+  if(!tile) return;
+  applyFullMoon(+tile.dataset.r, +tile.dataset.c);
+}
+function applyFullMoon(r,c){
+  if(BOARD.busy || BOARD.fullMoonCount<=0) return;
+  const cell = BOARD.cells[r][c];
+  if(!cell || cell.frozen){ flashDeny(r,c); return; }
+  BOARD.fullMoonCount--;
+  renderRabbitTray();
+  BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
+  BOARD.busy = true;
+  renderBoard();
+  showBoardToast('🌝 满月许愿成真!');
+  setTimeout(()=> resolveCascade(1), 200);
 }
 
 function swapCells(cells,r1,c1,r2,c2){
@@ -1205,13 +1290,16 @@ function resolveCascade(combo){
       const add = cfg.level>=50 ? 7 : 1;
       bonusMoves += add;
       specialMsg = `🐾 狗狗组合!步数 +${add}`;
+      BOARD.dogfacePending++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
       const add = cfg.level>=50 ? 9 : 1;
       bonusMoves += add;
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
+      BOARD.bunnyPending++;
     }
   });
+  updateRabbitProgress();
   if(bonusMoves>0){
     BOARD.movesLeft += bonusMoves;
     document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
