@@ -1099,10 +1099,11 @@ function findMatches(cells, cfg){
   return { matched, runs };
 }
 
+/* 棋盘尺寸(行列数)在同一关内不会变,所以格子的 DOM 节点只在真正需要时(换关、窗口缩放)才整个重建,
+   平常消除连锁只更新「图案或冻结状态真的变了」的格子,避免每次连锁都把81颗格子拆掉重建造成的卡顿闪烁 */
 function renderBoard(){
   const grid = document.getElementById('board-grid');
   const cfg = BOARD.config;
-  grid.innerHTML = '';
 
   const wrap = grid.getBoundingClientRect();
   const gap = 4;
@@ -1110,28 +1111,64 @@ function renderBoard(){
     (wrap.width - gap*(cfg.cols-1)) / cfg.cols,
     (wrap.height - gap*(cfg.rows-1)) / cfg.rows
   )));
-  grid.style.gridTemplateColumns = `repeat(${cfg.cols}, ${size}px)`;
-  grid.style.gridTemplateRows = `repeat(${cfg.rows}, ${size}px)`;
 
-  const frag = document.createDocumentFragment();
+  const needsRebuild = !BOARD.tileEls || BOARD.tileEls.length!==cfg.rows || BOARD.tileEls[0].length!==cfg.cols;
+  const sizeChanged = BOARD.lastTileSize !== size;
+
+  if(needsRebuild){
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = `repeat(${cfg.cols}, ${size}px)`;
+    grid.style.gridTemplateRows = `repeat(${cfg.rows}, ${size}px)`;
+    const frag = document.createDocumentFragment();
+    BOARD.tileEls = [];
+    BOARD.lastRenderTypes = [];
+    for(let r=0;r<cfg.rows;r++){
+      const row = [], typeRow = [];
+      for(let c=0;c<cfg.cols;c++){
+        const div = document.createElement('div');
+        div.className = 'tile';
+        div.style.width = size+'px';
+        div.style.height = size+'px';
+        div.dataset.r = r;
+        div.dataset.c = c;
+        const icon = document.createElement('div');
+        icon.className = 'tile-icon';
+        div.appendChild(icon);
+        frag.appendChild(div);
+        row.push(div);
+        typeRow.push(null);
+      }
+      BOARD.tileEls.push(row);
+      BOARD.lastRenderTypes.push(typeRow);
+    }
+    grid.appendChild(frag);
+    BOARD.lastTileSize = size;
+  } else if(sizeChanged){
+    grid.style.gridTemplateColumns = `repeat(${cfg.cols}, ${size}px)`;
+    grid.style.gridTemplateRows = `repeat(${cfg.rows}, ${size}px)`;
+    for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
+      BOARD.tileEls[r][c].style.width = size+'px';
+      BOARD.tileEls[r][c].style.height = size+'px';
+    }
+    BOARD.lastTileSize = size;
+  }
+
   for(let r=0;r<cfg.rows;r++){
     for(let c=0;c<cfg.cols;c++){
       const cell = BOARD.cells[r][c];
-      const div = document.createElement('div');
-      div.className = 'tile' + (cell.frozen ? ' frozen' : '');
-      div.style.width = size+'px';
-      div.style.height = size+'px';
+      const last = BOARD.lastRenderTypes[r][c];
+      const div = BOARD.tileEls[r][c];
+      // 就算图案/冻结状态没变,只要格子身上还留着消除动画的残留 class(理论上不该发生,但保险起见),也要强制刷新,
+      // 不然 .line-burst 动画结束时的 scale(0.25)/opacity:0 终态会让格子看起来「图片消失了」
+      const needsCleanup = div.classList.contains('clearing') || div.classList.contains('line-burst');
+      if(last && last.type===cell.type && last.frozen===cell.frozen && !needsCleanup) continue;
+      div.classList.remove('clearing','line-burst');
+      div.classList.toggle('frozen', cell.frozen);
       div.style.background = TILE_TYPES[cell.type].bg;
-      div.dataset.r = r;
-      div.dataset.c = c;
-      const icon = document.createElement('div');
-      icon.className = 'tile-icon';
-      icon.style.backgroundImage = `url(${TILE_TYPES[cell.type].img})`;
-      div.appendChild(icon);
-      frag.appendChild(div);
+      div.firstChild.style.backgroundImage = `url(${TILE_TYPES[cell.type].img})`;
+      BOARD.lastRenderTypes[r][c] = { type: cell.type, frozen: cell.frozen };
     }
   }
-  grid.appendChild(frag);
   markSelected();
 }
 
