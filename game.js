@@ -626,7 +626,9 @@ function refreshMap(){
       applyIconCrop(heart, 'assets/ui/icon_diary.png', HOTSPOTS.diary, 28, 28);
       heart.addEventListener('click', (e)=>{
         e.stopPropagation();
-        showModalQueue([{type:'diary', level:n, reread:true}]);
+        const rereadQueue = [{type:'diary', level:n, reread:true}];
+        if(n === TOTAL_LEVELS) rereadQueue.push({type:'ending', reread:true});
+        showModalQueue(rereadQueue);
       });
       wrap.appendChild(heart);
     }
@@ -1231,6 +1233,7 @@ function onLevelWin(levelNum){
       STATE.diaryUnlocked.push(levelNum);
       saveState();
       queue.push({type:'diary', level:levelNum});
+      if(levelNum === TOTAL_LEVELS) queue.push({type:'ending'});
     }
   }
   showModalQueue(queue);
@@ -1422,6 +1425,12 @@ function renderModal(step){
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '收下这篇日记'}</button>`;
     layoutCardBg('.diary-card', 'diary-mode');
     setupDiaryPagination(d.text);
+  } else if(step.type==='ending'){
+    card.innerHTML = `
+      <div class="ending-illustration"><img src="assets/story/ending.jpg" alt=""></div>
+      <h3>只有你和我</h3>
+      <p>后来的故事,是他们自己的了。</p>
+      <button class="modal-btn" id="modal-next">${step.reread ? '关闭' : '完结'}</button>`;
   }
 
   const nextBtn = card.querySelector('#modal-next');
