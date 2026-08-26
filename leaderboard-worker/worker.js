@@ -10,7 +10,7 @@ const MAX_ENTRIES_STORED = 500; // KV 里最多留这么多个不同的名字,�
 const MAX_RETURNED = 100;       // 排行榜实际显示前几名
 
 // 除了排名用的 rabbits,还额外记录这些统计数字,数值本身不影响排序,只是附加显示/称号判定用
-const STAT_FIELDS = ['bunnyMatches', 'dogfaceMatches', 'butterflyBursts', 'sunBursts', 'moonPoundings', 'peakAssets'];
+const STAT_FIELDS = ['bunnyMatches', 'dogfaceMatches', 'butterflyBursts', 'sunBursts', 'moonPoundings', 'moonBombs'];
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

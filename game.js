@@ -11,7 +11,7 @@ const HOME_CYCLE = 6;                       // 小远每隔几关回家一次(6�
 const MILESTONES = [9,19,29,39,49,59,69,79]; // 日记解锁关卡
 
 // 无尽挑战关的月兔排行榜后端(Cloudflare Worker),部署好之后把网址换成实际的
-const LEADERBOARD_API = 'https://REPLACE-WITH-YOUR-WORKER-URL.workers.dev';
+const LEADERBOARD_API = 'https://llxxl-leaderboard.yingbangbang2026.workers.dev';
 
 const SAVE_KEY = 'llxxl_save_v1';
 
@@ -818,11 +818,11 @@ function endlessConfig(){
   return { level:79, rows:ENDLESS_ROWS, cols:ENDLESS_COLS, tileTypes:11, moves:Infinity, targetScore:Infinity, numFrozen:0, isMilestone:false, isSpecialLevel:false };
 }
 function emptyEndlessStats(){
-  return { bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonPoundings:0, peakAssets:0 };
+  return { bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonBombs:0, moonPoundings:0 };
 }
 // 恋爱日记章节(9/19/29...79关)之间累计的战绩,每次章节结算完就归零重新算
 function emptyMilestoneStats(){
-  return { bunnyMatches:0, dogfaceMatches:0, rabbitsGained:0, moonPoundings:0, butterflyBursts:0, sunBursts:0 };
+  return { bunnyMatches:0, dogfaceMatches:0, rabbitsGained:0, moonBombs:0, moonPoundings:0, butterflyBursts:0, sunBursts:0 };
 }
 // 「月兔数量」现场结算:兔兔+满月*3,用月兔捣药技能把满月拖到棋盘上花掉之后,这个数字会跟着倒扣
 function endlessRabbitTotal(src){
@@ -876,7 +876,8 @@ function renderEndlessStats(){
     <span>🐾狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
     <span>☀️早安太阳 <b>${BOARD.stats.sunBursts}</b></span>
-    <span>🐇月兔捣药 <b>${BOARD.stats.moonPoundings}</b></span>`;
+    <span>🌕月亮合体 <b>${BOARD.stats.moonBombs}</b></span>
+    <span>🌝月兔捣药 <b>${BOARD.stats.moonPoundings}</b></span>`;
 }
 function saveEndlessProgress(){
   if(!BOARD || !BOARD.endless) return;
@@ -908,7 +909,7 @@ async function submitLeaderboardScore(name){
       butterflyBursts: stats.butterflyBursts,
       sunBursts: stats.sunBursts,
       moonPoundings: stats.moonPoundings,
-      peakAssets: stats.peakAssets,
+      moonBombs: stats.moonBombs,
     }),
   });
   const data = await res.json();
@@ -921,14 +922,15 @@ async function fetchLeaderboard(){
   if(!data.ok) throw new Error(data.error || 'fetch_failed');
   return data.entries;
 }
-// 6个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
+// 7个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
 const ACHIEVEMENT_TITLES = [
   { key:'rabbits',         icon:'👑', name:'月兔国国王' },
   { key:'dogfaceMatches',  icon:'🐾', name:'最爱狗狗的人' },
   { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人' },
-  { key:'peakAssets',      icon:'💰', name:'最游刃有余的人' },
+  { compute:e=>(e.butterflyBursts||0)+(e.sunBursts||0)+(e.moonBombs||0)+(e.moonPoundings||0), icon:'💰', name:'最游刃有余的人' },
   { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人' },
-  { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的你' },
+  { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的人' },
+  { key:'moonBombs',       icon:'🌕', name:'代表月亮惩罚你' },
 ];
 function renderTitleHolders(entries){
   const el = document.getElementById('title-list');
@@ -936,7 +938,7 @@ function renderTitleHolders(entries){
   el.innerHTML = ACHIEVEMENT_TITLES.map(t=>{
     let best = null;
     (entries||[]).forEach(e=>{
-      const v = e[t.key]||0;
+      const v = t.compute ? t.compute(e) : (e[t.key]||0);
       if(v>0 && (!best || v>best.value)) best = { name:e.name, value:v };
     });
     return `<div class="title-row">
@@ -1165,14 +1167,7 @@ function updateRabbitProgress(){
   while(BOARD.rabbitCount>=3){
     BOARD.rabbitCount -= 3;
     BOARD.fullMoonCount++;
-    if(BOARD.endless) BOARD.stats.moonPoundings++;
-    else STATE.milestoneStats.moonPoundings++;
     gainedMoon = true;
-  }
-  // 「最游刃有余的人」称号依据:记录史上一次同时持有过最多的月兔资产(花掉满月不会往回修正这个峰值)
-  if(BOARD.endless && gainedRabbit){
-    const current = endlessRabbitTotal(BOARD);
-    if(current > BOARD.stats.peakAssets) BOARD.stats.peakAssets = current;
   }
   if(gainedRabbit || gainedMoon) renderRabbitTray();
   if(gainedRabbit && BOARD.endless) renderEndlessStats();
@@ -1185,7 +1180,9 @@ function renderRabbitTray(){
   const rabbitCount = BOARD.rabbitCount||0, fullMoonCount = BOARD.fullMoonCount||0;
   tray.hidden = rabbitCount===0 && fullMoonCount===0;
   let html = '';
-  for(let i=0;i<rabbitCount;i++) html += `<img class="rabbit-icon" src="assets/effects/moon_rabbit.png" alt="月兔">`;
+  // 月兔数量不用一颗颗画,一个图示+大字数字就够(现场结算:兔兔+满月*3)
+  html += `<span class="rabbit-total"><img class="rabbit-icon" src="assets/effects/moon_rabbit.png" alt="月兔"><b>${endlessRabbitTotal(BOARD)}</b></span>`;
+  // 满月要保留一颗一颗画,因为每一颗都要能个别拖到棋盘上使用
   for(let i=0;i<fullMoonCount;i++) html += `<span class="fullmoon-icon" title="拖到棋盘上任一格,变出一颗月亮">🌝</span>`;
   tray.innerHTML = html;
 }
@@ -1227,6 +1224,9 @@ function applyFullMoon(r,c){
   const cell = BOARD.cells[r][c];
   if(!cell || cell.frozen){ flashDeny(r,c); return; }
   BOARD.fullMoonCount--;
+  // 月兔捣药是「技能」,跟蝴蝶/太阳一样只在实际触发(把满月拖到棋盘上换掉一个非冰冻格)时才计数
+  if(BOARD.endless) BOARD.stats.moonPoundings++;
+  else STATE.milestoneStats.moonPoundings++;
   renderRabbitTray();
   if(BOARD.endless) renderEndlessStats();
   BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
@@ -1503,6 +1503,8 @@ function resolveCascade(combo){
           bombed = true;
         }
       }
+      if(BOARD.endless) BOARD.stats.moonBombs++;
+      else STATE.milestoneStats.moonBombs++;
     }
 
     // 40关后,蝴蝶4连以上:清空整排(横向连成就清空该行,纵向连成就清空该列),整排炸开特效
@@ -1873,9 +1875,10 @@ function renderModal(step){
         <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>凑出满月 <b>${s.moonPoundings}</b> 轮</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌕</span><div>月亮合体 <b>${s.moonBombs}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>月兔捣药 <b>${s.moonPoundings}</b> 次</div></div>
       </div>
       <button class="modal-btn" id="modal-next">继续</button>`;
   } else if(step.type==='fail'){
