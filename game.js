@@ -23,25 +23,15 @@ const REGEN_MS = 15*60*1000; // 每 15 分钟回 1 颗,数值可调
 const CANVAS_W = 2048, CANVAS_H = 3200;
 // 房间本体(非透明范围)的边界,拿来当「满版」裁切基准,而不是整张含大量透明边界的画布
 const ROOM_BBOX = {x1:435, y1:547, x2:1621, y2:2723};
-/* 备份:縮小月兔按键试验之前的版本,想改回来就把下面这组换回去
 const HOTSPOTS = {
   diary:    {x1:451,  y1:2453, x2:705,  y2:2703},
   gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
   avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
-  endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'},
+  endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
 };
-const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40}; // 下缘对齐「月兔大挑战」白字下缘
-*/
-const HOTSPOTS = {
-  diary:    {x1:451,  y1:2453, x2:705,  y2:2703},
-  gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
-  postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
-  avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
-  endless:  {x1:1238.2, y1:547, x2:1543.8, y2:791.8, labelPos:'below'}, // 缩小成头像按键的80%,顶边仍跟头像切齐,水平中心不变
-};
-// 进度牌:横向卡在头像/月兔按键中间的空隙,纵向对齐「月兔大挑战」图示中线;爱心牌:放在恋爱日记图示右边,垂直置中对齐
-const PROGRESS_PILL_ANCHOR = {x:(856+1238.2)/2, y:(547+791.8)/2};
+// 进度牌:横向贴在头像按键正下方置中(牌子压到的地方刚好是头像图案的留白,视觉上不会挡到东西),纵向对齐「月兔大挑战」白字下缘;爱心牌:放在恋爱日记图示右边,垂直置中对齐
+const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -462,18 +452,17 @@ function layoutHomeCanvas(){
     }
   });
 
-  // 进度牌:卡在头像/月兔按键中间空隙,水平置中;下缘再对齐「月兔大挑战」图示的中线
+  // 进度牌:贴在头像按键正下方,水平置中;下缘再对齐「月兔大挑战」白字的下缘,让两边看起来一样高
   const progressPill = document.querySelector('.progress-pill');
   if(progressPill){
     progressPill.style.left = (layerLeft + PROGRESS_PILL_ANCHOR.x*scale)+'px';
     progressPill.style.top = (layerTop + PROGRESS_PILL_ANCHOR.y*scale)+'px';
     progressPill.style.transform = 'translate(-50%,0)';
-    const endlessBtn = document.getElementById('hotspot-endless');
-    if(endlessBtn){
-      const btnRect = endlessBtn.getBoundingClientRect();
-      const btnMidY = (btnRect.top + btnRect.bottom)/2;
+    const endlessLabel = document.getElementById('hotspot-endless-label');
+    if(endlessLabel){
+      const labelBottom = endlessLabel.getBoundingClientRect().bottom;
       const wrapTop = wrap.getBoundingClientRect().top;
-      progressPill.style.top = (btnMidY - wrapTop - progressPill.offsetHeight)+'px';
+      progressPill.style.top = (labelBottom - wrapTop - progressPill.offsetHeight)+'px';
     }
   }
   // 爱心牌:左边缘贴着恋爱日记图示右侧,垂直置中对齐该图示
