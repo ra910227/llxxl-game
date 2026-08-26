@@ -304,8 +304,9 @@ html,body{
   margin-bottom:8px;
 }
 .endless-stats b{color:var(--pink);}
-.endless-actions{display:flex;justify-content:center;gap:10px;}
+.endless-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
 .endless-btn{margin-top:0;font-size:12px;padding:8px 18px;}
+.endless-btn-danger{background:#f6ddd8;color:#c0554a;}
 
 .title-list{
   text-align:left;margin:10px 0;
@@ -445,6 +446,9 @@ html,body{
 }
 .sun-burst{
   box-shadow:0 8px 28px rgba(230,170,60,0.45);
+}
+.butterfly-burst{
+  box-shadow:0 8px 28px rgba(140,180,220,0.45);
 }
 .tile{
   border-radius:12px;

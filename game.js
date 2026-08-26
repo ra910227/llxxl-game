@@ -71,7 +71,7 @@ const COUPLE_PHOTO_ITEMS = {
   12:{name:`男团毕业抓拍照片`, img:`assets/gifts/12.jpg`, story:`最后的告别舞台，小远忍不住在台上哭了。小派一直以为，如果分别来临时第一个会哭的肯定是情绪明显的自己，没想到却是他心目中最坚强的远哥。`},
   23:{name:`男团访谈截图照片`, img:`assets/gifts/23.jpg`, story:`偷偷摸摸地谈恋爱，小远虽然因为男团道德很小心，但有时仍会情不自禁地做出亲密动作。不像小派身为团内最小的外国籍成员，怎么撒娇都没有人奇怪。而那几次稀少的情不自禁，总是让小派甜蜜许久。
 这次访谈是挑战互相对视看谁先笑，结果小远笑出来同时忍不住摸了摸小派的鼻头，一扫而过的碰触像春风轻捎过心尖，笑容映在小派的眼眸闪闪发亮。`},
-  41:{name:`环球影城合照`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
+  41:{name:`环球影城合照`, img:`assets/gifts/41.jpg`, story:`小派盯着天气预报找到了一个凉快的晴天，预订了两张环球影城门票，又网购了两套巫师袍。
 小派当然是不管前方如何都应勇向前的格兰芬多，伯远则是明知可能无果却依旧奋不顾身的赫奇帕奇！
 伯远口嫌体正直，穿上衣服拿起魔法棒玩的不亦乐乎，一会帕绰糯一会啃大瓜，小派拿着胶卷相机给两人拍了好多照，到了最标致的地球前，小派请求旁边的一位姐姐帮忙，给二人拍了张合照。
 近点，再近点，姐姐指挥到。
@@ -475,6 +475,11 @@ document.getElementById('btn-board-help').addEventListener('click', ()=> showMod
 document.getElementById('btn-endless').addEventListener('click', openEndlessBoard);
 document.getElementById('btn-endless-submit').addEventListener('click', ()=> showModalQueue([{type:'endless-submit'}], 'screen-board'));
 document.getElementById('btn-endless-rank').addEventListener('click', ()=> showModalQueue([{type:'leaderboard'}], 'screen-board'));
+document.getElementById('btn-endless-restart').addEventListener('click', ()=>{
+  if(!confirm('确定重来？')) return;
+  if(!confirm('之前养的月兔会全部放归，你确定重来？')) return;
+  resetEndlessBoard();
+});
 
 /* 第一次打开首页时,依序闪烁介绍三个按键,dismiss 后写 flag 永远不再跳出。
    同一份文字之后也收录在头像按键(hotspot-avatar)打开的「游戏玩法」分页,方便玩家随时回看。 */
@@ -867,6 +872,11 @@ function openEndlessBoard(){
   showScreen('screen-board');
   renderBoard();
 }
+function resetEndlessBoard(){
+  STATE.endless = null;
+  saveState();
+  openEndlessBoard();
+}
 function renderEndlessStats(){
   const el = document.getElementById('endless-stats');
   if(!el || !BOARD || !BOARD.endless) return;
@@ -1148,6 +1158,21 @@ function showSunBurst(){
   el.classList.add('show');
   clearTimeout(sunBurstTimer);
   sunBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
+let butterflyBurstTimer = null;
+function showButterflyBurst(){
+  let el = document.getElementById('butterfly-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'butterfly-burst';
+    el.className = 'moon-burst butterfly-burst';
+    el.innerHTML = `<img src="assets/effects/butterfly_burst.jpg" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(butterflyBurstTimer);
+  butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
 }
 
 /* ============================================================
@@ -1483,9 +1508,10 @@ function resolveCascade(combo){
   // 各种图案的特殊效果
   let bombed = false;
   let sunBursted = false;
+  let butterflyBursted = false;
   let bonusMoves = 0;
   let specialMsg = null;
-  const burstCells = new Set(); // 蝴蝶/太阳的整排/十字爆炸特效格,消除动画会用更炫的燃烧特效取代普通淡出
+  const burstCells = new Set(); // 月亮/蝴蝶/太阳的爆炸特效格,消除动画会用更炫的燃烧特效取代普通淡出
   runs.forEach(run=>{
     const [rr,rc] = run[0];
     const cell = BOARD.cells[rr][rc];
@@ -1499,7 +1525,9 @@ function resolveCascade(combo){
       for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
         const nr=mr+dr, nc=mc+dc;
         if(inBounds(nr,nc,cfg) && BOARD.cells[nr][nc] && !matched.has(nr+','+nc)){
-          matched.add(nr+','+nc);
+          const k = nr+','+nc;
+          matched.add(k);
+          burstCells.add(k);
           bombed = true;
         }
       }
@@ -1515,6 +1543,7 @@ function resolveCascade(combo){
         for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][rc]){ const k=r+','+rc; matched.add(k); burstCells.add(k); }
       }
       specialMsg = `"Let's run away 🏃🏻🦋"`;
+      butterflyBursted = true;
       if(BOARD.endless) BOARD.stats.butterflyBursts++;
       else STATE.milestoneStats.butterflyBursts++;
     }
@@ -1554,13 +1583,12 @@ function resolveCascade(combo){
     BOARD.movesLeft += bonusMoves;
     document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
   }
+  // 特效图放在消除闪光动画结束后才出现(先让玩家看清楚方块闪光消失,再放大图),文字提示则维持立即显示
   if(bombed){
-    showMoonBurst();
     showBoardToast('🌙 🐇月兔合體——炸开了阻礙！');
   } else if(sunBursted){
-    showSunBurst();
     showBoardToast(specialMsg);
-  } else if(specialMsg) showBoardToast(specialMsg);
+  } else if(butterflyBursted || specialMsg) showBoardToast(specialMsg);
 
   // 解冻相邻冰冻格
   matched.forEach(key=>{
@@ -1603,6 +1631,10 @@ function resolveCascade(combo){
     });
     applyGravity(cfg);
     renderBoard();
+    // 闪光消除动画结束的这一刻才放大图特效,而不是跟闪光同时出现
+    if(bombed) showMoonBurst();
+    else if(butterflyBursted) showButterflyBurst();
+    else if(sunBursted) showSunBurst();
     setTimeout(()=> resolveCascade(combo+1), 180);
   }, clearDelay);
 }
