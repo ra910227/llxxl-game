@@ -1,5 +1,5 @@
 /* 離線快取:第一次打開後把遊戲需要的檔案都存起來,之後沒網路也能開 */
-const CACHE_NAME = 'llxxl-cache-v21';
+const CACHE_NAME = 'llxxl-cache-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './assets/ui/diary_card_bg.jpg',
   './assets/ui/home_bg.jpg',
   './assets/ui/icon_diary.png',
+  './assets/ui/icon_endless.gif',
   './assets/ui/icon_gift.png',
   './assets/ui/icon_postcard.png',
   './assets/ui/icon_status_avatar.png',

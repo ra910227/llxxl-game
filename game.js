@@ -28,6 +28,7 @@ const HOTSPOTS = {
   gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
   avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
+  endless:  {x1:1200, y1:610,  x2:1582, y2:916}, // 房间右上墙面留白处,大小跟头像按键(avatar)一样
 };
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -472,7 +473,7 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
   });
 });
 document.getElementById('btn-board-help').addEventListener('click', ()=> showModalQueue([{type:'skills'}], 'screen-board'));
-document.getElementById('btn-endless').addEventListener('click', openEndlessBoard);
+document.getElementById('hotspot-endless').addEventListener('click', openEndlessBoard);
 document.getElementById('btn-endless-submit').addEventListener('click', ()=> showModalQueue([{type:'endless-submit'}], 'screen-board'));
 document.getElementById('btn-endless-rank').addEventListener('click', ()=> showModalQueue([{type:'leaderboard'}], 'screen-board'));
 document.getElementById('btn-endless-restart').addEventListener('click', ()=>{
@@ -861,7 +862,7 @@ function openEndlessBoard(){
   }
   renderRabbitTray();
 
-  document.getElementById('board-level-title').textContent = `无尽挑战`;
+  document.getElementById('board-level-title').textContent = `月兔挑战赛`;
   document.getElementById('board-milestone-badge').hidden = true;
   document.querySelector('.board-moves').innerHTML = `🐇月兔 <span id="board-moves-left">${endlessRabbitTotal(BOARD)}</span>`;
   document.querySelector('.board-score-wrap').hidden = true;
@@ -1205,9 +1206,7 @@ function renderRabbitTray(){
   const rabbitCount = BOARD.rabbitCount||0, fullMoonCount = BOARD.fullMoonCount||0;
   tray.hidden = rabbitCount===0 && fullMoonCount===0;
   let html = '';
-  // 月兔数量不用一颗颗画,一个图示+大字数字就够(现场结算:兔兔+满月*3)
-  html += `<span class="rabbit-total"><img class="rabbit-icon" src="assets/effects/moon_rabbit.png" alt="月兔"><b>${endlessRabbitTotal(BOARD)}</b></span>`;
-  // 满月要保留一颗一颗画,因为每一颗都要能个别拖到棋盘上使用
+  for(let i=0;i<rabbitCount;i++) html += `<img class="rabbit-icon" src="assets/effects/moon_rabbit.png" alt="月兔">`;
   for(let i=0;i<fullMoonCount;i++) html += `<span class="fullmoon-icon" title="拖到棋盘上任一格,变出一颗月亮">🌝</span>`;
   tray.innerHTML = html;
 }
