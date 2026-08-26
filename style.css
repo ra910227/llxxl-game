@@ -293,6 +293,52 @@ html,body{
 .score-fill{background:linear-gradient(90deg,var(--sky),var(--sage));}
 .score-text{text-align:center;font-size:12px;font-weight:700;margin-top:4px;color:var(--ink-soft);}
 
+.endless-panel{
+  padding:10px 16px;
+  background:var(--cream);
+  border-bottom:1px solid #f0e3d8;
+}
+.endless-stats{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;
+  font-size:11px;color:var(--ink-soft);
+  margin-bottom:8px;
+}
+.endless-stats b{color:var(--pink);}
+.endless-actions{display:flex;justify-content:center;gap:10px;}
+.endless-btn{margin-top:0;font-size:12px;padding:8px 18px;}
+
+.leaderboard-list{
+  text-align:left;max-height:50vh;overflow-y:auto;margin:10px 0;
+}
+.leaderboard-row{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 4px;
+  border-bottom:1px solid #f0e3d8;
+  font-size:12px;
+}
+.leaderboard-rank{
+  flex-shrink:0;width:22px;text-align:center;font-weight:800;color:var(--ink-soft);
+}
+.leaderboard-row.top3 .leaderboard-rank{color:var(--pink);}
+.leaderboard-name{
+  flex:1;font-weight:700;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.leaderboard-rabbits{
+  flex-shrink:0;font-weight:800;color:var(--pink);font-size:13px;
+}
+.leaderboard-detail{
+  font-size:10px;color:var(--ink-soft);
+  margin-top:2px;
+}
+.name-input{
+  width:100%;box-sizing:border-box;
+  border:1px solid #eee0d8;border-radius:10px;
+  padding:10px 12px;font-size:14px;
+  color:var(--ink);background:#fff;
+  margin:10px 0;
+}
+
 .rabbit-tray{
   display:flex;align-items:center;justify-content:center;
   gap:6px;flex-wrap:wrap;

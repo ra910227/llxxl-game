@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="小派小远">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -54,6 +54,7 @@
 
     <div class="home-bottombar">
       <div id="xiaoyuan-status" class="xiaoyuan-status">小远出差中 ✈️ 还有 5 关回家</div>
+      <button id="btn-endless" class="debug-reset" title="没有步数限制,想玩多久玩多久,累计月兔数量可以上传排行榜">🐇 无尽挑战</button>
       <button id="btn-backup" class="debug-reset" title="汇出/汇入存档码,换手机或存档被清掉时可以用">存档备份</button>
       <button id="btn-reset" class="debug-reset" title="重置进度(测试用)">重置进度</button>
     </div>
@@ -85,6 +86,13 @@
       <div class="progress-track score-track"><div id="board-score-fill" class="progress-fill score-fill"></div></div>
       <div class="score-text"><span id="board-score-current">0</span> / <span id="board-score-target">0</span></div>
     </div>
+    <div id="endless-panel" class="endless-panel" hidden>
+      <div class="endless-stats" id="endless-stats"></div>
+      <div class="endless-actions">
+        <button id="btn-endless-submit" class="modal-btn secondary endless-btn">上传成绩</button>
+        <button id="btn-endless-rank" class="modal-btn secondary endless-btn">查看排行榜</button>
+      </div>
+    </div>
     <div id="rabbit-tray" class="rabbit-tray" hidden></div>
     <div id="board-grid" class="board-grid"></div>
   </section>
@@ -105,6 +113,6 @@
 
 </div>
 
-<script src="game.js?v=47"></script>
+<script src="game.js?v=48"></script>
 </body>
 </html>

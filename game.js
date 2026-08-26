@@ -10,6 +10,9 @@ const TOTAL_LEVELS = 79;
 const HOME_CYCLE = 6;                       // 小远每隔几关回家一次(6关 x 13张明信片,79关内剛好收全)
 const MILESTONES = [9,19,29,39,49,59,69,79]; // 日记解锁关卡
 
+// 无尽挑战关的月兔排行榜后端(Cloudflare Worker),部署好之后把网址换成实际的
+const LEADERBOARD_API = 'https://REPLACE-WITH-YOUR-WORKER-URL.workers.dev';
+
 const SAVE_KEY = 'llxxl_save_v1';
 
 /* ---------------- 体力(爱心)系统:失败会扣 1 颗,等时间回血 ---------------- */
@@ -281,7 +284,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'' };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -463,10 +466,15 @@ function showScreen(id){
 document.querySelectorAll('[data-back]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const target = btn.dataset.back;
+    // 无尽挑战关不算在79关地图里,从这关返回要直接回首页,不是回关卡地图
+    if(target==='map' && BOARD && BOARD.endless){ showScreen('screen-home'); return; }
     showScreen(target==='home' ? 'screen-home' : 'screen-'+target);
   });
 });
 document.getElementById('btn-board-help').addEventListener('click', ()=> showModalQueue([{type:'skills'}], 'screen-board'));
+document.getElementById('btn-endless').addEventListener('click', openEndlessBoard);
+document.getElementById('btn-endless-submit').addEventListener('click', ()=> showModalQueue([{type:'endless-submit'}], 'screen-board'));
+document.getElementById('btn-endless-rank').addEventListener('click', ()=> showModalQueue([{type:'leaderboard'}], 'screen-board'));
 
 /* 第一次打开首页时,依序闪烁介绍三个按键,dismiss 后写 flag 永远不再跳出。
    同一份文字之后也收录在头像按键(hotspot-avatar)打开的「游戏玩法」分页,方便玩家随时回看。 */
@@ -770,6 +778,7 @@ function openBoard(levelNum){
     score: 0,
     movesLeft: cfg.moves,
     busy: false,
+    endless: false,
     dogfacePending: 0,
     bunnyPending: 0,
     rabbitCount: 0,
@@ -781,10 +790,12 @@ function openBoard(levelNum){
   document.getElementById('board-level-title').textContent = `第 ${levelNum} 关`;
   const badge = document.getElementById('board-milestone-badge');
   badge.hidden = !cfg.isMilestone;
-  document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
+  document.querySelector('.board-moves').innerHTML = `步数 <span id="board-moves-left">${BOARD.movesLeft}</span>`;
   document.getElementById('board-score-current').textContent = 0;
   document.getElementById('board-score-target').textContent = cfg.targetScore;
   document.getElementById('board-score-fill').style.width = '0%';
+  document.querySelector('.board-score-wrap').hidden = false;
+  document.getElementById('endless-panel').hidden = true;
 
   selectedCell = null;
   showScreen('screen-board');
@@ -795,6 +806,130 @@ function openBoard(levelNum){
     saveState();
     showModalQueue([{type:'tutorial-level'}], 'screen-board');
   }
+}
+
+/* ============================================================
+   无尽挑战关:没有步数/分数上限,想玩多久玩多久,进度持续存档,
+   累计月兔数量可以上传到公开排行榜(Cloudflare Worker,见 LEADERBOARD_API)
+   ============================================================ */
+const ENDLESS_ROWS = 9, ENDLESS_COLS = 9;
+function endlessConfig(){
+  // level 故意设 79,让蝴蝶/太阳特效、月亮/兔兔/狗狗权重加成全部都是满级效果
+  return { level:79, rows:ENDLESS_ROWS, cols:ENDLESS_COLS, tileTypes:11, moves:Infinity, targetScore:Infinity, numFrozen:0, isMilestone:false, isSpecialLevel:false };
+}
+function emptyEndlessStats(){
+  return { totalRabbits:0, bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonPoundings:0 };
+}
+function openEndlessBoard(){
+  const cfg = endlessConfig();
+  const saved = STATE.endless;
+  BOARD = {
+    config: cfg,
+    cells: null,
+    score: 0,
+    movesLeft: Infinity,
+    busy: false,
+    endless: true,
+    dogfacePending: 0,
+    bunnyPending: 0,
+    rabbitCount: 0,
+    fullMoonCount: 0,
+    stats: emptyEndlessStats(),
+  };
+  if(saved && saved.cells && saved.cells.length===cfg.rows && saved.cells[0].length===cfg.cols){
+    BOARD.cells = saved.cells;
+    BOARD.rabbitCount = saved.rabbitCount||0;
+    BOARD.fullMoonCount = saved.fullMoonCount||0;
+    BOARD.dogfacePending = saved.dogfacePending||0;
+    BOARD.bunnyPending = saved.bunnyPending||0;
+    BOARD.stats = Object.assign(emptyEndlessStats(), saved.stats||{});
+  } else {
+    BOARD.cells = generateSolvableBoard(cfg);
+  }
+  renderRabbitTray();
+
+  document.getElementById('board-level-title').textContent = `无尽挑战`;
+  document.getElementById('board-milestone-badge').hidden = true;
+  document.querySelector('.board-moves').innerHTML = `🐇累计 <span id="board-moves-left">${BOARD.stats.totalRabbits}</span>`;
+  document.querySelector('.board-score-wrap').hidden = true;
+  document.getElementById('endless-panel').hidden = false;
+  renderEndlessStats();
+
+  selectedCell = null;
+  showScreen('screen-board');
+  renderBoard();
+}
+function renderEndlessStats(){
+  const el = document.getElementById('endless-stats');
+  if(!el || !BOARD || !BOARD.endless) return;
+  document.getElementById('board-moves-left').textContent = BOARD.stats.totalRabbits;
+  el.innerHTML = `
+    <span>🐰兔兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
+    <span>🐾狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
+    <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
+    <span>☀️早安太阳 <b>${BOARD.stats.sunBursts}</b></span>
+    <span>🐇月兔捣药 <b>${BOARD.stats.moonPoundings}</b></span>`;
+}
+function saveEndlessProgress(){
+  if(!BOARD || !BOARD.endless) return;
+  STATE.endless = {
+    cells: BOARD.cells,
+    rabbitCount: BOARD.rabbitCount,
+    fullMoonCount: BOARD.fullMoonCount,
+    dogfacePending: BOARD.dogfacePending,
+    bunnyPending: BOARD.bunnyPending,
+    stats: BOARD.stats,
+  };
+  saveState();
+  renderEndlessStats();
+}
+
+/* 排行榜:呼叫 LEADERBOARD_API(Cloudflare Worker)。网址还没换成真的之前会直接回传错误,
+   呼叫端要处理失败情况(不能让排行榜功能挡住正常游玩)。 */
+async function submitLeaderboardScore(name){
+  const stats = (BOARD && BOARD.endless) ? BOARD.stats : (STATE.endless && STATE.endless.stats) || emptyEndlessStats();
+  const res = await fetch(LEADERBOARD_API + '/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      rabbits: stats.totalRabbits,
+      bunnyMatches: stats.bunnyMatches,
+      dogfaceMatches: stats.dogfaceMatches,
+      butterflyBursts: stats.butterflyBursts,
+      sunBursts: stats.sunBursts,
+      moonPoundings: stats.moonPoundings,
+    }),
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || 'submit_failed');
+  return data.entries;
+}
+async function fetchLeaderboard(){
+  const res = await fetch(LEADERBOARD_API + '/leaderboard');
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || 'fetch_failed');
+  return data.entries;
+}
+function renderLeaderboardList(entries){
+  const el = document.getElementById('leaderboard-list');
+  if(!el) return;
+  if(!entries || entries.length===0){
+    el.innerHTML = `<p style="text-align:center;color:var(--ink-soft);">还没有人上传成绩,当第一个吧!</p>`;
+    return;
+  }
+  el.innerHTML = entries.map((e,i)=> `
+    <div class="leaderboard-row ${i<3?'top3':''}">
+      <div class="leaderboard-rank">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="leaderboard-name">${escapeHtml(e.name)}</div>
+        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐾${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🐇${e.moonPoundings||0}</div>
+      </div>
+      <div class="leaderboard-rabbits">🐇${e.rabbits}</div>
+    </div>`).join('');
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 const MOON_WEIGHT = 0.5;       // 60关前:月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
@@ -987,15 +1122,19 @@ function updateRabbitProgress(){
     BOARD.dogfacePending--;
     BOARD.bunnyPending--;
     BOARD.rabbitCount++;
+    // totalRabbits 只增不减,用满月/拿去变月亮都不会倒扣,是无尽挑战关排行榜的排名依据
+    if(BOARD.endless) BOARD.stats.totalRabbits++;
     gainedRabbit = true;
   }
   let gainedMoon = false;
   while(BOARD.rabbitCount>=3){
     BOARD.rabbitCount -= 3;
     BOARD.fullMoonCount++;
+    if(BOARD.endless) BOARD.stats.moonPoundings++;
     gainedMoon = true;
   }
   if(gainedRabbit || gainedMoon) renderRabbitTray();
+  if(gainedRabbit && BOARD.endless) renderEndlessStats();
   if(gainedMoon) showBoardToast('🌝 满月许愿:拖到棋盘上任一格,变出一颗月亮!');
 }
 
@@ -1271,8 +1410,12 @@ function attemptSwap(r1,c1,r2,c2){
     return;
   }
 
-  BOARD.movesLeft--;
-  document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
+  if(BOARD.endless){
+    renderEndlessStats();
+  } else {
+    BOARD.movesLeft--;
+    document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
+  }
   renderBoard();
   setTimeout(()=> resolveCascade(1), 120);
 }
@@ -1290,6 +1433,7 @@ function resolveCascade(combo){
       return;
     }
     BOARD.busy = false;
+    if(BOARD.endless) saveEndlessProgress();
     checkLevelEnd();
     return;
   }
@@ -1327,6 +1471,7 @@ function resolveCascade(combo){
         for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][rc]){ const k=r+','+rc; matched.add(k); burstCells.add(k); }
       }
       specialMsg = `"Let's run away 🏃🏻🦋"`;
+      if(BOARD.endless) BOARD.stats.butterflyBursts++;
     }
 
     // 60关后,太阳4连以上:以命中点为中心,清空十字型两排(整行+整列),十字炸开特效
@@ -1336,6 +1481,7 @@ function resolveCascade(combo){
       for(let r=0;r<cfg.rows;r++) if(BOARD.cells[r][mc]){ const k=r+','+mc; matched.add(k); burstCells.add(k); }
       specialMsg = `"morning sunshine☀️"`;
       sunBursted = true;
+      if(BOARD.endless) BOARD.stats.sunBursts++;
     }
 
     // 狗狗/小远配对成功:步数 +1(50关后+7);兔兔/小派配对成功:步数 +1(50关后+9),50关后步数吃紧,加大奖励帮玩家撑住后期关卡
@@ -1344,16 +1490,19 @@ function resolveCascade(combo){
       bonusMoves += add;
       specialMsg = `🐾 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
+      if(BOARD.endless) BOARD.stats.dogfaceMatches++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
       const add = cfg.level>=50 ? 9 : 1;
       bonusMoves += add;
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
+      if(BOARD.endless) BOARD.stats.bunnyMatches++;
     }
   });
   updateRabbitProgress();
-  if(bonusMoves>0){
+  if(BOARD.endless) renderEndlessStats();
+  else if(bonusMoves>0){
     BOARD.movesLeft += bonusMoves;
     document.getElementById('board-moves-left').textContent = BOARD.movesLeft;
   }
@@ -1562,6 +1711,43 @@ function renderModal(step){
         <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4连消除得分*1.5倍,5连以上*2倍。</div></div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
+  } else if(step.type==='endless-submit'){
+    card.innerHTML = `
+      <h3 style="text-align:center;">上传成绩</h3>
+      <p>用一个名字记录你的月兔总数,同名会直接覆盖成最新纪录。</p>
+      <input type="text" class="name-input" id="endless-name-input" maxlength="16" placeholder="输入你的名字" value="${escapeHtml(STATE.playerName||'')}">
+      <div id="endless-submit-status" style="min-height:18px;font-size:12px;color:var(--ink-soft);text-align:center;"></div>
+      <button class="modal-btn" id="endless-submit-confirm">送出</button>
+      <button class="modal-btn secondary" id="modal-next">取消</button>`;
+    card.querySelector('#endless-submit-confirm').addEventListener('click', async ()=>{
+      const input = card.querySelector('#endless-name-input');
+      const statusEl = card.querySelector('#endless-submit-status');
+      const name = input.value.trim();
+      if(!name){ statusEl.textContent = '请先输入名字'; return; }
+      statusEl.textContent = '上传中…';
+      try{
+        const entries = await submitLeaderboardScore(name);
+        STATE.playerName = name;
+        saveState();
+        statusEl.textContent = '';
+        showModalQueue([{type:'leaderboard', entries}], modalReturnScreen);
+      }catch(e){
+        statusEl.textContent = '上传失败,请稍后再试';
+      }
+    });
+  } else if(step.type==='leaderboard'){
+    card.innerHTML = `
+      <h3 style="text-align:center;">🐇 月兔排行榜</h3>
+      <div class="leaderboard-list" id="leaderboard-list">载入中…</div>
+      <button class="modal-btn" id="modal-next">关闭</button>`;
+    if(step.entries){
+      renderLeaderboardList(step.entries);
+    } else {
+      fetchLeaderboard().then(renderLeaderboardList).catch(()=>{
+        const el = card.querySelector('#leaderboard-list');
+        if(el) el.innerHTML = `<p style="text-align:center;color:var(--ink-soft);">排行榜暂时连不上,稍后再试。</p>`;
+      });
+    }
   } else if(step.type==='tutorial-level'){
     card.innerHTML = `
       <div class="modal-emoji">🧩</div>

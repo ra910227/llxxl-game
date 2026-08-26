@@ -1,0 +1,11 @@
+name = "llxxl-leaderboard"
+main = "worker.js"
+compatibility_date = "2026-08-26"
+
+[observability]
+enabled = true
+
+# 部署前先建好 KV namespace(见 README.md),再把下面的 id 换成你自己的
+[[kv_namespaces]]
+binding = "LEADERBOARD"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
