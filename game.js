@@ -27,11 +27,11 @@ const HOTSPOTS = {
   diary:    {x1:451,  y1:2453, x2:705,  y2:2703},
   gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
-  avatar:   {x1:474,  y1:547,  x2:856,  y2:853, labelPos:'below'},
+  avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
   endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
 };
-// 进度牌:放在头像跟月兔按键中间的空隙,居中对齐;爱心牌:放在恋爱日记图示右边,垂直置中对齐
-const PROGRESS_PILL_CENTER = {x:(856+1200)/2, y:(547+853)/2};
+// 进度牌:贴在头像按键正下方,水平置中对齐;爱心牌:放在恋爱日记图示右边,垂直置中对齐
+const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -455,9 +455,9 @@ function layoutHomeCanvas(){
   // 进度牌:置中挂在头像/月兔按键中间的空隙
   const progressPill = document.querySelector('.progress-pill');
   if(progressPill){
-    progressPill.style.left = (layerLeft + PROGRESS_PILL_CENTER.x*scale)+'px';
-    progressPill.style.top = (layerTop + PROGRESS_PILL_CENTER.y*scale)+'px';
-    progressPill.style.transform = 'translate(-50%,-50%)';
+    progressPill.style.left = (layerLeft + PROGRESS_PILL_ANCHOR.x*scale)+'px';
+    progressPill.style.top = (layerTop + PROGRESS_PILL_ANCHOR.y*scale)+'px';
+    progressPill.style.transform = 'translate(-50%,0)';
   }
   // 爱心牌:左边缘贴着恋爱日记图示右侧,垂直置中对齐该图示
   const livesPill = document.getElementById('lives-pill');
@@ -908,7 +908,7 @@ function renderEndlessStats(){
   document.getElementById('board-moves-left').textContent = endlessRabbitTotal(BOARD);
   el.innerHTML = `
     <span>🐰兔兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
-    <span>🐾狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
+    <span>🐶狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
     <span>☀️早安太阳 <b>${BOARD.stats.sunBursts}</b></span>
     <span>🌕月亮合体 <b>${BOARD.stats.moonBombs}</b></span>
@@ -1001,7 +1001,7 @@ function renderLeaderboardList(entries){
       <div class="leaderboard-rank">${i+1}</div>
       <div style="flex:1;min-width:0;">
         <div class="leaderboard-name">${escapeHtml(e.name)}</div>
-        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐾${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🐇${e.moonPoundings||0}</div>
+        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐶${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🐇${e.moonPoundings||0}</div>
       </div>
       <div class="leaderboard-rabbits">🐇${e.rabbits}</div>
     </div>`).join('');
@@ -1160,6 +1160,12 @@ function showBoardToast(msg, duration){
   boardToastTimer = setTimeout(()=> el.classList.remove('show'), duration||1600);
 }
 
+// 预先把特效图载入浏览器缓存并解码好,避免技能第一次触发时才现抓图/现解码造成的画面卡顿
+['assets/effects/moon_burst.jpg','assets/effects/sun_burst.webp','assets/effects/butterfly_burst.webp'].forEach(src=>{
+  const im = new Image();
+  im.src = src;
+});
+
 let moonBurstTimer = null;
 function showMoonBurst(){
   let el = document.getElementById('moon-burst');
@@ -1182,7 +1188,7 @@ function showSunBurst(){
     el = document.createElement('div');
     el.id = 'sun-burst';
     el.className = 'moon-burst sun-burst';
-    el.innerHTML = `<img src="assets/effects/sun_burst.jpg" alt="">`;
+    el.innerHTML = `<img src="assets/effects/sun_burst.webp" alt="">`;
     document.getElementById('screen-board').appendChild(el);
   }
   el.classList.add('show');
@@ -1197,7 +1203,7 @@ function showButterflyBurst(){
     el = document.createElement('div');
     el.id = 'butterfly-burst';
     el.className = 'moon-burst butterfly-burst';
-    el.innerHTML = `<img src="assets/effects/butterfly_burst.jpg" alt="">`;
+    el.innerHTML = `<img src="assets/effects/butterfly_burst.webp" alt="">`;
     document.getElementById('screen-board').appendChild(el);
   }
   el.classList.add('show');
@@ -1288,10 +1294,9 @@ function applyFullMoon(r,c){
   BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
   BOARD.busy = true;
   renderBoard();
-  // 「满月许愿成真」这句话延长展示,并且晚一点再判定连锁,
-  // 避免刚好凑成月亮爆炸时,月兔合体的提示秒盖掉这句话,两个效果前后分开比较看得清楚
-  showBoardToast('🌝 满月许愿成真!', 2400);
-  setTimeout(()=> resolveCascade(1), 2000);
+  // 「满月许愿成真」这句话展示后再判定连锁,让玩家先看到这句话,跟接下来的月亮合体提示分开一点点
+  showBoardToast('🌝 满月许愿成真!', 1400);
+  setTimeout(()=> resolveCascade(1), 1000);
 }
 
 function swapCells(cells,r1,c1,r2,c2){
@@ -1597,7 +1602,7 @@ function resolveCascade(combo){
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
       const add = cfg.level>=50 ? 7 : 1;
       bonusMoves += add;
-      specialMsg = `🐾 狗狗组合!步数 +${add}`;
+      specialMsg = `🐶 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
       if(BOARD.endless) BOARD.stats.dogfaceMatches++;
       else STATE.milestoneStats.dogfaceMatches++;
@@ -1656,8 +1661,8 @@ function resolveCascade(combo){
     if(el) el.classList.add(burstCells.has(key) ? 'line-burst' : 'clearing');
   });
 
-  // 有爆炸特效格时,消除动作延后一拍(1.1秒),让玩家先感受到爆炸的震撼感,一般消除维持原本的快节奏
-  const clearDelay = burstCells.size>0 ? 1100 : 180;
+  // 有爆炸特效格时,消除动作延后一拍(0.8秒,跟 lineBurst 动画时长对齐),让玩家先感受到爆炸的震撼感,一般消除维持原本的快节奏
+  const clearDelay = burstCells.size>0 ? 800 : 180;
   setTimeout(()=>{
     matched.forEach(key=>{
       const [r,c] = key.split(',').map(Number);
@@ -1665,10 +1670,10 @@ function resolveCascade(combo){
     });
     applyGravity(cfg);
     renderBoard();
-    // 闪光消除动画结束的这一刻才放大图特效,而不是跟闪光同时出现
-    if(bombed) showMoonBurst();
-    else if(butterflyBursted) showButterflyBurst();
-    else if(sunBursted) showSunBurst();
+    // 闪光消除动画结束的这一刻才放大图特效;延后到下一帧再显示,避开 renderBoard() 这次重排造成的卡顿
+    if(bombed) requestAnimationFrame(()=> requestAnimationFrame(showMoonBurst));
+    else if(butterflyBursted) requestAnimationFrame(()=> requestAnimationFrame(showButterflyBurst));
+    else if(sunBursted) requestAnimationFrame(()=> requestAnimationFrame(showSunBurst));
     setTimeout(()=> resolveCascade(combo+1), 180);
   }, clearDelay);
 }
@@ -1939,7 +1944,7 @@ function renderModal(step){
       <h3 style="text-align:center;">这一章的甜蜜战绩</h3>
       <div class="tutorial-list" style="margin:12px 0;">
         <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次</div></div>
