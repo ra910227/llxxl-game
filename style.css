@@ -118,7 +118,6 @@ html,body{
   background-position:center;
   border-radius:16px;
   box-shadow:0 4px 14px var(--shadow);
-  border:2px solid #fff;
 }
 .hotspot-badge{
   position:absolute;top:-2px;right:-2px;
@@ -132,7 +131,6 @@ html,body{
 /* 两个小资讯牌都移到房间美术本身留白的斜墙/墙面空隙里,不叠在头像或家具上 */
 .progress-pill{
   position:absolute;z-index:5;
-  top:2%;left:47%;
   background:rgba(255,255,255,0.85);
   backdrop-filter:blur(6px);
   border-radius:999px;
@@ -159,7 +157,6 @@ html,body{
 }
 .lives-pill{
   position:absolute;z-index:5;
-  top:12%;left:19%;
   background:rgba(255,255,255,0.85);
   backdrop-filter:blur(6px);
   border-radius:999px;

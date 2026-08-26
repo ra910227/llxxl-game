@@ -27,9 +27,12 @@ const HOTSPOTS = {
   diary:    {x1:451,  y1:2453, x2:705,  y2:2703},
   gift:     {x1:1417, y1:2322, x2:1593, y2:2496},
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
-  avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
-  endless:  {x1:1200, y1:610,  x2:1582, y2:916}, // 房间右上墙面留白处,大小跟头像按键(avatar)一样
+  avatar:   {x1:474,  y1:547,  x2:856,  y2:853, labelPos:'below'},
+  endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
 };
+// 进度牌:放在头像跟月兔按键中间的空隙,居中对齐;爱心牌:放在恋爱日记图示右边,垂直置中对齐
+const PROGRESS_PILL_CENTER = {x:(856+1200)/2, y:(547+853)/2};
+const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 
@@ -439,10 +442,30 @@ function layoutHomeCanvas(){
     const label = document.getElementById('hotspot-'+key+'-label');
     if(label){
       label.style.left = (layerLeft + (b.x1+b.x2)/2*scale)+'px';
-      label.style.top = (layerTop + b.y1*scale - 8)+'px';
-      label.style.transform = 'translate(-50%,-100%)';
+      if(b.labelPos==='below'){
+        label.style.top = (layerTop + b.y2*scale + 6)+'px';
+        label.style.transform = 'translate(-50%,0)';
+      } else {
+        label.style.top = (layerTop + b.y1*scale - 8)+'px';
+        label.style.transform = 'translate(-50%,-100%)';
+      }
     }
   });
+
+  // 进度牌:置中挂在头像/月兔按键中间的空隙
+  const progressPill = document.querySelector('.progress-pill');
+  if(progressPill){
+    progressPill.style.left = (layerLeft + PROGRESS_PILL_CENTER.x*scale)+'px';
+    progressPill.style.top = (layerTop + PROGRESS_PILL_CENTER.y*scale)+'px';
+    progressPill.style.transform = 'translate(-50%,-50%)';
+  }
+  // 爱心牌:左边缘贴着恋爱日记图示右侧,垂直置中对齐该图示
+  const livesPill = document.getElementById('lives-pill');
+  if(livesPill){
+    livesPill.style.left = (layerLeft + LIVES_PILL_ANCHOR.x*scale)+'px';
+    livesPill.style.top = (layerTop + LIVES_PILL_ANCHOR.y*scale)+'px';
+    livesPill.style.transform = 'translate(0,-50%)';
+  }
 }
 window.addEventListener('resize', ()=>{
   if(document.getElementById('screen-home').classList.contains('active')) layoutHomeCanvas();
@@ -863,7 +886,7 @@ function openEndlessBoard(){
   }
   renderRabbitTray();
 
-  document.getElementById('board-level-title').textContent = `月兔挑战赛`;
+  document.getElementById('board-level-title').textContent = `月兔大挑战`;
   document.getElementById('board-milestone-badge').hidden = true;
   document.querySelector('.board-moves').innerHTML = `🐇月兔 <span id="board-moves-left">${endlessRabbitTotal(BOARD)}</span>`;
   document.querySelector('.board-score-wrap').hidden = true;
