@@ -2,14 +2,15 @@
 // 部署后要绑定一个叫 LEADERBOARD 的 KV namespace(见 README.md 步骤)。
 //
 // 排行榜规则:同一个名字只留最新一笔(用姓名当唯一键,重新上传会直接覆盖旧纪录,
-// 不会同一个人留好几笔),排名依据 rabbits(累计月兔总数,消耗满月不会倒扣)。
+// 不会同一个人留好几笔),排名依据 rabbits(现有月兔数量=兔兔+满月*3,用月兔捣药技能
+// 把满月拖到棋盘上花掉会倒扣)。
 
 const MAX_NAME_LEN = 16;
 const MAX_ENTRIES_STORED = 500; // KV 里最多留这么多个不同的名字,避免无限长大
 const MAX_RETURNED = 100;       // 排行榜实际显示前几名
 
-// 除了排名用的 rabbits,还额外记录这些统计数字,数值本身不影响排序,只是附加显示用
-const STAT_FIELDS = ['bunnyMatches', 'dogfaceMatches', 'butterflyBursts', 'sunBursts', 'moonPoundings'];
+// 除了排名用的 rabbits,还额外记录这些统计数字,数值本身不影响排序,只是附加显示/称号判定用
+const STAT_FIELDS = ['bunnyMatches', 'dogfaceMatches', 'butterflyBursts', 'sunBursts', 'moonPoundings', 'peakAssets'];
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

@@ -284,7 +284,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'' };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats() };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -818,7 +818,15 @@ function endlessConfig(){
   return { level:79, rows:ENDLESS_ROWS, cols:ENDLESS_COLS, tileTypes:11, moves:Infinity, targetScore:Infinity, numFrozen:0, isMilestone:false, isSpecialLevel:false };
 }
 function emptyEndlessStats(){
-  return { totalRabbits:0, bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonPoundings:0 };
+  return { bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonPoundings:0, peakAssets:0 };
+}
+// 恋爱日记章节(9/19/29...79关)之间累计的战绩,每次章节结算完就归零重新算
+function emptyMilestoneStats(){
+  return { bunnyMatches:0, dogfaceMatches:0, rabbitsGained:0, moonPoundings:0, butterflyBursts:0, sunBursts:0 };
+}
+// 「月兔数量」现场结算:兔兔+满月*3,用月兔捣药技能把满月拖到棋盘上花掉之后,这个数字会跟着倒扣
+function endlessRabbitTotal(src){
+  return (src.rabbitCount||0) + (src.fullMoonCount||0)*3;
 }
 function openEndlessBoard(){
   const cfg = endlessConfig();
@@ -850,7 +858,7 @@ function openEndlessBoard(){
 
   document.getElementById('board-level-title').textContent = `无尽挑战`;
   document.getElementById('board-milestone-badge').hidden = true;
-  document.querySelector('.board-moves').innerHTML = `🐇累计 <span id="board-moves-left">${BOARD.stats.totalRabbits}</span>`;
+  document.querySelector('.board-moves').innerHTML = `🐇月兔 <span id="board-moves-left">${endlessRabbitTotal(BOARD)}</span>`;
   document.querySelector('.board-score-wrap').hidden = true;
   document.getElementById('endless-panel').hidden = false;
   renderEndlessStats();
@@ -862,7 +870,7 @@ function openEndlessBoard(){
 function renderEndlessStats(){
   const el = document.getElementById('endless-stats');
   if(!el || !BOARD || !BOARD.endless) return;
-  document.getElementById('board-moves-left').textContent = BOARD.stats.totalRabbits;
+  document.getElementById('board-moves-left').textContent = endlessRabbitTotal(BOARD);
   el.innerHTML = `
     <span>🐰兔兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
     <span>🐾狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
@@ -887,18 +895,20 @@ function saveEndlessProgress(){
 /* 排行榜:呼叫 LEADERBOARD_API(Cloudflare Worker)。网址还没换成真的之前会直接回传错误,
    呼叫端要处理失败情况(不能让排行榜功能挡住正常游玩)。 */
 async function submitLeaderboardScore(name){
-  const stats = (BOARD && BOARD.endless) ? BOARD.stats : (STATE.endless && STATE.endless.stats) || emptyEndlessStats();
+  const src = (BOARD && BOARD.endless) ? BOARD : (STATE.endless || {});
+  const stats = src.stats || emptyEndlessStats();
   const res = await fetch(LEADERBOARD_API + '/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       name,
-      rabbits: stats.totalRabbits,
+      rabbits: endlessRabbitTotal(src),
       bunnyMatches: stats.bunnyMatches,
       dogfaceMatches: stats.dogfaceMatches,
       butterflyBursts: stats.butterflyBursts,
       sunBursts: stats.sunBursts,
       moonPoundings: stats.moonPoundings,
+      peakAssets: stats.peakAssets,
     }),
   });
   const data = await res.json();
@@ -911,7 +921,33 @@ async function fetchLeaderboard(){
   if(!data.ok) throw new Error(data.error || 'fetch_failed');
   return data.entries;
 }
+// 6个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
+const ACHIEVEMENT_TITLES = [
+  { key:'rabbits',         icon:'👑', name:'月兔国国王' },
+  { key:'dogfaceMatches',  icon:'🐾', name:'最爱狗狗的人' },
+  { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人' },
+  { key:'peakAssets',      icon:'💰', name:'最游刃有余的人' },
+  { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人' },
+  { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的你' },
+];
+function renderTitleHolders(entries){
+  const el = document.getElementById('title-list');
+  if(!el) return;
+  el.innerHTML = ACHIEVEMENT_TITLES.map(t=>{
+    let best = null;
+    (entries||[]).forEach(e=>{
+      const v = e[t.key]||0;
+      if(v>0 && (!best || v>best.value)) best = { name:e.name, value:v };
+    });
+    return `<div class="title-row">
+      <span class="title-icon">${t.icon}</span>
+      <span class="title-name">${t.name}</span>
+      <span class="title-holder">${best ? escapeHtml(best.name)+' · '+best.value : '尚无人达成'}</span>
+    </div>`;
+  }).join('');
+}
 function renderLeaderboardList(entries){
+  renderTitleHolders(entries);
   const el = document.getElementById('leaderboard-list');
   if(!el) return;
   if(!entries || entries.length===0){
@@ -1122,8 +1158,7 @@ function updateRabbitProgress(){
     BOARD.dogfacePending--;
     BOARD.bunnyPending--;
     BOARD.rabbitCount++;
-    // totalRabbits 只增不减,用满月/拿去变月亮都不会倒扣,是无尽挑战关排行榜的排名依据
-    if(BOARD.endless) BOARD.stats.totalRabbits++;
+    if(!BOARD.endless) STATE.milestoneStats.rabbitsGained++;
     gainedRabbit = true;
   }
   let gainedMoon = false;
@@ -1131,7 +1166,13 @@ function updateRabbitProgress(){
     BOARD.rabbitCount -= 3;
     BOARD.fullMoonCount++;
     if(BOARD.endless) BOARD.stats.moonPoundings++;
+    else STATE.milestoneStats.moonPoundings++;
     gainedMoon = true;
+  }
+  // 「最游刃有余的人」称号依据:记录史上一次同时持有过最多的月兔资产(花掉满月不会往回修正这个峰值)
+  if(BOARD.endless && gainedRabbit){
+    const current = endlessRabbitTotal(BOARD);
+    if(current > BOARD.stats.peakAssets) BOARD.stats.peakAssets = current;
   }
   if(gainedRabbit || gainedMoon) renderRabbitTray();
   if(gainedRabbit && BOARD.endless) renderEndlessStats();
@@ -1187,6 +1228,7 @@ function applyFullMoon(r,c){
   if(!cell || cell.frozen){ flashDeny(r,c); return; }
   BOARD.fullMoonCount--;
   renderRabbitTray();
+  if(BOARD.endless) renderEndlessStats();
   BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
   BOARD.busy = true;
   renderBoard();
@@ -1472,6 +1514,7 @@ function resolveCascade(combo){
       }
       specialMsg = `"Let's run away 🏃🏻🦋"`;
       if(BOARD.endless) BOARD.stats.butterflyBursts++;
+      else STATE.milestoneStats.butterflyBursts++;
     }
 
     // 60关后,太阳4连以上:以命中点为中心,清空十字型两排(整行+整列),十字炸开特效
@@ -1482,6 +1525,7 @@ function resolveCascade(combo){
       specialMsg = `"morning sunshine☀️"`;
       sunBursted = true;
       if(BOARD.endless) BOARD.stats.sunBursts++;
+      else STATE.milestoneStats.sunBursts++;
     }
 
     // 狗狗/小远配对成功:步数 +1(50关后+7);兔兔/小派配对成功:步数 +1(50关后+9),50关后步数吃紧,加大奖励帮玩家撑住后期关卡
@@ -1491,6 +1535,7 @@ function resolveCascade(combo){
       specialMsg = `🐾 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
       if(BOARD.endless) BOARD.stats.dogfaceMatches++;
+      else STATE.milestoneStats.dogfaceMatches++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
       const add = cfg.level>=50 ? 9 : 1;
@@ -1498,6 +1543,7 @@ function resolveCascade(combo){
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
       if(BOARD.endless) BOARD.stats.bunnyMatches++;
+      else STATE.milestoneStats.bunnyMatches++;
     }
   });
   updateRabbitProgress();
@@ -1599,6 +1645,14 @@ function onLevelWin(levelNum){
   queue.push({type:'win', level:levelNum});
 
   if(firstClear){
+    // 戀愛日記章節(9/19/29...79關)過關時,結算「這段時間」(上一次結算之后到现在)累积的兔兔/狗狗/月兔/满月/蝴蝶/太阳数据,
+    // 让玩家有个专门的画面可以截图纪念,结算完就归零重新累计下一章
+    if(MILESTONES.includes(levelNum)){
+      queue.push({type:'milestone-summary', level:levelNum, stats: Object.assign({}, STATE.milestoneStats)});
+      STATE.milestoneStats = emptyMilestoneStats();
+      saveState();
+    }
+
     if(MEMENTO_LEVELS.includes(levelNum) && !STATE.mementos.includes(levelNum)){
       STATE.mementos.push(levelNum);
       saveState();
@@ -1738,6 +1792,7 @@ function renderModal(step){
   } else if(step.type==='leaderboard'){
     card.innerHTML = `
       <h3 style="text-align:center;">🐇 月兔排行榜</h3>
+      <div class="title-list" id="title-list"></div>
       <div class="leaderboard-list" id="leaderboard-list">载入中…</div>
       <button class="modal-btn" id="modal-next">关闭</button>`;
     if(step.entries){
@@ -1808,6 +1863,20 @@ function renderModal(step){
       <div class="modal-emoji">🎉</div>
       <h3>第 ${step.level} 关过关!</h3>
       <p>目标分数达成,太棒了。</p>
+      <button class="modal-btn" id="modal-next">继续</button>`;
+  } else if(step.type==='milestone-summary'){
+    const s = step.stats;
+    card.innerHTML = `
+      <div class="modal-emoji">📊</div>
+      <h3 style="text-align:center;">这一章的甜蜜战绩</h3>
+      <div class="tutorial-list" style="margin:12px 0;">
+        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>凑出满月 <b>${s.moonPoundings}</b> 轮</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次</div></div>
+      </div>
       <button class="modal-btn" id="modal-next">继续</button>`;
   } else if(step.type==='fail'){
     card.innerHTML = `

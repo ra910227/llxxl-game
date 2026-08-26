@@ -307,8 +307,25 @@ html,body{
 .endless-actions{display:flex;justify-content:center;gap:10px;}
 .endless-btn{margin-top:0;font-size:12px;padding:8px 18px;}
 
+.title-list{
+  text-align:left;margin:10px 0;
+  background:#fdf1e4;border-radius:12px;
+  padding:8px 10px;
+}
+.title-row{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 0;
+  font-size:11px;
+}
+.title-icon{flex-shrink:0;font-size:14px;}
+.title-name{flex-shrink:0;color:var(--ink-soft);white-space:nowrap;}
+.title-holder{
+  flex:1;text-align:right;font-weight:800;color:var(--pink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 .leaderboard-list{
-  text-align:left;max-height:50vh;overflow-y:auto;margin:10px 0;
+  text-align:left;max-height:40vh;overflow-y:auto;margin:10px 0;
 }
 .leaderboard-row{
   display:flex;align-items:center;gap:8px;
