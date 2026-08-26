@@ -30,8 +30,8 @@ const HOTSPOTS = {
   avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
   endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
 };
-// 进度牌:贴在头像按键正下方,水平置中对齐;爱心牌:放在恋爱日记图示右边,垂直置中对齐
-const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
+// 进度牌:横向卡在头像/月兔按键中间的空隙(避免挡到任一边),纵向再对齐「月兔大挑战」白字下缘;爱心牌:放在恋爱日记图示右边,垂直置中对齐
+const PROGRESS_PILL_ANCHOR = {x:(856+1200)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -452,12 +452,18 @@ function layoutHomeCanvas(){
     }
   });
 
-  // 进度牌:置中挂在头像/月兔按键中间的空隙
+  // 进度牌:贴在头像按键正下方,水平置中;下缘再对齐「月兔大挑战」白字的下缘,让两边看起来一样高
   const progressPill = document.querySelector('.progress-pill');
   if(progressPill){
     progressPill.style.left = (layerLeft + PROGRESS_PILL_ANCHOR.x*scale)+'px';
     progressPill.style.top = (layerTop + PROGRESS_PILL_ANCHOR.y*scale)+'px';
     progressPill.style.transform = 'translate(-50%,0)';
+    const endlessLabel = document.getElementById('hotspot-endless-label');
+    if(endlessLabel){
+      const labelBottom = endlessLabel.getBoundingClientRect().bottom;
+      const wrapTop = wrap.getBoundingClientRect().top;
+      progressPill.style.top = (labelBottom - wrapTop - progressPill.offsetHeight)+'px';
+    }
   }
   // 爱心牌:左边缘贴着恋爱日记图示右侧,垂直置中对齐该图示
   const livesPill = document.getElementById('lives-pill');
