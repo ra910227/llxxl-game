@@ -856,6 +856,7 @@ function openEndlessBoard(){
     BOARD.fullMoonCount = saved.fullMoonCount||0;
     BOARD.dogfacePending = saved.dogfacePending||0;
     BOARD.bunnyPending = saved.bunnyPending||0;
+    BOARD.score = saved.score||0;
     BOARD.stats = Object.assign(emptyEndlessStats(), saved.stats||{});
   } else {
     BOARD.cells = generateSolvableBoard(cfg);
@@ -888,7 +889,8 @@ function renderEndlessStats(){
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
     <span>☀️早安太阳 <b>${BOARD.stats.sunBursts}</b></span>
     <span>🌕月亮合体 <b>${BOARD.stats.moonBombs}</b></span>
-    <span>🌝月兔捣药 <b>${BOARD.stats.moonPoundings}</b></span>`;
+    <span>🌝月兔捣药 <b>${BOARD.stats.moonPoundings}</b></span>
+    <span>💰积分 <b>${BOARD.score}</b></span>`;
 }
 function saveEndlessProgress(){
   if(!BOARD || !BOARD.endless) return;
@@ -898,6 +900,7 @@ function saveEndlessProgress(){
     fullMoonCount: BOARD.fullMoonCount,
     dogfacePending: BOARD.dogfacePending,
     bunnyPending: BOARD.bunnyPending,
+    score: BOARD.score,
     stats: BOARD.stats,
   };
   saveState();
@@ -915,6 +918,7 @@ async function submitLeaderboardScore(name){
     body: JSON.stringify({
       name,
       rabbits: endlessRabbitTotal(src),
+      score: src.score||0,
       bunnyMatches: stats.bunnyMatches,
       dogfaceMatches: stats.dogfaceMatches,
       butterflyBursts: stats.butterflyBursts,
@@ -933,15 +937,17 @@ async function fetchLeaderboard(){
   if(!data.ok) throw new Error(data.error || 'fetch_failed');
   return data.entries;
 }
-// 7个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
+// 9个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
 const ACHIEVEMENT_TITLES = [
   { key:'rabbits',         icon:'👑', name:'月兔国国王' },
-  { key:'dogfaceMatches',  icon:'🐾', name:'最爱狗狗的人' },
+  { key:'dogfaceMatches',  icon:'🐶', name:'最爱狗狗的人' },
   { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人' },
-  { compute:e=>(e.butterflyBursts||0)+(e.sunBursts||0)+(e.moonBombs||0)+(e.moonPoundings||0), icon:'💰', name:'最游刃有余的人' },
+  { compute:e=>(e.butterflyBursts||0)+(e.sunBursts||0)+(e.moonBombs||0)+(e.moonPoundings||0), icon:'🍵', name:'最游刃有余的人' },
   { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人' },
   { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的人' },
   { key:'moonBombs',       icon:'🌕', name:'代表月亮惩罚你' },
+  { key:'score',           icon:'💰', name:'最富有的人' },
+  { key:'moonPoundings',   icon:'💊', name:'月兔国最大药头' },
 ];
 function renderTitleHolders(entries){
   const el = document.getElementById('title-list');
@@ -1249,8 +1255,11 @@ function applyFullMoon(r,c){
   if(!cell || cell.frozen){ flashDeny(r,c); return; }
   BOARD.fullMoonCount--;
   // 月兔捣药是「技能」,跟蝴蝶/太阳一样只在实际触发(把满月拖到棋盘上换掉一个非冰冻格)时才计数
-  if(BOARD.endless) BOARD.stats.moonPoundings++;
-  else STATE.milestoneStats.moonPoundings++;
+  if(BOARD.endless){
+    BOARD.stats.moonPoundings++;
+    // 放置满月本身不会消除任何格子,原本完全不计分,额外给个技能奖励分,让「最富有的人」称号也能反映这个技能的使用次数
+    BOARD.score += 30;
+  } else STATE.milestoneStats.moonPoundings++;
   renderRabbitTray();
   if(BOARD.endless) renderEndlessStats();
   BOARD.cells[r][c] = { type: MOONFACE_IDX, frozen:false };
@@ -1530,8 +1539,11 @@ function resolveCascade(combo){
           bombed = true;
         }
       }
-      if(BOARD.endless) BOARD.stats.moonBombs++;
-      else STATE.milestoneStats.moonBombs++;
+      if(BOARD.endless){
+        BOARD.stats.moonBombs++;
+        // 额外给个技能触发奖励分(炸开的格子本身另外还有消除计分),让「最富有的人」称号也能反映这个技能的触发次数
+        BOARD.score += 50;
+      } else STATE.milestoneStats.moonBombs++;
     }
 
     // 40关后,蝴蝶4连以上:清空整排(横向连成就清空该行,纵向连成就清空该列),整排炸开特效
