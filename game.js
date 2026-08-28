@@ -382,7 +382,7 @@ function stopLivesTimer(){
    存钱筒:每 3 小时可以点一次,开出 1~9 枚不等的远派金币,
    不像爱心系统有上限卡住,纯粹看时间到了没有,不设「每天最多领一次」的额外限制
    ============================================================ */
-const PIGGY_INTERVAL_MS = 3*60*60*1000;
+const PIGGY_INTERVAL_MS = 1*60*60*1000;
 function isPiggyReady(){
   return !STATE.piggyReadyAt || Date.now() >= STATE.piggyReadyAt;
 }
