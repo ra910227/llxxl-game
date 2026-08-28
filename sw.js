@@ -1,5 +1,5 @@
 /* 離線快取:第一次打開後把遊戲需要的檔案都存起來,之後沒網路也能開 */
-const CACHE_NAME = 'llxxl-cache-v35';
+const CACHE_NAME = 'llxxl-cache-v36';
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,8 @@ const ASSETS = [
   './assets/ui/icon_piggy.png',
   './assets/ui/coin.webp',
   './assets/ui/coin2.webp',
+  './assets/ui/milestone_card_bg.jpg',
+  './assets/ui/xiaobiga_anim.gif',
 ];
 
 self.addEventListener('install', (event) => {

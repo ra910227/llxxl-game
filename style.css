@@ -793,6 +793,41 @@ html,body{
   touch-action:pan-y;
 }
 .diary-card-inner h3{margin:0 0 8px;font-size:15px;color:var(--pink);flex-shrink:0;}
+
+.modal-card.milestone-mode{
+  background:none;box-shadow:none;padding:0;
+  max-width:440px;width:min(96vw,440px);
+  max-height:88vh;
+  display:flex;flex-direction:column;align-items:center;
+  animation:pop .25s ease;
+}
+.milestone-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:815/1198;
+  max-height:100%;
+  background-image:url('assets/ui/milestone_card_bg.jpg');
+  background-repeat:no-repeat;
+  /* background-size/position 由 layoutCardBg() 动态计算,跟恋爱日记卡片共用同一张模板底图尺寸 */
+}
+.milestone-card-inner{
+  position:absolute;
+  top:16%;bottom:29%;left:17%;right:17%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  text-align:center;
+  overflow-y:auto;
+}
+.milestone-card-inner h3{margin:0 0 6px;font-size:14px;color:var(--pink);flex-shrink:0;}
+/* 小鼻嘎动画坐在卡片下缘的空白处,尺寸比照恋爱日记卡片里角色的比例(约卡片宽度1/3) */
+.milestone-biga-anim{
+  position:absolute;
+  left:50%;bottom:4%;
+  width:34%;
+  transform:translateX(-50%);
+  pointer-events:none;
+}
+.milestone-biga-anim img{width:100%;display:block;}
 .diary-page-text{
   text-align:left;width:100%;
   font-size:11.5px;line-height:1.65;color:var(--ink);white-space:pre-line;

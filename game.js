@@ -2035,6 +2035,7 @@ function renderModal(step){
   card.classList.toggle('diary-mode', step.type==='diary');
   card.classList.toggle('memento-mode', step.type==='memento' && step.source!=='couple');
   card.classList.toggle('couple-mode', step.type==='memento' && step.source==='couple');
+  card.classList.toggle('milestone-mode', step.type==='milestone-summary');
 
   if(step.type==='about'){
     card.innerHTML = `
@@ -2215,19 +2216,24 @@ function renderModal(step){
     const r = step.rewards || {};
     const badge = (key)=> r[key] ? `<span class="milestone-reward">+${r[key]}💰</span>` : '';
     card.innerHTML = `
-      <div class="modal-emoji">📊</div>
-      <h3 style="text-align:center;">远派恋爱金币结算</h3>
-      <div class="tutorial-list" style="margin:12px 0;">
-        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次${badge('bunnyMatches')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次${badge('dogfaceMatches')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只${badge('rabbitsGained')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次${badge('butterflyBursts')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次${badge('sunBursts')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🌕</span><div>月亮合体 <b>${s.moonBombs}</b> 次${badge('moonBombs')}</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>月兔捣药 <b>${s.moonPoundings}</b> 次${badge('moonPoundings')}</div></div>
+      <div class="milestone-card">
+        <div class="milestone-card-inner">
+          <h3>远派恋爱金币结算</h3>
+          <div class="tutorial-list" style="margin:6px 0;">
+            <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次${badge('bunnyMatches')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次${badge('dogfaceMatches')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只${badge('rabbitsGained')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次${badge('butterflyBursts')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次${badge('sunBursts')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">🌕</span><div>月亮合体 <b>${s.moonBombs}</b> 次${badge('moonBombs')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>月兔捣药 <b>${s.moonPoundings}</b> 次${badge('moonPoundings')}</div></div>
+          </div>
+          ${step.totalCoins>0 ? `<p class="milestone-total-coins"><img src="assets/ui/coin.webp" alt=""> 本章共获得 ${step.totalCoins} 枚远派金币</p>` : ''}
+        </div>
+        <div class="milestone-biga-anim"><img src="assets/ui/xiaobiga_anim.gif" alt=""></div>
       </div>
-      ${step.totalCoins>0 ? `<p class="milestone-total-coins"><img src="assets/ui/coin.webp" alt=""> 本章共获得 ${step.totalCoins} 枚远派金币</p>` : ''}
-      <button class="modal-btn" id="modal-next">继续</button>`;
+      <button class="modal-btn" id="modal-next" style="margin-top:14px;">继续</button>`;
+    layoutCardBg('.milestone-card', 'milestone-mode');
   } else if(step.type==='fail'){
     card.innerHTML = `
       <div class="modal-emoji">😿</div>
@@ -2352,6 +2358,7 @@ window.addEventListener('resize', ()=>{
   if(document.getElementById('modal-overlay').hidden) return;
   if(document.querySelector('.diary-card')) layoutCardBg('.diary-card', 'diary-mode');
   if(document.querySelector('.memento-card')) layoutCardBg('.memento-card', 'memento-mode');
+  if(document.querySelector('.milestone-card')) layoutCardBg('.milestone-card', 'milestone-mode');
 });
 
 /* ============================================================
