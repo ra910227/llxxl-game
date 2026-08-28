@@ -290,7 +290,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -797,6 +797,20 @@ function refreshMap(){
         showModalQueue(rereadQueue);
       });
       wrap.appendChild(heart);
+    }
+
+    // 已结算过的远派金币章节:显示可重复点阅的小金币图示
+    if(milestone && STATE.milestoneHistory[n]){
+      const coinBtn = document.createElement('button');
+      coinBtn.className = 'milestone-coin-btn';
+      coinBtn.title = '查看这一章的远派恋爱金币结算';
+      coinBtn.innerHTML = '<img src="assets/ui/coin.webp" alt="">';
+      coinBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const rec = STATE.milestoneHistory[n];
+        showModalQueue([{type:'milestone-summary', level:n, stats:rec.stats, rewards:rec.rewards, totalCoins:rec.totalCoins, reread:true}]);
+      });
+      wrap.appendChild(coinBtn);
     }
 
     list.appendChild(wrap);
@@ -1967,6 +1981,7 @@ function onLevelWin(levelNum){
       });
       STATE.coins += totalCoins;
       queue.push({type:'milestone-summary', level:levelNum, stats: snapStats, rewards, totalCoins});
+      STATE.milestoneHistory[levelNum] = { stats: snapStats, rewards, totalCoins };
       STATE.milestoneStats = emptyMilestoneStats();
       saveState();
     }
@@ -2232,7 +2247,7 @@ function renderModal(step){
         </div>
         <div class="milestone-biga-anim"><img src="assets/ui/xiaobiga_anim.gif" alt=""></div>
       </div>
-      <button class="modal-btn" id="modal-next" style="margin-top:14px;">继续</button>`;
+      <button class="modal-btn" id="modal-next" style="margin-top:14px;">${step.reread ? '关闭' : '继续'}</button>`;
     layoutCardBg('.milestone-card', 'milestone-mode');
   } else if(step.type==='fail'){
     card.innerHTML = `

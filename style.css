@@ -308,6 +308,17 @@ html,body{
   display:flex;align-items:center;justify-content:center;
 }
 .diary-heart-btn:active{transform:translateX(-50%) scale(0.9);}
+.milestone-coin-btn{
+  position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);
+  width:28px;height:28px;border-radius:50%;
+  border:none;background:#fff;
+  box-shadow:0 3px 8px var(--shadow);
+  cursor:pointer;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  padding:5px;
+}
+.milestone-coin-btn img{width:100%;height:100%;object-fit:contain;}
+.milestone-coin-btn:active{transform:translateX(-50%) scale(0.9);}
 
 /* ---------- 棋盘 ---------- */
 .board-topbar{
