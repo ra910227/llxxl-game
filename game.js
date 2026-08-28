@@ -1184,7 +1184,7 @@ function showMoonBurst(){
   }
   el.classList.add('show');
   clearTimeout(moonBurstTimer);
-  moonBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+  moonBurstTimer = setTimeout(()=> el.classList.remove('show'), 1000);
 }
 
 let sunBurstTimer = null;
@@ -1214,7 +1214,7 @@ function showButterflyBurst(){
   }
   el.classList.add('show');
   clearTimeout(butterflyBurstTimer);
-  butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+  butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), 1600);
 }
 
 /* ============================================================
@@ -1667,8 +1667,8 @@ function resolveCascade(combo){
     if(el) el.classList.add(burstCells.has(key) ? 'line-burst' : 'clearing');
   });
 
-  // 有爆炸特效格时,消除动作延后一拍(0.8秒,跟 lineBurst 动画时长对齐),让玩家先感受到爆炸的震撼感,一般消除维持原本的快节奏
-  const clearDelay = burstCells.size>0 ? 800 : 180;
+  // 有爆炸特效格时,消除动作延后一拍(1秒,跟 lineBurst 动画时长对齐),让玩家先感受到爆炸的震撼感,一般消除维持原本的快节奏
+  const clearDelay = burstCells.size>0 ? 1000 : 180;
   setTimeout(()=>{
     matched.forEach(key=>{
       const [r,c] = key.split(',').map(Number);

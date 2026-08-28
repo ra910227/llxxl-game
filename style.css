@@ -500,7 +500,7 @@ html,body{
   transform:scale(0.3);opacity:0;
 }
 .tile.line-burst{
-  animation: lineBurst 0.8s ease forwards;
+  animation: lineBurst 1s ease forwards;
   z-index:5;
 }
 @keyframes lineBurst{
