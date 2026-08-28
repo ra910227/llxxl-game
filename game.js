@@ -29,12 +29,12 @@ const HOTSPOTS = {
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
   avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
   endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
-  piggy:    {x1:1102, y1:1414, x2:1242, y2:1554}, // 二楼书桌右侧留白处
+  piggy:    {x1:932, y1:1540, x2:1043, y2:1641}, // 存钱筒图案(icon_piggy.png)实际画的位置,含一点点击边距
 };
 // 进度牌:横向贴在头像按键正下方置中(牌子压到的地方刚好是头像图案的留白,视觉上不会挡到东西),纵向对齐「月兔大挑战」白字下缘;爱心牌:放在恋爱日记图示右边,垂直置中对齐
 const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
-const COIN_PILL_ANCHOR = {x:(1102+1242)/2, y:1554+34}; // 贴在存钱筒图示正下方,水平置中
+const COIN_PILL_ANCHOR = {x:(932+1043)/2, y:1641+24}; // 贴在存钱筒图示正下方,水平置中
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 
@@ -387,8 +387,8 @@ function isPiggyReady(){
   return !STATE.piggyReadyAt || Date.now() >= STATE.piggyReadyAt;
 }
 function updatePiggyUI(){
-  const btn = document.getElementById('hotspot-piggy');
-  if(btn) btn.classList.toggle('piggy-ready', isPiggyReady());
+  const layer = document.getElementById('piggy-layer');
+  if(layer) layer.classList.toggle('piggy-ready', isPiggyReady());
 }
 function updateCoinDisplays(){
   const c1 = document.getElementById('coin-count');

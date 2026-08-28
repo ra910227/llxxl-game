@@ -119,13 +119,7 @@ html,body{
   border-radius:16px;
   box-shadow:0 4px 14px var(--shadow);
 }
-.hotspot-piggy-btn{
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;
-  border-radius:14px;
-  background:rgba(255,255,255,0.55);
-}
-.hotspot-piggy-btn.piggy-ready{
+.piggy-ready{
   animation:piggyBounce 1s ease-in-out infinite;
 }
 @keyframes piggyBounce{
