@@ -266,8 +266,8 @@ function generateLevelConfig(n){
   } else {
     moves = Math.max(15, (26 - Math.floor(50/8)) - Math.floor((n-50)/5));
     // 目标分数用「每步预期分数」反推,依 59关7799分/79关9977分 两个锚点校准斜率(59/79都是里程碑关卡,
-    // 分数还会再乘1.15)。50关后连击加成(4连*1.5/5连*2)跟狗狗兔兔组合的步数奖励(+7/+9)都大幅提高,
-    // 靠这些「爽度」撑住比之前更高的分数门槛,而不是单纯调低目标。
+    // 分数还会再乘1.15)。50关后连击加成(4连*1.5/5连*2)撑住比之前更高的分数门槛,而不是单纯调低目标;
+    // 狗狗兔兔组合的步数奖励原本70关后另外加码到+7/+9,但实测后期步数太松,已经拿掉那段改成统一+2。
     const scorePerMove = 257.377 + (n-50) * 11.06896;
     targetScore = Math.round(moves * scorePerMove);
     // 50关后图案种类从7种跳到9种,光是这样就更难凑成,冰冻格改用更缓的曲线跟更低的上限,
@@ -1017,16 +1017,12 @@ function escapeHtml(s){
 }
 
 const MOON_WEIGHT = 0.5;       // 60关前:月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
-const MOON_BOOST_WEIGHT = 1.6; // 60关后:月亮出现权重提高,帮助玩家更容易凑出特殊清版效果
+const MOON_BOOST_WEIGHT = 1.2; // 60关后:月亮出现权重提高,帮助玩家更容易凑出特殊清版效果
 
-// 蝴蝶整排特效40关解锁、太阳十字特效60关解锁(见 resolveCascade);各自从解锁关卡起,
-// 出现权重跟着关卡难度线性提高,越晚的关卡加成越大,79关同样封顶在2.8倍,让玩家更容易凑到四连触发特效,抵消变难的曲线
-// 有了月兔捣药机制帮忙撑住后期难度,蝴蝶/太阳的出现权重加成不用像之前那么高,改成小幅提高就好,
-// 权重改由兔兔/狗狗(能凑出月兔组合)分摊过去
+// 蝴蝶整排特效40关解锁(见 resolveCascade),但出现权重要到60关才跟着提高(40-59关维持基准权重1,
+// 这段只是解锁清版能力,不额外加码出现机率);太阳十字特效60关解锁,权重也是60关才开始提高
 function butterflyBoostWeight(level){
-  if(level < 40) return 1;
-  const t = Math.min(level, 79);
-  return 1.2 + (t-40) * (0.4/39);
+  return level >= 60 ? 1.2 : 1;
 }
 function sunBoostWeight(level){
   if(level < 60) return 1;
@@ -1604,9 +1600,10 @@ function resolveCascade(combo){
       else STATE.milestoneStats.sunBursts++;
     }
 
-    // 狗狗/小远配对成功:步数 +1(50关后+2,70关后+7);兔兔/小派配对成功:步数 +1(50关后+2,70关后+9),分两阶段拉高奖励帮玩家撑住后期关卡
+    // 狗狗/小远、兔兔/小派配对成功都是:步数 +1(50关后+2)。原本70关起还有一段+7/+9,
+    // 但实测69关目前打法结束时还剩约10步,代表后期步数已经太松了,拿掉那一段,50关后统一+2就好
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
-      const add = cfg.level>=70 ? 7 : cfg.level>=50 ? 2 : 1;
+      const add = cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
       specialMsg = `🐶 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
@@ -1614,7 +1611,7 @@ function resolveCascade(combo){
       else STATE.milestoneStats.dogfaceMatches++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
-      const add = cfg.level>=70 ? 9 : cfg.level>=50 ? 2 : 1;
+      const add = cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
@@ -1835,8 +1832,8 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">特殊技能说明</h3>
       <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
-        <div class="tutorial-row"><span class="tutorial-icon">🐾</span><div><b>狗狗/小远</b>:配对成功加步数(50关前+1,50关后+7)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div><b>兔兔/小派</b>:配对成功加步数(50关前+1,50关后+9)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div><b>狗狗/小远</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div><b>兔兔/小派</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成3个以上,以中心炸开周围3x3区域(冰冻格也一并解除)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>(40关起):4连以上,清空整排或整列。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>早安太阳</b>(60关起):4连以上,以中心十字型清空一整排+一整列。</div></div>
