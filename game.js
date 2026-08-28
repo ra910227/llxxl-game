@@ -205,7 +205,7 @@ const DIARY_TEXT = {
 
 东补补,西扛扛,一块砖贴着一块砖,一堵墙挨着一堵墙。
 再一回神,便见一个家了。`},
-  79:{title:`恋爱日记 · 第八篇(完)`, text:`尹浩宇的电影陆陆续续上映,受到了一致好评,还有一部入围了戛纳电影节。恰巧伯远最近得空,本想回家休整一下,架不住尹浩宇软磨硬泡,最终还是大包小包的陪着孩子去了法国。
+  79:{title:`恋爱日记 · 最终章`, text:`尹浩宇的电影陆陆续续上映,受到了一致好评,还有一部入围了戛纳电影节。恰巧伯远最近得空,本想回家休整一下,架不住尹浩宇软磨硬泡,最终还是大包小包的陪着孩子去了法国。
 法国饮食伯远吃不惯,小孩的胃也早被他调理的和他一致,于是这次差点超重的行李箱里塞的全是中国的一些调味料,火锅底料、酸菜鱼料、麻辣香锅…伯远到酒店的第一件事便是搜索最近的超市。小孩在法国几天虽然辛苦,却不瘦反胖,伯远居功自傲,擅自安排了尹浩宇为他捏肩挠背一系列报恩服务。
 电影节终于走向尾声,伯远哼哧哼哧收拾好行李却被通知他们还要在法国呆两天,不明所以的他被临时导游尹浩宇带着游览了法国的特色建筑,等走到埃菲尔铁塔下已经是临近日落了。
 天空是淡淡的橙,太阳悬在矮矮的树头,风在吹,很凉。伯远往手里哈气,复又去抓尹浩宇的,却发现他手心微微出汗。这就是年轻人的火力啊,伯远心道,想把手抽出塞回口袋保暖,却发现已经被人死死攥住。
@@ -290,7 +290,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), coins:0, piggyReadyAt:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -399,18 +399,46 @@ function updateCoinDisplays(){
 function showCoinGainPopup(amount){
   const el = document.getElementById('coin-gain-popup');
   if(!el) return;
-  document.getElementById('coin-gain-amount').textContent = `+${amount} 远派金币`;
+  const img = document.getElementById('coin-gain-img');
+  document.getElementById('coin-gain-amount').textContent = amount>=79 ? `+${amount} 远派金币!!` : `+${amount} 远派金币`;
   el.hidden = false;
+  img.src = 'assets/effects/coin_big.webp';
   requestAnimationFrame(()=> el.classList.add('show'));
-  clearTimeout(showCoinGainPopup.timer);
-  showCoinGainPopup.timer = setTimeout(()=>{
+  // 金币正反面交替闪现,营造硬币翻转的感觉
+  let flip = 0;
+  clearInterval(showCoinGainPopup.flipTimer);
+  showCoinGainPopup.flipTimer = setInterval(()=>{
+    flip++;
+    img.src = flip%2===0 ? 'assets/effects/coin_big.webp' : 'assets/effects/coin2_big.webp';
+  }, 320);
+  clearTimeout(showCoinGainPopup.hideTimer);
+  showCoinGainPopup.hideTimer = setTimeout(()=>{
+    clearInterval(showCoinGainPopup.flipTimer);
     el.classList.remove('show');
-    setTimeout(()=>{ el.hidden = true; }, 260);
-  }, 1000);
+    setTimeout(()=>{ el.hidden = true; }, 300);
+  }, 1600);
+}
+// 章节结算画面的金币彩蛋:某项数字刚好凑到 79 或 97 给 79 枚大奖,超过 97 给 9 枚,超过 79 给 7 枚,其余不给
+function coinRewardForCount(n){
+  if(n===79 || n===97) return 79;
+  if(n>97) return 9;
+  if(n>79) return 7;
+  return 0;
+}
+// 每领 15~30 次(次数随机,领到后重新抽下一次的门槛),必定触发一次+79 枚的大奖,当个小彩蛋惊喜
+function rollPiggyReward(){
+  if(!STATE.piggyJackpotThreshold) STATE.piggyJackpotThreshold = 15 + Math.floor(Math.random()*16);
+  STATE.piggyClicksSinceJackpot++;
+  if(STATE.piggyClicksSinceJackpot >= STATE.piggyJackpotThreshold){
+    STATE.piggyClicksSinceJackpot = 0;
+    STATE.piggyJackpotThreshold = 15 + Math.floor(Math.random()*16);
+    return 79;
+  }
+  return Math.floor(Math.random()*9)+1; // 1~9 枚,均匀分布
 }
 function claimPiggyBank(){
   if(!isPiggyReady()) return;
-  const gained = Math.floor(Math.random()*9)+1; // 1~9 枚,均匀分布
+  const gained = rollPiggyReward();
   STATE.coins += gained;
   STATE.piggyReadyAt = Date.now() + PIGGY_INTERVAL_MS;
   saveState();
@@ -569,6 +597,7 @@ const HOME_TOUR_STEPS = [
   { id:'hotspot-diary',    text:`79关消消乐小关卡，解锁小派跟小远的恋爱日记。` },
   { id:'hotspot-gift',     text:`小远送的礼物、生活回忆的纪念品……收集这些承载浪漫故事的物品，来一点点装饰家中各个角落。` },
   { id:'hotspot-postcard', text:`收藏了小远在外巡演寄回来的明信片及两人出游的合照，可以随时翻阅。` },
+  { id:'hotspot-piggy',    text:`<b>恋爱存款</b>：谈恋爱总是要花钱，小派在桌上放了个存钱筒，每天存一点，存到能够给小远买礼物。每1小时存钱筒会累积不等数金币，点击领取远派金币，可在关卡内购买特殊技能。` },
 ];
 let homeTourEls = null;
 function maybeShowHomeTutorial(){
@@ -1224,6 +1253,9 @@ function showBoardToast(msg, duration){
   im.src = src;
 });
 
+// 各特效图的显示时长,给自己的自动隐藏计时器用,也给下面「多个特效排队播放」用,只有这一份数字来源
+const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1300, companion:1300 };
+
 let moonBurstTimer = null;
 function showMoonBurst(){
   let el = document.getElementById('moon-burst');
@@ -1236,7 +1268,7 @@ function showMoonBurst(){
   }
   el.classList.add('show');
   clearTimeout(moonBurstTimer);
-  moonBurstTimer = setTimeout(()=> el.classList.remove('show'), 1000);
+  moonBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.moon);
 }
 
 let sunBurstTimer = null;
@@ -1251,7 +1283,7 @@ function showSunBurst(){
   }
   el.classList.add('show');
   clearTimeout(sunBurstTimer);
-  sunBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+  sunBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.sun);
 }
 
 let butterflyBurstTimer = null;
@@ -1266,7 +1298,15 @@ function showButterflyBurst(){
   }
   el.classList.add('show');
   clearTimeout(butterflyBurstTimer);
-  butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), 1600);
+  butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.butterfly);
+}
+
+// 一次连锁里如果同时触发好几种特效(例如月亮+蝴蝶同时连线),排队一个一个播,不要同时叠在一起互相盖掉
+function playBurstQueue(list){
+  if(!list.length) return;
+  const [head, ...rest] = list;
+  head.show();
+  setTimeout(()=> playBurstQueue(rest), head.duration);
 }
 
 let swapBurstTimer = null;
@@ -1281,7 +1321,7 @@ function showSwapBurst(){
   }
   el.classList.add('show');
   clearTimeout(swapBurstTimer);
-  swapBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+  swapBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.swap);
 }
 
 let companionBurstTimer = null;
@@ -1296,7 +1336,7 @@ function showCompanionBurst(){
   }
   el.classList.add('show');
   clearTimeout(companionBurstTimer);
-  companionBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+  companionBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.companion);
 }
 
 /* ============================================================
@@ -1346,7 +1386,6 @@ function handleCoinSwapPick(r,c){
   exitCoinSwapMode();
   BOARD.busy = true;
   renderBoard();
-  showSwapBurst();
   setTimeout(()=> resolveCascade(1), 200);
 }
 
@@ -1384,9 +1423,18 @@ function useCompanionDoll(){
   updateCoinDisplays();
   BOARD.busy = true;
   renderBoard();
-  showCompanionBurst();
   if(changed) setTimeout(()=> resolveCascade(1), 200);
   else BOARD.busy = false;
+}
+
+// 选好技能后,先播 1 秒特效图,期间锁住棋盘(BOARD.busy)避免误触,播完才真的进入操作/执行技能
+function playSkillIntroThenRun(burstFn, thenFn){
+  BOARD.busy = true;
+  burstFn();
+  setTimeout(()=>{
+    BOARD.busy = false;
+    thenFn();
+  }, 1000);
 }
 
 /* ============================================================
@@ -1854,10 +1902,13 @@ function resolveCascade(combo){
     });
     applyGravity(cfg);
     renderBoard();
-    // 闪光消除动画结束的这一刻才放大图特效;延后到下一帧再显示,避开 renderBoard() 这次重排造成的卡顿
-    if(bombed) requestAnimationFrame(()=> requestAnimationFrame(showMoonBurst));
-    else if(butterflyBursted) requestAnimationFrame(()=> requestAnimationFrame(showButterflyBurst));
-    else if(sunBursted) requestAnimationFrame(()=> requestAnimationFrame(showSunBurst));
+    // 闪光消除动画结束的这一刻才放大图特效;延后到下一帧再显示,避开 renderBoard() 这次重排造成的卡顿。
+    // 同一次连锁里如果好几种特效一起触发(例如月亮+蝴蝶同时连线),排队一个一个播,不要同时叠在一起互相盖掉
+    const burstQueue = [];
+    if(bombed) burstQueue.push({ show:showMoonBurst, duration:BURST_DURATIONS.moon });
+    if(butterflyBursted) burstQueue.push({ show:showButterflyBurst, duration:BURST_DURATIONS.butterfly });
+    if(sunBursted) burstQueue.push({ show:showSunBurst, duration:BURST_DURATIONS.sun });
+    if(burstQueue.length) requestAnimationFrame(()=> requestAnimationFrame(()=> playBurstQueue(burstQueue)));
     setTimeout(()=> resolveCascade(combo+1), 180);
   }, clearDelay);
 }
@@ -1905,7 +1956,17 @@ function onLevelWin(levelNum){
     // 戀愛日記章節(9/19/29...79關)過關時,結算「這段時間」(上一次結算之后到现在)累积的兔兔/狗狗/月兔/满月/蝴蝶/太阳数据,
     // 让玩家有个专门的画面可以截图纪念,结算完就归零重新累计下一章
     if(MILESTONES.includes(levelNum)){
-      queue.push({type:'milestone-summary', level:levelNum, stats: Object.assign({}, STATE.milestoneStats)});
+      const snapStats = Object.assign({}, STATE.milestoneStats);
+      const rewardFields = ['bunnyMatches','dogfaceMatches','rabbitsGained','butterflyBursts','sunBursts','moonBombs','moonPoundings'];
+      const rewards = {};
+      let totalCoins = 0;
+      rewardFields.forEach(k=>{
+        const r = coinRewardForCount(snapStats[k]||0);
+        rewards[k] = r;
+        totalCoins += r;
+      });
+      STATE.coins += totalCoins;
+      queue.push({type:'milestone-summary', level:levelNum, stats: snapStats, rewards, totalCoins});
       STATE.milestoneStats = emptyMilestoneStats();
       saveState();
     }
@@ -1986,6 +2047,7 @@ function renderModal(step){
           <div class="tutorial-row"><span class="tutorial-icon">📖</span><div>${HOME_TOUR_STEPS[0].text}</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">🎁</span><div>${HOME_TOUR_STEPS[1].text}</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">💌</span><div>${HOME_TOUR_STEPS[2].text}</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">💰</span><div>${HOME_TOUR_STEPS[3].text}</div></div>
         </div>
       </div>
       <div class="about-panel" id="about-panel-credits">
@@ -2040,13 +2102,13 @@ function renderModal(step){
     if(canSwap){
       card.querySelector('#coin-skill-swap').addEventListener('click', ()=>{
         showNextModal();
-        enterCoinSwapMode();
+        playSkillIntroThenRun(showSwapBurst, enterCoinSwapMode);
       });
     }
     if(canCompanion){
       card.querySelector('#coin-skill-companion').addEventListener('click', ()=>{
         showNextModal();
-        useCompanionDoll();
+        playSkillIntroThenRun(showCompanionBurst, useCompanionDoll);
       });
     }
   } else if(step.type==='endless-submit'){
@@ -2150,18 +2212,21 @@ function renderModal(step){
       <button class="modal-btn" id="modal-next">继续</button>`;
   } else if(step.type==='milestone-summary'){
     const s = step.stats;
+    const r = step.rewards || {};
+    const badge = (key)=> r[key] ? `<span class="milestone-reward">+${r[key]}💰</span>` : '';
     card.innerHTML = `
       <div class="modal-emoji">📊</div>
-      <h3 style="text-align:center;">这一章的甜蜜战绩</h3>
+      <h3 style="text-align:center;">远派恋爱金币结算</h3>
       <div class="tutorial-list" style="margin:12px 0;">
-        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🌕</span><div>月亮合体 <b>${s.moonBombs}</b> 次</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>月兔捣药 <b>${s.moonPoundings}</b> 次</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次${badge('bunnyMatches')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次${badge('dogfaceMatches')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只${badge('rabbitsGained')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次${badge('butterflyBursts')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次${badge('sunBursts')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌕</span><div>月亮合体 <b>${s.moonBombs}</b> 次${badge('moonBombs')}</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌝</span><div>月兔捣药 <b>${s.moonPoundings}</b> 次${badge('moonPoundings')}</div></div>
       </div>
+      ${step.totalCoins>0 ? `<p class="milestone-total-coins"><img src="assets/ui/coin.webp" alt=""> 本章共获得 ${step.totalCoins} 枚远派金币</p>` : ''}
       <button class="modal-btn" id="modal-next">继续</button>`;
   } else if(step.type==='fail'){
     card.innerHTML = `
