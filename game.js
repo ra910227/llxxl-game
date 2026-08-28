@@ -1604,9 +1604,9 @@ function resolveCascade(combo){
       else STATE.milestoneStats.sunBursts++;
     }
 
-    // 狗狗/小远配对成功:步数 +1(50关后+7);兔兔/小派配对成功:步数 +1(50关后+9),50关后步数吃紧,加大奖励帮玩家撑住后期关卡
+    // 狗狗/小远配对成功:步数 +1(50关后+2,70关后+7);兔兔/小派配对成功:步数 +1(50关后+2,70关后+9),分两阶段拉高奖励帮玩家撑住后期关卡
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
-      const add = cfg.level>=50 ? 7 : 1;
+      const add = cfg.level>=70 ? 7 : cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
       specialMsg = `🐶 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
@@ -1614,7 +1614,7 @@ function resolveCascade(combo){
       else STATE.milestoneStats.dogfaceMatches++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
-      const add = cfg.level>=50 ? 9 : 1;
+      const add = cfg.level>=70 ? 9 : cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
