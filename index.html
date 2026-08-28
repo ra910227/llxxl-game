@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="小派小远">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="style.css?v=40">
+<link rel="stylesheet" href="style.css?v=41">
 </head>
 <body>
 
@@ -46,8 +46,11 @@
       </button>
       <div id="hotspot-endless-label" class="hotspot-label">月兔大挑战</div>
       <button id="hotspot-endless" class="canvas-hotspot hotspot-endless-btn" title="没有步数限制,想玩多久玩多久,累计月兔数量可以上传排行榜"></button>
+      <button id="hotspot-piggy" class="canvas-hotspot hotspot-piggy-btn" title="远派存钱筒">🐷</button>
     </div>
 
+    <div id="coin-pill" class="coin-pill"><img src="assets/ui/coin.webp" alt=""><span id="coin-count">0</span></div>
+    <div id="coin-gain-popup" class="coin-gain-popup" hidden><img src="assets/ui/coin2.webp" alt=""><span id="coin-gain-amount"></span></div>
     <div id="lives-pill" class="lives-pill">♥ x 5</div>
     <div class="progress-pill">
       <span id="home-level-text">第 1 关 / 共 79 关</span>
@@ -85,7 +88,12 @@
     </div>
     <div class="board-score-wrap">
       <div class="progress-track score-track"><div id="board-score-fill" class="progress-fill score-fill"></div></div>
-      <div class="score-text"><span id="board-score-current">0</span> / <span id="board-score-target">0</span></div>
+      <div class="score-text-row">
+        <div class="score-text"><span id="board-score-current">0</span> / <span id="board-score-target">0</span></div>
+        <button id="board-coin-btn" class="board-coin-btn" title="花远派金币使用技能">
+          <img src="assets/ui/coin.webp" alt=""><span id="board-coin-count">0</span>
+        </button>
+      </div>
     </div>
     <div id="endless-panel" class="endless-panel" hidden>
       <div class="endless-stats" id="endless-stats"></div>
@@ -115,6 +123,6 @@
 
 </div>
 
-<script src="game.js?v=63"></script>
+<script src="game.js?v=64"></script>
 </body>
 </html>

@@ -119,6 +119,19 @@ html,body{
   border-radius:16px;
   box-shadow:0 4px 14px var(--shadow);
 }
+.hotspot-piggy-btn{
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.55);
+}
+.hotspot-piggy-btn.piggy-ready{
+  animation:piggyBounce 1s ease-in-out infinite;
+}
+@keyframes piggyBounce{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
 .hotspot-badge{
   position:absolute;top:-2px;right:-2px;
   background:var(--pink);
@@ -166,6 +179,39 @@ html,body{
   white-space:nowrap;
 }
 .lives-pill .regen{display:block;font-size:8px;font-weight:600;color:var(--ink-soft);}
+
+.coin-pill{
+  position:absolute;z-index:5;
+  display:flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(6px);
+  border-radius:999px;
+  padding:4px 10px 4px 6px;
+  box-shadow:0 3px 10px var(--shadow);
+  font-size:11px;font-weight:800;color:var(--sand);
+}
+.coin-pill img{width:18px;height:18px;object-fit:contain;}
+.coin-gain-popup{
+  position:absolute;z-index:40;
+  left:50%;top:38%;
+  transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .25s ease, transform .25s ease;
+}
+.coin-gain-popup.show{
+  opacity:1;
+  transform:translate(-50%,-60%);
+}
+.coin-gain-popup img{width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(230,170,60,0.5));}
+.coin-gain-popup span{
+  background:rgba(255,255,255,0.9);
+  border-radius:999px;
+  padding:3px 12px;
+  font-size:13px;font-weight:800;color:var(--sand);
+  box-shadow:0 3px 8px var(--shadow);
+}
 
 .home-bottombar{
   position:absolute;left:0;right:0;bottom:4px;
@@ -296,7 +342,24 @@ html,body{
 .board-score-wrap{padding:10px 16px;background:var(--cream);}
 .score-track{height:10px;}
 .score-fill{background:linear-gradient(90deg,var(--sky),var(--sage));}
-.score-text{text-align:center;font-size:12px;font-weight:700;margin-top:4px;color:var(--ink-soft);}
+.score-text{text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);}
+.score-text-row{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:4px;position:relative;
+}
+.board-coin-btn{
+  display:flex;align-items:center;gap:3px;
+  border:none;background:var(--pink-light);
+  border-radius:999px;padding:3px 9px;
+  font-size:11px;font-weight:800;color:var(--sand);
+  cursor:pointer;
+}
+.board-coin-btn img{width:16px;height:16px;object-fit:contain;}
+.tile.coin-swap-pick{
+  outline:3px solid var(--apricot);
+  outline-offset:-3px;
+  animation:tourPulse 1.1s ease-in-out infinite;
+}
 
 .endless-panel{
   padding:10px 16px;
@@ -450,19 +513,21 @@ html,body{
   opacity:1;
   transform:translate(-50%,-50%) scale(1);
 }
-/* 太阳/蝴蝶特效图已经是去背贴纸,不需要卡片白框,改用贴合轮廓的投影 */
-.sun-burst, .butterfly-burst{
+/* 太阳/蝴蝶/元素互换/陪伴娃娃特效图已经是去背贴纸,不需要卡片白框,改用贴合轮廓的投影 */
+.sun-burst, .butterfly-burst, .swap-burst, .companion-burst{
   border-radius:0;
   overflow:visible;
   border:none;
   box-shadow:none;
   background:none;
 }
-.sun-burst img, .butterfly-burst img{
+.sun-burst img, .butterfly-burst img, .swap-burst img, .companion-burst img{
   filter:drop-shadow(0 6px 14px rgba(107,88,80,0.35));
 }
 .sun-burst img{ filter:drop-shadow(0 6px 14px rgba(230,170,60,0.45)); }
 .butterfly-burst img{ filter:drop-shadow(0 6px 14px rgba(140,180,220,0.45)); }
+.swap-burst img{ filter:drop-shadow(0 6px 14px rgba(185,166,217,0.5)); }
+.companion-burst img{ filter:drop-shadow(0 6px 14px rgba(232,137,154,0.5)); }
 .tile{
   border-radius:12px;
   display:flex;align-items:center;justify-content:center;
@@ -607,6 +672,30 @@ html,body{
 }
 .tutorial-row b{color:var(--pink);}
 .tutorial-icon{font-size:20px;flex-shrink:0;line-height:1.4;}
+
+.coin-skill-row{
+  text-align:left;
+  background:var(--cream-2);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-top:10px;
+  cursor:pointer;
+  transition:background .15s ease;
+}
+.coin-skill-row:active{background:var(--pink-light);}
+.coin-skill-row.coin-skill-disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+}
+.coin-skill-name{
+  font-size:14px;font-weight:800;color:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.coin-skill-cost{
+  font-size:11px;font-weight:700;color:var(--sand);
+  background:#fff;border-radius:999px;padding:2px 9px;
+}
+.coin-skill-desc{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
 
 .about-tabs{
   display:flex;gap:8px;margin:4px 0 14px;

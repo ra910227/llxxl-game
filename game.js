@@ -29,10 +29,12 @@ const HOTSPOTS = {
   postcard: {x1:1417, y1:2528, x2:1593, y2:2702},
   avatar:   {x1:474,  y1:547,  x2:856,  y2:853},
   endless:  {x1:1200, y1:547,  x2:1582, y2:853, labelPos:'below'}, // 房间右上墙面,顶边跟头像(avatar)切齐,大小也跟头像一样
+  piggy:    {x1:1102, y1:1414, x2:1242, y2:1554}, // 二楼书桌右侧留白处
 };
 // 进度牌:横向贴在头像按键正下方置中(牌子压到的地方刚好是头像图案的留白,视觉上不会挡到东西),纵向对齐「月兔大挑战」白字下缘;爱心牌:放在恋爱日记图示右边,垂直置中对齐
 const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
+const COIN_PILL_ANCHOR = {x:(1102+1242)/2, y:1554+34}; // 贴在存钱筒图示正下方,水平置中
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
 
@@ -288,7 +290,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats() };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), coins:0, piggyReadyAt:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -370,10 +372,51 @@ function updateLivesUI(){
 let livesTimer = null;
 function startLivesTimer(){
   stopLivesTimer();
-  livesTimer = setInterval(()=>{ regenLives(); updateLivesUI(); }, 1000);
+  livesTimer = setInterval(()=>{ regenLives(); updateLivesUI(); updatePiggyUI(); }, 1000);
 }
 function stopLivesTimer(){
   if(livesTimer){ clearInterval(livesTimer); livesTimer=null; }
+}
+
+/* ============================================================
+   存钱筒:每 3 小时可以点一次,开出 1~9 枚不等的远派金币,
+   不像爱心系统有上限卡住,纯粹看时间到了没有,不设「每天最多领一次」的额外限制
+   ============================================================ */
+const PIGGY_INTERVAL_MS = 3*60*60*1000;
+function isPiggyReady(){
+  return !STATE.piggyReadyAt || Date.now() >= STATE.piggyReadyAt;
+}
+function updatePiggyUI(){
+  const btn = document.getElementById('hotspot-piggy');
+  if(btn) btn.classList.toggle('piggy-ready', isPiggyReady());
+}
+function updateCoinDisplays(){
+  const c1 = document.getElementById('coin-count');
+  if(c1) c1.textContent = STATE.coins;
+  const c2 = document.getElementById('board-coin-count');
+  if(c2) c2.textContent = STATE.coins;
+}
+function showCoinGainPopup(amount){
+  const el = document.getElementById('coin-gain-popup');
+  if(!el) return;
+  document.getElementById('coin-gain-amount').textContent = `+${amount} 远派金币`;
+  el.hidden = false;
+  requestAnimationFrame(()=> el.classList.add('show'));
+  clearTimeout(showCoinGainPopup.timer);
+  showCoinGainPopup.timer = setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>{ el.hidden = true; }, 260);
+  }, 1000);
+}
+function claimPiggyBank(){
+  if(!isPiggyReady()) return;
+  const gained = Math.floor(Math.random()*9)+1; // 1~9 枚,均匀分布
+  STATE.coins += gained;
+  STATE.piggyReadyAt = Date.now() + PIGGY_INTERVAL_MS;
+  saveState();
+  updateCoinDisplays();
+  updatePiggyUI();
+  showCoinGainPopup(gained);
 }
 
 /* 把某张整张画布图的指定 bbox 内容,以「cover」方式裁切填满一个固定尺寸的小方块(例如小图示/徽章) */
@@ -472,6 +515,13 @@ function layoutHomeCanvas(){
     livesPill.style.top = (layerTop + LIVES_PILL_ANCHOR.y*scale)+'px';
     livesPill.style.transform = 'translate(0,-50%)';
   }
+  // 金币牌:贴在存钱筒图示正下方,水平置中
+  const coinPill = document.getElementById('coin-pill');
+  if(coinPill){
+    coinPill.style.left = (layerLeft + COIN_PILL_ANCHOR.x*scale)+'px';
+    coinPill.style.top = (layerTop + COIN_PILL_ANCHOR.y*scale)+'px';
+    coinPill.style.transform = 'translate(-50%,0)';
+  }
 }
 window.addEventListener('resize', ()=>{
   if(document.getElementById('screen-home').classList.contains('active')) layoutHomeCanvas();
@@ -502,7 +552,9 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
   });
 });
 document.getElementById('btn-board-help').addEventListener('click', ()=> showModalQueue([{type:'skills'}], 'screen-board'));
+document.getElementById('board-coin-btn').addEventListener('click', openCoinSkillsModal);
 document.getElementById('hotspot-endless').addEventListener('click', openEndlessBoard);
+document.getElementById('hotspot-piggy').addEventListener('click', claimPiggyBank);
 document.getElementById('btn-endless-submit').addEventListener('click', ()=> showModalQueue([{type:'endless-submit'}], 'screen-board'));
 document.getElementById('btn-endless-rank').addEventListener('click', ()=> showModalQueue([{type:'leaderboard'}], 'screen-board'));
 document.getElementById('btn-endless-restart').addEventListener('click', ()=>{
@@ -576,6 +628,8 @@ function xiaoyuanCycleInfo(){
 function refreshHome(){
   regenLives();
   updateLivesUI();
+  updatePiggyUI();
+  updateCoinDisplays();
   const lvl = Math.min(STATE.unlockedLevel, TOTAL_LEVELS);
   document.getElementById('home-level-text').textContent =
     STATE.unlockedLevel > TOTAL_LEVELS ? `完结 · 已结婚 💍` : `第 ${lvl} 关 / 共 ${TOTAL_LEVELS} 关`;
@@ -831,6 +885,8 @@ function openBoard(levelNum){
   document.getElementById('board-score-fill').style.width = '0%';
   document.querySelector('.board-score-wrap').hidden = false;
   document.getElementById('endless-panel').hidden = true;
+  updateCoinDisplays();
+  exitCoinSwapMode();
 
   selectedCell = null;
   showScreen('screen-board');
@@ -1213,6 +1269,126 @@ function showButterflyBurst(){
   butterflyBurstTimer = setTimeout(()=> el.classList.remove('show'), 1600);
 }
 
+let swapBurstTimer = null;
+function showSwapBurst(){
+  let el = document.getElementById('swap-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'swap-burst';
+    el.className = 'moon-burst swap-burst';
+    el.innerHTML = `<img src="assets/effects/element_swap_burst.webp" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(swapBurstTimer);
+  swapBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
+let companionBurstTimer = null;
+function showCompanionBurst(){
+  let el = document.getElementById('companion-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'companion-burst';
+    el.className = 'moon-burst companion-burst';
+    el.innerHTML = `<img src="assets/effects/companion_doll_burst.webp" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(companionBurstTimer);
+  companionBurstTimer = setTimeout(()=> el.classList.remove('show'), 1300);
+}
+
+/* ============================================================
+   远派金币技能:只在一般关卡(非无尽挑战)可用,整关内可以重复花钱购买。
+   元素互换(7枚):点两个非冰冻格直接互换内容,不占用步数;
+   陪伴娃娃(9枚):场上每只兔兔/小派、狗狗/小远,都在旁边多变出一只同类,月亮/蝴蝶/太阳不受影响
+   ============================================================ */
+const COIN_SKILL_COST = { swap: 7, companion: 9 };
+
+function openCoinSkillsModal(){
+  if(!BOARD || BOARD.endless) return;
+  showModalQueue([{type:'coin-skills'}], 'screen-board');
+}
+
+function enterCoinSwapMode(){
+  BOARD.coinSwapMode = true;
+  BOARD.coinSwapFirst = null;
+  selectedCell = null;
+  markSelected();
+  showBoardToast('元素互换:点两个方块直接互换位置', 2000);
+}
+function exitCoinSwapMode(){
+  if(BOARD && BOARD.coinSwapMode){
+    BOARD.coinSwapMode = false;
+    BOARD.coinSwapFirst = null;
+    document.querySelectorAll('.tile.coin-swap-pick').forEach(el=> el.classList.remove('coin-swap-pick'));
+  }
+}
+// 选格模式下点两个非冰冻格,直接互换内容(不检查相邻/不检查是否形成连线),本身不算一步
+function handleCoinSwapPick(r,c){
+  if(BOARD.cells[r][c].frozen){ flashDeny(r,c); return; }
+  if(!BOARD.coinSwapFirst){
+    BOARD.coinSwapFirst = {r,c};
+    document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`)?.classList.add('coin-swap-pick');
+    return;
+  }
+  const {r:r1,c:c1} = BOARD.coinSwapFirst;
+  if(r1===r && c1===c){
+    document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`)?.classList.remove('coin-swap-pick');
+    BOARD.coinSwapFirst = null;
+    return;
+  }
+  STATE.coins -= COIN_SKILL_COST.swap;
+  saveState();
+  updateCoinDisplays();
+  swapCells(BOARD.cells, r1,c1,r,c);
+  exitCoinSwapMode();
+  BOARD.busy = true;
+  renderBoard();
+  showSwapBurst();
+  setTimeout(()=> resolveCascade(1), 200);
+}
+
+// 陪伴娃娃:扫描场上所有兔兔/小派、狗狗/小远,各自在一个相邻的非月亮/蝴蝶/太阳格子里多变出一只同类型(优先保留 XIAOPAI/XIAOYUAN 这种剧情关卡的替身图案)
+function useCompanionDoll(){
+  if(STATE.coins < COIN_SKILL_COST.companion) return;
+  const cfg = BOARD.config;
+  const claimed = new Set();
+  const sources = [];
+  for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
+    const cell = BOARD.cells[r][c];
+    if(!cell) continue;
+    if(cell.type===BUNNY_IDX || cell.type===XIAOPAI_IDX || cell.type===DOGFACE_IDX || cell.type===XIAOYUAN_IDX){
+      sources.push({r,c,type:cell.type});
+    }
+  }
+  let changed = false;
+  sources.forEach(({r,c,type})=>{
+    const dirs = [[-1,0],[1,0],[0,-1],[0,1]].sort(()=>Math.random()-0.5);
+    for(const [dr,dc] of dirs){
+      const nr=r+dr, nc=c+dc;
+      const key = nr+','+nc;
+      if(!inBounds(nr,nc,cfg) || claimed.has(key)) continue;
+      const target = BOARD.cells[nr][nc];
+      if(!target || target.frozen) continue;
+      if(target.type===MOONFACE_IDX || target.type===BUTTERFLY_IDX || target.type===SUN_IDX) continue;
+      BOARD.cells[nr][nc] = { type, frozen:false };
+      claimed.add(key);
+      changed = true;
+      break;
+    }
+  });
+  STATE.coins -= COIN_SKILL_COST.companion;
+  saveState();
+  updateCoinDisplays();
+  BOARD.busy = true;
+  renderBoard();
+  showCompanionBurst();
+  if(changed) setTimeout(()=> resolveCascade(1), 200);
+  else BOARD.busy = false;
+}
+
 /* ============================================================
    月兔捣药:狗狗+兔兔各凑一组就吸引一只月兔,3只月兔合体成一个满月,
    满月可以拖到棋盘上任一格,把该格直接变成月亮图案
@@ -1441,7 +1617,7 @@ document.getElementById('board-grid').addEventListener('pointerdown', (e)=>{
 });
 
 function onPointerMove(e){
-  if(!pointerDrag || pointerDrag.dragged || BOARD.busy) return;
+  if(!pointerDrag || pointerDrag.dragged || BOARD.busy || BOARD.coinSwapMode) return;
   const dx = e.clientX - pointerDrag.x;
   const dy = e.clientY - pointerDrag.y;
   const threshold = 18;
@@ -1464,6 +1640,11 @@ function onPointerUp(e){
   const {r,c} = pointerDrag;
   pointerDrag = null;
   if(wasDragged || BOARD.busy) return;
+
+  if(BOARD.coinSwapMode){
+    handleCoinSwapPick(r,c);
+    return;
+  }
 
   // 点选逻辑
   if(BOARD.cells[r][c].frozen){
@@ -1841,6 +2022,33 @@ function renderModal(step){
         <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4连消除得分*1.5倍,5连以上*2倍。</div></div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
+  } else if(step.type==='coin-skills'){
+    const canSwap = STATE.coins >= COIN_SKILL_COST.swap;
+    const canCompanion = STATE.coins >= COIN_SKILL_COST.companion;
+    card.innerHTML = `
+      <h3 style="text-align:center;">远派金币技能</h3>
+      <p style="text-align:center;">目前持有 <img src="assets/ui/coin.webp" alt="" style="width:16px;height:16px;vertical-align:-3px;"> <b>${STATE.coins}</b> 枚</p>
+      <div class="coin-skill-row ${canSwap?'':'coin-skill-disabled'}" id="coin-skill-swap">
+        <div class="coin-skill-name">🔀 元素互换<span class="coin-skill-cost">${COIN_SKILL_COST.swap}枚</span></div>
+        <div class="coin-skill-desc">选两个非冰冻格,直接互换内容,不占用步数</div>
+      </div>
+      <div class="coin-skill-row ${canCompanion?'':'coin-skill-disabled'}" id="coin-skill-companion">
+        <div class="coin-skill-name">🧸 陪伴娃娃<span class="coin-skill-cost">${COIN_SKILL_COST.companion}枚</span></div>
+        <div class="coin-skill-desc">场上每只兔兔/狗狗旁边都多变出一只同类</div>
+      </div>
+      <button class="modal-btn secondary" id="modal-next" style="margin-top:10px;">取消</button>`;
+    if(canSwap){
+      card.querySelector('#coin-skill-swap').addEventListener('click', ()=>{
+        showNextModal();
+        enterCoinSwapMode();
+      });
+    }
+    if(canCompanion){
+      card.querySelector('#coin-skill-companion').addEventListener('click', ()=>{
+        showNextModal();
+        useCompanionDoll();
+      });
+    }
   } else if(step.type==='endless-submit'){
     card.innerHTML = `
       <h3 style="text-align:center;">上传成绩</h3>
