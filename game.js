@@ -402,21 +402,14 @@ function showCoinGainPopup(amount){
   const img = document.getElementById('coin-gain-img');
   document.getElementById('coin-gain-amount').textContent = amount>=79 ? `+${amount} 远派金币!!` : `+${amount} 远派金币`;
   el.hidden = false;
-  img.src = 'assets/effects/coin_big.webp';
+  // 每次点击随机显示金币正面或反面其中一张,停留1秒
+  img.src = Math.random()<0.5 ? 'assets/effects/coin_big.webp' : 'assets/effects/coin2_big.webp';
   requestAnimationFrame(()=> el.classList.add('show'));
-  // 金币正反面交替闪现,营造硬币翻转的感觉
-  let flip = 0;
-  clearInterval(showCoinGainPopup.flipTimer);
-  showCoinGainPopup.flipTimer = setInterval(()=>{
-    flip++;
-    img.src = flip%2===0 ? 'assets/effects/coin_big.webp' : 'assets/effects/coin2_big.webp';
-  }, 320);
   clearTimeout(showCoinGainPopup.hideTimer);
   showCoinGainPopup.hideTimer = setTimeout(()=>{
-    clearInterval(showCoinGainPopup.flipTimer);
     el.classList.remove('show');
     setTimeout(()=>{ el.hidden = true; }, 300);
-  }, 1600);
+  }, 1000);
 }
 // 章节结算画面的金币彩蛋:某项数字刚好凑到 79 或 97 给 79 枚大奖,超过 97 给 9 枚,超过 79 给 7 枚,其余不给
 function coinRewardForCount(n){
