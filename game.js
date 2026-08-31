@@ -62,6 +62,8 @@ const XIAOPAI_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaopai');
 const XIAOYUAN_IDX = TILE_TYPES.findIndex(t=>t.name==='xiaoyuan');
 const MOONFACE_IDX = TILE_TYPES.findIndex(t=>t.name==='moonface'); // 月亮:配对时炸开周遭 3x3
 const BUTTERFLY_IDX = TILE_TYPES.findIndex(t=>t.name==='butterfly'); // 40关后:4连以上清空整排/整列
+const STAR_IDX = TILE_TYPES.findIndex(t=>t.name==='star');
+const HEART_IDX = TILE_TYPES.findIndex(t=>t.name==='heart');
 const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成功清空十字型两排
 
 /* ---------------- 收藏册占位内容 ---------------- */
@@ -938,6 +940,7 @@ function openBoard(levelNum){
   document.getElementById('endless-panel').hidden = true;
   updateCoinDisplays();
   exitCoinSwapMode();
+  exitBottlePickMode();
 
   selectedCell = null;
   showScreen('screen-board');
@@ -1276,7 +1279,7 @@ function showBoardToast(msg, duration){
 });
 
 // 各特效图的显示时长,给自己的自动隐藏计时器用,也给下面「多个特效排队播放」用,只有这一份数字来源
-const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1300, companion:1300 };
+const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1300, companion:1300, catchStar:1300, bottleCollect:1300, loveFull:1300 };
 
 let moonBurstTimer = null;
 function showMoonBurst(){
@@ -1361,12 +1364,60 @@ function showCompanionBurst(){
   companionBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.companion);
 }
 
+let catchStarBurstTimer = null;
+function showCatchStarBurst(){
+  let el = document.getElementById('catch-star-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'catch-star-burst';
+    el.className = 'moon-burst catch-star-burst';
+    el.innerHTML = `<img src="assets/effects/catch_star_burst.webp" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(catchStarBurstTimer);
+  catchStarBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.catchStar);
+}
+
+let bottleCollectBurstTimer = null;
+function showBottleCollectBurst(){
+  let el = document.getElementById('bottle-collect-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'bottle-collect-burst';
+    el.className = 'moon-burst bottle-collect-burst';
+    el.innerHTML = `<img src="assets/effects/bottle_collect_burst.webp" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(bottleCollectBurstTimer);
+  bottleCollectBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.bottleCollect);
+}
+
+let loveFullBurstTimer = null;
+function showLoveFullBurst(){
+  let el = document.getElementById('love-full-burst');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'love-full-burst';
+    el.className = 'moon-burst love-full-burst';
+    el.innerHTML = `<img src="assets/effects/love_full_burst.webp" alt="">`;
+    document.getElementById('screen-board').appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(loveFullBurstTimer);
+  loveFullBurstTimer = setTimeout(()=> el.classList.remove('show'), BURST_DURATIONS.loveFull);
+}
+
 /* ============================================================
    远派金币技能:只在一般关卡(非无尽挑战)可用,整关内可以重复花钱购买。
-   元素互换(7枚):点两个非冰冻格直接互换内容,不占用步数;
-   陪伴娃娃(9枚):场上每只兔兔/小派、狗狗/小远,都在旁边多变出一只同类,月亮/蝴蝶/太阳不受影响
+   元素互换(1枚):点两个非冰冻格直接互换内容,不占用步数;
+   陪伴娃娃(7枚):场上每只兔兔/小派、狗狗/小远,都在旁边多变出一只同类,月亮/蝴蝶/太阳不受影响;
+   捕星星(9枚):场上所有星星直接消失;
+   玻璃瓶(17枚):点一个非冰冻格取样它的图案,场上所有该图案(非冰冻格)全部消失;
+   爱心满满(19枚):场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心
    ============================================================ */
-const COIN_SKILL_COST = { swap: 7, companion: 9 };
+const COIN_SKILL_COST = { swap: 1, companion: 7, catchStar: 9, bottleCollect: 17, loveFull: 19 };
 
 function openCoinSkillsModal(){
   if(!BOARD || BOARD.endless) return;
@@ -1441,6 +1492,84 @@ function useCompanionDoll(){
     }
   });
   STATE.coins -= COIN_SKILL_COST.companion;
+  saveState();
+  updateCoinDisplays();
+  BOARD.busy = true;
+  renderBoard();
+  if(changed) setTimeout(()=> resolveCascade(1), 200);
+  else BOARD.busy = false;
+}
+
+// 捕星星:场上所有非冰冻的星星直接消失,掉落补位
+function useCatchStar(){
+  if(STATE.coins < COIN_SKILL_COST.catchStar) return;
+  const cfg = BOARD.config;
+  let changed = false;
+  for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
+    const cell = BOARD.cells[r][c];
+    if(cell && cell.type===STAR_IDX && !cell.frozen){
+      BOARD.cells[r][c] = null;
+      changed = true;
+    }
+  }
+  STATE.coins -= COIN_SKILL_COST.catchStar;
+  saveState();
+  updateCoinDisplays();
+  BOARD.busy = true;
+  if(changed) applyGravity(cfg);
+  renderBoard();
+  if(changed) setTimeout(()=> resolveCascade(1), 200);
+  else BOARD.busy = false;
+}
+
+// 玻璃瓶:进入选格模式,点一个非冰冻格取样它的图案,场上所有该图案(非冰冻格)全部消失,掉落补位
+function enterBottlePickMode(){
+  BOARD.bottlePickMode = true;
+  selectedCell = null;
+  markSelected();
+  showBoardToast('玻璃瓶:点一个方块,收集场上所有同款图案', 2000);
+}
+function exitBottlePickMode(){
+  if(BOARD && BOARD.bottlePickMode) BOARD.bottlePickMode = false;
+}
+function handleBottlePick(r,c){
+  const cell = BOARD.cells[r][c];
+  if(cell.frozen){ flashDeny(r,c); return; }
+  const targetType = cell.type;
+  exitBottlePickMode();
+  const cfg = BOARD.config;
+  let changed = false;
+  for(let rr=0;rr<cfg.rows;rr++) for(let cc=0;cc<cfg.cols;cc++){
+    const cc2 = BOARD.cells[rr][cc];
+    if(cc2 && cc2.type===targetType && !cc2.frozen){
+      BOARD.cells[rr][cc] = null;
+      changed = true;
+    }
+  }
+  STATE.coins -= COIN_SKILL_COST.bottleCollect;
+  saveState();
+  updateCoinDisplays();
+  BOARD.busy = true;
+  if(changed) applyGravity(cfg);
+  renderBoard();
+  if(changed) setTimeout(()=> resolveCascade(1), 200);
+  else BOARD.busy = false;
+}
+
+// 爱心满满:场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心
+function useLoveFull(){
+  if(STATE.coins < COIN_SKILL_COST.loveFull) return;
+  const cfg = BOARD.config;
+  let changed = false;
+  for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
+    const cell = BOARD.cells[r][c];
+    if(!cell || cell.frozen) continue;
+    if(cell.type===BUNNY_IDX || cell.type===XIAOPAI_IDX || cell.type===DOGFACE_IDX || cell.type===XIAOYUAN_IDX) continue;
+    if(cell.type===HEART_IDX) continue;
+    cell.type = HEART_IDX;
+    changed = true;
+  }
+  STATE.coins -= COIN_SKILL_COST.loveFull;
   saveState();
   updateCoinDisplays();
   BOARD.busy = true;
@@ -1687,7 +1816,7 @@ document.getElementById('board-grid').addEventListener('pointerdown', (e)=>{
 });
 
 function onPointerMove(e){
-  if(!pointerDrag || pointerDrag.dragged || BOARD.busy || BOARD.coinSwapMode) return;
+  if(!pointerDrag || pointerDrag.dragged || BOARD.busy || BOARD.coinSwapMode || BOARD.bottlePickMode) return;
   const dx = e.clientX - pointerDrag.x;
   const dy = e.clientY - pointerDrag.y;
   const threshold = 18;
@@ -1713,6 +1842,10 @@ function onPointerUp(e){
 
   if(BOARD.coinSwapMode){
     handleCoinSwapPick(r,c);
+    return;
+  }
+  if(BOARD.bottlePickMode){
+    handleBottlePick(r,c);
     return;
   }
 
@@ -2111,6 +2244,9 @@ function renderModal(step){
   } else if(step.type==='coin-skills'){
     const canSwap = STATE.coins >= COIN_SKILL_COST.swap;
     const canCompanion = STATE.coins >= COIN_SKILL_COST.companion;
+    const canCatchStar = STATE.coins >= COIN_SKILL_COST.catchStar;
+    const canBottle = STATE.coins >= COIN_SKILL_COST.bottleCollect;
+    const canLoveFull = STATE.coins >= COIN_SKILL_COST.loveFull;
     card.innerHTML = `
       <h3 style="text-align:center;">远派金币技能</h3>
       <p style="text-align:center;">目前持有 <img src="assets/ui/coin.webp" alt="" style="width:16px;height:16px;vertical-align:-3px;"> <b>${STATE.coins}</b> 枚</p>
@@ -2121,6 +2257,18 @@ function renderModal(step){
       <div class="coin-skill-row ${canCompanion?'':'coin-skill-disabled'}" id="coin-skill-companion">
         <div class="coin-skill-name">🧸 陪伴娃娃<span class="coin-skill-cost">${COIN_SKILL_COST.companion}枚</span></div>
         <div class="coin-skill-desc">场上每只兔兔/狗狗旁边都多变出一只同类</div>
+      </div>
+      <div class="coin-skill-row ${canCatchStar?'':'coin-skill-disabled'}" id="coin-skill-catchstar">
+        <div class="coin-skill-name">⭐ 捕星星<span class="coin-skill-cost">${COIN_SKILL_COST.catchStar}枚</span></div>
+        <div class="coin-skill-desc">场上所有星星直接消失</div>
+      </div>
+      <div class="coin-skill-row ${canBottle?'':'coin-skill-disabled'}" id="coin-skill-bottle">
+        <div class="coin-skill-name">🍯 玻璃瓶<span class="coin-skill-cost">${COIN_SKILL_COST.bottleCollect}枚</span></div>
+        <div class="coin-skill-desc">选一个非冰冻格取样,收集场上所有同款图案</div>
+      </div>
+      <div class="coin-skill-row ${canLoveFull?'':'coin-skill-disabled'}" id="coin-skill-lovefull">
+        <div class="coin-skill-name">💕 爱心满满<span class="coin-skill-cost">${COIN_SKILL_COST.loveFull}枚</span></div>
+        <div class="coin-skill-desc">除了兔兔/狗狗外,场上全部变成爱心</div>
       </div>
       <button class="modal-btn secondary" id="modal-next" style="margin-top:10px;">取消</button>`;
     if(canSwap){
@@ -2133,6 +2281,24 @@ function renderModal(step){
       card.querySelector('#coin-skill-companion').addEventListener('click', ()=>{
         showNextModal();
         playSkillIntroThenRun(showCompanionBurst, useCompanionDoll);
+      });
+    }
+    if(canCatchStar){
+      card.querySelector('#coin-skill-catchstar').addEventListener('click', ()=>{
+        showNextModal();
+        playSkillIntroThenRun(showCatchStarBurst, useCatchStar);
+      });
+    }
+    if(canBottle){
+      card.querySelector('#coin-skill-bottle').addEventListener('click', ()=>{
+        showNextModal();
+        playSkillIntroThenRun(showBottleCollectBurst, enterBottlePickMode);
+      });
+    }
+    if(canLoveFull){
+      card.querySelector('#coin-skill-lovefull').addEventListener('click', ()=>{
+        showNextModal();
+        playSkillIntroThenRun(showLoveFullBurst, useLoveFull);
       });
     }
   } else if(step.type==='endless-submit'){
