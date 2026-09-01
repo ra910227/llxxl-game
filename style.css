@@ -843,11 +843,11 @@ html,body{
   overflow-y:auto;
 }
 .milestone-card-inner h3{margin:0 0 6px;font-size:14px;color:var(--pink);flex-shrink:0;}
-/* 小鼻嘎动画坐在卡片下缘的空白处,尺寸比照恋爱日记卡片里角色的比例(约卡片宽度1/3) */
+/* 小鼻嘎动画坐在卡片下缘的空白处,原地放大两倍(锚点维持水平置中+贴齐下缘不变) */
 .milestone-biga-anim{
   position:absolute;
   left:50%;bottom:4%;
-  width:34%;
+  width:68%;
   transform:translateX(-50%);
   pointer-events:none;
 }
