@@ -1279,7 +1279,7 @@ function showBoardToast(msg, duration){
 });
 
 // 各特效图的显示时长,给自己的自动隐藏计时器用,也给下面「多个特效排队播放」用,只有这一份数字来源
-const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1300, companion:1300, catchStar:1300, bottleCollect:1300, loveFull:1300 };
+const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1600, companion:1600, catchStar:1600, bottleCollect:1600, loveFull:1600 };
 
 let moonBurstTimer = null;
 function showMoonBurst(){
@@ -1418,10 +1418,24 @@ function showLoveFullBurst(){
    爱心满满(19枚):场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心
    ============================================================ */
 const COIN_SKILL_COST = { swap: 1, companion: 7, catchStar: 9, bottleCollect: 17, loveFull: 19 };
+// 技能生效的那一刻,场上先有一拍(350ms)的闪光/消失动画,让玩家看清楚发生了什么,动画播完才叠加大图特效
+const SKILL_FLASH_DURATION = 350;
 
 function openCoinSkillsModal(){
   if(!BOARD || BOARD.endless) return;
   showModalQueue([{type:'coin-skills'}], 'screen-board');
+}
+
+// 技能实际生效后,先播一拍闪光动画,动画结束才叠加大图特效,特效播完再跑 afterFn(通常是 resolveCascade 或解锁棋盘)
+function playFlashThenBurst(flashCells, flashCls, burstFn, burstDuration, afterFn){
+  flashCells.forEach(([r,c])=>{
+    const el = document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
+    if(el) el.classList.add(flashCls);
+  });
+  setTimeout(()=>{
+    burstFn();
+    setTimeout(afterFn, burstDuration);
+  }, SKILL_FLASH_DURATION);
 }
 
 function enterCoinSwapMode(){
@@ -1438,7 +1452,8 @@ function exitCoinSwapMode(){
     document.querySelectorAll('.tile.coin-swap-pick').forEach(el=> el.classList.remove('coin-swap-pick'));
   }
 }
-// 选格模式下点两个非冰冻格,直接互换内容(不检查相邻/不检查是否形成连线),本身不算一步
+// 选格模式下点两个非冰冻格,直接互换内容(不检查相邻/不检查是否形成连线),本身不算一步。
+// 互换瞬间先播闪光动画,动画结束才叠加特效图,特效图播完才结算连锁
 function handleCoinSwapPick(r,c){
   if(BOARD.cells[r][c].frozen){ flashDeny(r,c); return; }
   if(!BOARD.coinSwapFirst){
@@ -1459,10 +1474,11 @@ function handleCoinSwapPick(r,c){
   exitCoinSwapMode();
   BOARD.busy = true;
   renderBoard();
-  setTimeout(()=> resolveCascade(1), 200);
+  playFlashThenBurst([[r1,c1],[r,c]], 'skill-pop', showSwapBurst, BURST_DURATIONS.swap, ()=> resolveCascade(1));
 }
 
-// 陪伴娃娃:扫描场上所有兔兔/小派、狗狗/小远,各自在一个相邻的非月亮/蝴蝶/太阳格子里多变出一只同类型(优先保留 XIAOPAI/XIAOYUAN 这种剧情关卡的替身图案)
+// 陪伴娃娃:扫描场上所有兔兔/小派、狗狗/小远,各自在一个相邻的非月亮/蝴蝶/太阳格子里多变出一只同类型(优先保留 XIAOPAI/XIAOYUAN 这种剧情关卡的替身图案)。
+// 变出瞬间先播闪光动画,动画结束才叠加特效图,特效图播完才结算连锁
 function useCompanionDoll(){
   if(STATE.coins < COIN_SKILL_COST.companion) return;
   const cfg = BOARD.config;
@@ -1476,6 +1492,7 @@ function useCompanionDoll(){
     }
   }
   let changed = false;
+  const spawnedCells = [];
   sources.forEach(({r,c,type})=>{
     const dirs = [[-1,0],[1,0],[0,-1],[0,1]].sort(()=>Math.random()-0.5);
     for(const [dr,dc] of dirs){
@@ -1487,6 +1504,7 @@ function useCompanionDoll(){
       if(target.type===MOONFACE_IDX || target.type===BUTTERFLY_IDX || target.type===SUN_IDX) continue;
       BOARD.cells[nr][nc] = { type, frozen:false };
       claimed.add(key);
+      spawnedCells.push([nr,nc]);
       changed = true;
       break;
     }
@@ -1496,33 +1514,48 @@ function useCompanionDoll(){
   updateCoinDisplays();
   BOARD.busy = true;
   renderBoard();
-  if(changed) setTimeout(()=> resolveCascade(1), 200);
-  else BOARD.busy = false;
+  if(changed){
+    playFlashThenBurst(spawnedCells, 'skill-pop', showCompanionBurst, BURST_DURATIONS.companion, ()=> resolveCascade(1));
+  } else {
+    showCompanionBurst();
+    setTimeout(()=>{ BOARD.busy = false; }, BURST_DURATIONS.companion);
+  }
 }
 
-// 捕星星:场上所有非冰冻的星星直接消失,掉落补位
+// 捕星星:场上所有非冰冻的星星先播消失闪光,动画结束才真的消失掉落补位,再叠加特效图,特效图播完才结算连锁
 function useCatchStar(){
   if(STATE.coins < COIN_SKILL_COST.catchStar) return;
   const cfg = BOARD.config;
-  let changed = false;
+  const targets = [];
   for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
     const cell = BOARD.cells[r][c];
-    if(cell && cell.type===STAR_IDX && !cell.frozen){
-      BOARD.cells[r][c] = null;
-      changed = true;
-    }
+    if(cell && cell.type===STAR_IDX && !cell.frozen) targets.push([r,c]);
   }
+  const changed = targets.length>0;
   STATE.coins -= COIN_SKILL_COST.catchStar;
   saveState();
   updateCoinDisplays();
   BOARD.busy = true;
-  if(changed) applyGravity(cfg);
-  renderBoard();
-  if(changed) setTimeout(()=> resolveCascade(1), 200);
-  else BOARD.busy = false;
+  if(!changed){
+    showCatchStarBurst();
+    setTimeout(()=>{ BOARD.busy = false; }, BURST_DURATIONS.catchStar);
+    return;
+  }
+  targets.forEach(([r,c])=>{
+    const el = document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
+    if(el) el.classList.add('clearing');
+  });
+  setTimeout(()=>{
+    targets.forEach(([r,c])=>{ BOARD.cells[r][c] = null; });
+    applyGravity(cfg);
+    renderBoard();
+    showCatchStarBurst();
+    setTimeout(()=> resolveCascade(1), BURST_DURATIONS.catchStar);
+  }, SKILL_FLASH_DURATION);
 }
 
-// 玻璃瓶:进入选格模式,点一个非冰冻格取样它的图案,场上所有该图案(非冰冻格)全部消失,掉落补位
+// 玻璃瓶:进入选格模式,点一个非冰冻格取样它的图案,场上所有该图案(非冰冻格)先播消失闪光,
+// 动画结束才真的消失掉落补位,再叠加特效图,特效图播完才结算连锁
 function enterBottlePickMode(){
   BOARD.bottlePickMode = true;
   selectedCell = null;
@@ -1538,35 +1571,42 @@ function handleBottlePick(r,c){
   const targetType = cell.type;
   exitBottlePickMode();
   const cfg = BOARD.config;
-  let changed = false;
+  const targets = [];
   for(let rr=0;rr<cfg.rows;rr++) for(let cc=0;cc<cfg.cols;cc++){
     const cc2 = BOARD.cells[rr][cc];
-    if(cc2 && cc2.type===targetType && !cc2.frozen){
-      BOARD.cells[rr][cc] = null;
-      changed = true;
-    }
+    if(cc2 && cc2.type===targetType && !cc2.frozen) targets.push([rr,cc]);
   }
   STATE.coins -= COIN_SKILL_COST.bottleCollect;
   saveState();
   updateCoinDisplays();
   BOARD.busy = true;
-  if(changed) applyGravity(cfg);
-  renderBoard();
-  if(changed) setTimeout(()=> resolveCascade(1), 200);
-  else BOARD.busy = false;
+  targets.forEach(([rr,cc])=>{
+    const el = document.querySelector(`.tile[data-r="${rr}"][data-c="${cc}"]`);
+    if(el) el.classList.add('clearing');
+  });
+  setTimeout(()=>{
+    targets.forEach(([rr,cc])=>{ BOARD.cells[rr][cc] = null; });
+    applyGravity(cfg);
+    renderBoard();
+    showBottleCollectBurst();
+    setTimeout(()=> resolveCascade(1), BURST_DURATIONS.bottleCollect);
+  }, SKILL_FLASH_DURATION);
 }
 
-// 爱心满满:场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心
+// 爱心满满:场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心。
+// 变化瞬间先播闪光动画,动画结束才叠加特效图,特效图播完才结算连锁
 function useLoveFull(){
   if(STATE.coins < COIN_SKILL_COST.loveFull) return;
   const cfg = BOARD.config;
   let changed = false;
+  const changedCells = [];
   for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
     const cell = BOARD.cells[r][c];
     if(!cell || cell.frozen) continue;
     if(cell.type===BUNNY_IDX || cell.type===XIAOPAI_IDX || cell.type===DOGFACE_IDX || cell.type===XIAOYUAN_IDX) continue;
     if(cell.type===HEART_IDX) continue;
     cell.type = HEART_IDX;
+    changedCells.push([r,c]);
     changed = true;
   }
   STATE.coins -= COIN_SKILL_COST.loveFull;
@@ -1574,18 +1614,12 @@ function useLoveFull(){
   updateCoinDisplays();
   BOARD.busy = true;
   renderBoard();
-  if(changed) setTimeout(()=> resolveCascade(1), 200);
-  else BOARD.busy = false;
-}
-
-// 选好技能后,先播 1 秒特效图,期间锁住棋盘(BOARD.busy)避免误触,播完才真的进入操作/执行技能
-function playSkillIntroThenRun(burstFn, thenFn){
-  BOARD.busy = true;
-  burstFn();
-  setTimeout(()=>{
-    BOARD.busy = false;
-    thenFn();
-  }, 1000);
+  if(changed){
+    playFlashThenBurst(changedCells, 'skill-pop', showLoveFullBurst, BURST_DURATIONS.loveFull, ()=> resolveCascade(1));
+  } else {
+    showLoveFullBurst();
+    setTimeout(()=>{ BOARD.busy = false; }, BURST_DURATIONS.loveFull);
+  }
 }
 
 /* ============================================================
@@ -2274,31 +2308,31 @@ function renderModal(step){
     if(canSwap){
       card.querySelector('#coin-skill-swap').addEventListener('click', ()=>{
         showNextModal();
-        playSkillIntroThenRun(showSwapBurst, enterCoinSwapMode);
+        enterCoinSwapMode();
       });
     }
     if(canCompanion){
       card.querySelector('#coin-skill-companion').addEventListener('click', ()=>{
         showNextModal();
-        playSkillIntroThenRun(showCompanionBurst, useCompanionDoll);
+        useCompanionDoll();
       });
     }
     if(canCatchStar){
       card.querySelector('#coin-skill-catchstar').addEventListener('click', ()=>{
         showNextModal();
-        playSkillIntroThenRun(showCatchStarBurst, useCatchStar);
+        useCatchStar();
       });
     }
     if(canBottle){
       card.querySelector('#coin-skill-bottle').addEventListener('click', ()=>{
         showNextModal();
-        playSkillIntroThenRun(showBottleCollectBurst, enterBottlePickMode);
+        enterBottlePickMode();
       });
     }
     if(canLoveFull){
       card.querySelector('#coin-skill-lovefull').addEventListener('click', ()=>{
         showNextModal();
-        playSkillIntroThenRun(showLoveFullBurst, useLoveFull);
+        useLoveFull();
       });
     }
   } else if(step.type==='endless-submit'){
