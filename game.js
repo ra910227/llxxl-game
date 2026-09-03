@@ -592,6 +592,9 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
     // 无尽挑战关不算在79关地图里,从这关返回要直接回首页,不是回关卡地图
     if(target==='map' && BOARD && BOARD.endless){ showScreen('screen-home'); return; }
     showScreen(target==='home' ? 'screen-home' : 'screen-'+target);
+    // 过关时点「去纪念品册/明信片册看看」跳过去看收藏,如果后面还有排队中的弹窗
+    // (小远回家/拉霸机等)没播完,回到首页时要接着播完,不能整串直接消失
+    if(modalQueue.length>0) showNextModal();
   });
 });
 document.getElementById('btn-board-help').addEventListener('click', ()=> showModalQueue([{type:'skills'}], 'screen-board'));
@@ -754,11 +757,11 @@ document.getElementById('hotspot-diary').addEventListener('click', ()=> showScre
 document.getElementById('hotspot-gift').addEventListener('click', ()=> openAlbum('memento'));
 document.getElementById('hotspot-postcard').addEventListener('click', ()=> openAlbum('postcard'));
 document.getElementById('btn-reset').addEventListener('click', ()=>{
-  if(confirm('确定要重置所有进度吗?(测试用)')){
-    localStorage.removeItem(SAVE_KEY);
-    STATE = loadState();
-    refreshHome();
-  }
+  if(!confirm('确定要重新体验两人爱情故事吗?')) return;
+  if(!confirm('确定要重置所有进度(包含金币跟已收集品)吗?')) return;
+  localStorage.removeItem(SAVE_KEY);
+  STATE = loadState();
+  refreshHome();
 });
 document.getElementById('btn-backup').addEventListener('click', ()=> showModalQueue([{type:'backup'}], 'screen-home'));
 
@@ -2601,7 +2604,8 @@ function renderModal(step){
   if(nextBtn) nextBtn.addEventListener('click', showNextModal);
   const gotoAlbumBtn = card.querySelector('#modal-goto-album');
   if(gotoAlbumBtn) gotoAlbumBtn.addEventListener('click', ()=>{
-    modalQueue = [];
+    // 注意:不清空 modalQueue——后面如果还排着「小远回家了」/拉霸机等弹窗,
+    // 要等玩家从纪念品册/明信片册按返回回到首页时接着播,不能直接消失
     document.getElementById('modal-overlay').hidden = true;
     showScreen('screen-home');
     openAlbum(step.source==='couple' ? 'postcard' : 'memento');
