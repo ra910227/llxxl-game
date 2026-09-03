@@ -279,11 +279,14 @@ function generateLevelConfig(n){
 
   let moves, targetScore, numFrozen;
   if(n<=50){
-    moves = Math.max(16, 26 - Math.floor(n/8));
-    targetScore = Math.round(cellCount * (12 + n*0.6));
-    numFrozen = Math.min(Math.floor(n/5), Math.floor(cellCount*0.15));
+    // 有了远派金币技能后(尤其是只要1枚、不占步数的元素互换)前面关卡变太简单,
+    // 步数/目标分/冰冻格都比原本拉紧一截;50关的步数收在18,跟50关后那段接续,
+    // 不会在50→51关之间突然变松
+    moves = Math.max(16, 25 - Math.floor(n/7));
+    targetScore = Math.round(cellCount * (13 + n*0.78));
+    numFrozen = Math.min(Math.floor(n/4), Math.floor(cellCount*0.18));
   } else {
-    moves = Math.max(15, (26 - Math.floor(50/8)) - Math.floor((n-50)/5));
+    moves = Math.max(15, 18 - Math.floor((n-50)/5));
     // 目标分数用「每步预期分数」反推,依 59关7799分/79关9977分 两个锚点校准斜率(59/79都是里程碑关卡,
     // 分数还会再乘1.15)。50关后连击加成(4连*1.5/5连*2)撑住比之前更高的分数门槛,而不是单纯调低目标;
     // 狗狗兔兔组合的步数奖励原本70关后另外加码到+7/+9,但实测后期步数太松,已经拿掉那段改成统一+2。
