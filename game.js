@@ -2188,6 +2188,7 @@ function onLevelWin(levelNum){
       }
       saveState();
       queue.push({type:'xiaoyuan', postcardIdx});
+      queue.push({type:'slot-machine'});
     }
 
     if(MILESTONES.includes(levelNum) && !STATE.diaryUnlocked.includes(levelNum)){
@@ -2486,6 +2487,55 @@ function renderModal(step){
       <h3>小远回家了</h3>
       <p>${bodyLine}</p>
       <button class="modal-btn" id="modal-next">好期待</button>`;
+  } else if(step.type==='slot-machine'){
+    // 从13种图案里随机抽7张当这次的转轮候选池,三个转轮各自独立从这7张里抽一张:
+    // 三个一样(机率1/49)给97枚远派金币大奖,没中给9枚安慰奖
+    const pool = TILE_TYPES.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0,7);
+    const results = [0,1,2].map(()=> pool[Math.floor(Math.random()*pool.length)]);
+    const jackpot = results[0]===results[1] && results[1]===results[2];
+    card.innerHTML = `
+      <div class="modal-emoji">🎰</div>
+      <h3>小远带回一台迷你拉霸机</h3>
+      <p style="text-align:center;">三个转轮拉出同一个图案,就送你远派金币!</p>
+      <div class="slot-reels">
+        <div class="slot-reel" id="slot-reel-0"><img src="${TILE_TYPES[pool[0]].img}" alt=""></div>
+        <div class="slot-reel" id="slot-reel-1"><img src="${TILE_TYPES[pool[1]].img}" alt=""></div>
+        <div class="slot-reel" id="slot-reel-2"><img src="${TILE_TYPES[pool[2]].img}" alt=""></div>
+      </div>
+      <p id="slot-result" class="slot-result" hidden></p>
+      <button class="modal-btn" id="slot-pull-btn">拉一下!</button>
+      <button class="modal-btn" id="modal-next" style="margin-top:10px;" hidden>继续</button>`;
+    const reelEls = [0,1,2].map(i=> card.querySelector(`#slot-reel-${i}`));
+    const pullBtn = card.querySelector('#slot-pull-btn');
+    const nextBtnEl = card.querySelector('#modal-next');
+    const resultEl = card.querySelector('#slot-result');
+    pullBtn.addEventListener('click', ()=>{
+      pullBtn.disabled = true;
+      const spinTimers = [];
+      const stopDelays = [800, 1100, 1400];
+      reelEls.forEach((el,i)=>{
+        const img = el.querySelector('img');
+        spinTimers[i] = setInterval(()=>{
+          const randIdx = pool[Math.floor(Math.random()*pool.length)];
+          img.src = TILE_TYPES[randIdx].img;
+        }, 80);
+        setTimeout(()=>{
+          clearInterval(spinTimers[i]);
+          img.src = TILE_TYPES[results[i]].img;
+          el.classList.add('slot-reel-stop');
+          if(i===2){
+            const amount = jackpot ? 97 : 9;
+            STATE.coins += amount;
+            saveState();
+            updateCoinDisplays();
+            resultEl.textContent = jackpot ? `🎉 三个一样!+${amount} 枚远派金币!!` : `没中,安慰奖 +${amount} 枚远派金币`;
+            resultEl.hidden = false;
+            pullBtn.hidden = true;
+            nextBtnEl.hidden = false;
+          }
+        }, stopDelays[i]);
+      });
+    });
   } else if(step.type==='memento'){
     const isCouple = step.source==='couple';
     const m = isCouple ? COUPLE_PHOTO_ITEMS[step.level] : MEMENTO_ITEMS[step.level];
