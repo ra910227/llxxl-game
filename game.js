@@ -273,8 +273,8 @@ function generateLevelConfig(n){
   const isSpecialLevel = isMilestone || MEMENTO_LEVELS.includes(n) || COUPLE_PHOTO_LEVELS.includes(n); // 小派/小远只在这些关卡顶替兔兔/狗狗出现
 
   // 50关前整体放宽(棋盘小、图案少、步数松),50关后再逐步拉回难度
-  const size = n<=20?6 : n<=35?7 : n<=50?8 : 9;
-  const tileTypes = n<=10?4 : n<=29?5 : n<=49?7 : n<=59?9 : n<=69?10 : 11; // 1-10蝴蝶/星星/兔兔/狗狗,11+月亮,30+电影板+麦克风,50+玫瑰+小狗,60+太阳,70+爱心
+  const size = n<=9?6 : n<=35?7 : n<=50?8 : 9; // 10-29关棋盘提前到7x7(原本10-20关还是6x6)
+  const tileTypes = n<=9?4 : n<=29?6 : n<=39?7 : n<=49?8 : n<=59?9 : n<=69?10 : 11; // 1-9蝴蝶/星星/兔兔/狗狗,10-29图案数提前跳到6(原本5),30+电影板+麦克风,40-49图案数提前跳到8(原本7),50+玫瑰+小狗,60+太阳,70+爱心
   const cellCount = size*size;
 
   let moves, targetScore, numFrozen;
