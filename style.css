@@ -523,23 +523,24 @@ html,body{
   opacity:1;
   transform:translate(-50%,-50%) scale(1);
 }
-/* 太阳/蝴蝶/元素互换/陪伴娃娃/捕星星/爱心满满特效图已经是去背贴纸,不需要卡片白框,改用贴合轮廓的投影;
-   玻璃瓶特效图本身就是完整的装饰卡面(非去背贴纸),沿用月亮特效的白框卡片样式,不列在这份重置清单里 */
-.sun-burst, .butterfly-burst, .swap-burst, .companion-burst, .catch-star-burst, .love-full-burst{
+/* 太阳/蝴蝶/陪伴娃娃/捕星星/爱心满满特效图已经是去背贴纸,不需要卡片白框,改用贴合轮廓的投影;
+   元素互换那张图透明度太高、单独浮贴看不清楚,改回月亮特效的白底白框卡片样式;
+   玻璃瓶特效图本身就是完整的装饰卡面(非去背贴纸),同样沿用白框卡片样式,都不列在这份重置清单里 */
+.sun-burst, .butterfly-burst, .companion-burst, .catch-star-burst, .love-full-burst{
   border-radius:0;
   overflow:visible;
   border:none;
   box-shadow:none;
   background:none;
 }
-.sun-burst img, .butterfly-burst img, .swap-burst img, .companion-burst img, .catch-star-burst img, .love-full-burst img{
+.sun-burst img, .butterfly-burst img, .companion-burst img, .catch-star-burst img, .love-full-burst img{
   filter:drop-shadow(0 6px 14px rgba(107,88,80,0.35));
 }
 .sun-burst img{ filter:drop-shadow(0 6px 14px rgba(230,170,60,0.45)); }
 .butterfly-burst img{ filter:drop-shadow(0 6px 14px rgba(140,180,220,0.45)); }
-.swap-burst img{ filter:drop-shadow(0 6px 14px rgba(185,166,217,0.5)); }
 .companion-burst img{ filter:drop-shadow(0 6px 14px rgba(232,137,154,0.5)); }
 .catch-star-burst img{ filter:drop-shadow(0 6px 14px rgba(230,190,90,0.5)); }
+.swap-burst{ background:#fff; }
 .love-full-burst img{ filter:drop-shadow(0 6px 14px rgba(232,120,140,0.5)); }
 .tile{
   border-radius:12px;
