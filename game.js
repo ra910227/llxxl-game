@@ -2491,11 +2491,20 @@ function renderModal(step){
       <p>${bodyLine}</p>
       <button class="modal-btn" id="modal-next">好期待</button>`;
   } else if(step.type==='slot-machine'){
-    // 从13种图案里随机抽7张当这次的转轮候选池,三个转轮各自独立从这7张里抽一张:
-    // 三个一样(机率1/49)给97枚远派金币大奖,没中给9枚安慰奖
+    // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
+    // 不是三个转轮各自独立乱抽再看运气,而是先掷骰决定这次中不中,
+    // 中了三个转轮就都摆同一张,没中就随机摆但保证不会凑巧三个一样
     const pool = TILE_TYPES.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0,7);
-    const results = [0,1,2].map(()=> pool[Math.floor(Math.random()*pool.length)]);
-    const jackpot = results[0]===results[1] && results[1]===results[2];
+    const jackpot = Math.random() < 0.2;
+    let results;
+    if(jackpot){
+      const winType = pool[Math.floor(Math.random()*pool.length)];
+      results = [winType, winType, winType];
+    } else {
+      do{
+        results = [0,1,2].map(()=> pool[Math.floor(Math.random()*pool.length)]);
+      }while(results[0]===results[1] && results[1]===results[2]);
+    }
     card.innerHTML = `
       <div class="modal-emoji">🎰</div>
       <h3>小远带回一台迷你拉霸机</h3>
