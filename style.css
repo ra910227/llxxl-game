@@ -681,20 +681,20 @@ html,body{
 .modal-card h3{margin:0 0 8px;font-size:18px;color:var(--pink);}
 .modal-card p{font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;text-align:left;}
 .modal-emoji{font-size:44px;margin-bottom:6px;}
-/* 明信片信件本身:斜体、字级比一般叙事文字大一点,跟后面接续的文章做区隔 */
+/* 明信片信件本身:斜体、咖啡色,跟后面接续的文章做区隔;跟文章共用同一个卷轴,
+   不额外切两个滚动框,弹窗本身高度封顶,超出就整张卡片一起卷动 */
+.modal-card.postcard-letter-mode{ max-height:88vh; overflow-y:auto; }
 .modal-card p.postcard-letter-text{
-  max-height:40vh;overflow-y:auto;
-  font-style:italic;font-size:15px;line-height:1.75;
+  font-style:italic;color:#6f4e37;
 }
 .modal-card p.postcard-letter-signoff{
   text-align:right;margin-top:-6px;
-  font-style:italic;font-size:15px;
+  font-style:italic;color:#6f4e37;
 }
 .postcard-divider{
   width:100%;border:none;border-top:1px solid var(--pink-light);
   margin:14px 0;
 }
-.modal-card p.postcard-narrative-text{max-height:34vh;overflow-y:auto;}
 .ending-illustration{
   width:100%;border-radius:16px;overflow:hidden;
   margin-bottom:10px;background:#fff;

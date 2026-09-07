@@ -2343,6 +2343,7 @@ function renderModal(step){
   card.classList.toggle('memento-mode', step.type==='memento' && step.source!=='couple');
   card.classList.toggle('couple-mode', step.type==='memento' && step.source==='couple');
   card.classList.toggle('milestone-mode', step.type==='milestone-summary');
+  card.classList.toggle('postcard-letter-mode', step.type==='postcard-letter');
 
   if(step.type==='about'){
     card.innerHTML = `
@@ -2613,7 +2614,7 @@ function renderModal(step){
       <p class="postcard-letter-text">${letterLines.join('\n')}</p>
       ${signoffLine ? `<p class="postcard-letter-signoff">${signoffLine}</p>` : ''}
       ${narrativeText ? `<hr class="postcard-divider">` : ''}
-      ${narrativeText ? `<p class="postcard-narrative-text">${narrativeText}</p>` : ''}
+      ${narrativeText ? `<p>${narrativeText}</p>` : ''}
       <button class="modal-btn" id="modal-next">关闭</button>`;
   } else if(step.type==='slot-machine'){
     // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
