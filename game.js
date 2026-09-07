@@ -68,9 +68,27 @@ const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成�
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
-  '🏙️ 天津・天津之眼','🍺 青岛・啤酒博物馆','🌆 广州出差','🌶️ 重庆・火锅','🎡 长沙・橘子洲头',
-  '🏝️ 厦门・鼓浪屿','🌃 深圳出差','🎆 上海・迪士尼','🍁 南京・百家湖摩天轮','🐼 成都・熊猫',
-  '🌸 杭州・西湖','⛰️ 贵州・小远家','🌴 海南・天涯海角'
+  {emoji:'🏙️', name:'天津・天津之眼', story:``},
+  {emoji:'🍺', name:'青岛・啤酒博物馆', story:``},
+  {emoji:'🌆', name:'广州出差', story:``},
+  {emoji:'🌶️', name:'重庆・火锅', story:``},
+  {emoji:'🎆', name:'上海・迪士尼', story:``},
+  {emoji:'🏝️', name:'厦门・鼓浪屿', story:``},
+  {emoji:'🌃', name:'深圳出差', story:``},
+  {emoji:'🎡', name:'长沙・橘子洲头', story:`Dear 派派,
+我来长沙参加音乐综艺节目,合作制的舞台竞赛,我好喜欢我们团的每个人,一起做音乐的日子真的很快乐。
+
+然后我就想到了我们的以前,在练舞室待到最后,十一个人一起磨一首歌。不是每个人都能帮到忙,但就想待在一起,笑闹不断,从不觉得孤单。
+
+我想念我教你中文、你教我泰文,在每次我躲在后台的时候从背后拥抱我。
+
+……我想念过去,一回头你就在身边的日子。
+By远`},
+  {emoji:'🍁', name:'南京・百家湖摩天轮', story:``},
+  {emoji:'🐼', name:'成都・熊猫', story:``},
+  {emoji:'🌸', name:'杭州・西湖', story:``},
+  {emoji:'⛰️', name:'贵州・小远家', story:``},
+  {emoji:'🌴', name:'海南・天涯海角', story:``},
 ];
 
 // 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
@@ -877,16 +895,20 @@ function openAlbum(type){
     STATE.couplePhotosSeen = STATE.couplePhotos.length;
     saveState();
     document.getElementById('album-title').textContent = '已收集明信片册';
-    POSTCARD_ITEMS.forEach((label,i)=>{
+    POSTCARD_ITEMS.forEach((item,i)=>{
       const has = STATE.postcards.includes(i);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      const photoInner = has ? label.split(' ')[0] : '？';
-      const caption = has ? label.split(' ').slice(1).join(' ') : '';
+      const photoInner = has ? item.emoji : '？';
+      const caption = has ? item.name : '';
       div.innerHTML = `
         <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
         <div class="album-item-label">${caption}</div>`;
-      div.title = has ? label : '尚未收集';
+      div.title = has ? item.name : '尚未收集';
+      if(has && item.story){
+        div.style.cursor = 'pointer';
+        div.addEventListener('click', ()=> showModalQueue([{type:'postcard-letter', idx:i, reread:true}], 'screen-home'));
+      }
       grid.appendChild(div);
     });
     // 两人出游的合照:相簿格只显示照片本身,不带文字说明,点进去才看故事
@@ -2484,12 +2506,25 @@ function renderModal(step){
     return;
   } else if(step.type==='xiaoyuan'){
     const postcard = step.postcardIdx!==null ? POSTCARD_ITEMS[step.postcardIdx] : null;
-    const bodyLine = postcard ? `他带回一张明信片:${postcard}` : '这次没带新的明信片,但他带回了满满的拥抱。';
+    const bodyLine = postcard ? `他带回一张明信片:${postcard.emoji} ${postcard.name}` : '这次没带新的明信片,但他带回了满满的拥抱。';
     card.innerHTML = `
       <div class="modal-emoji">🏠</div>
       <h3>小远回家了</h3>
       <p>${bodyLine}</p>
       <button class="modal-btn" id="modal-next">好期待</button>`;
+  } else if(step.type==='postcard-letter'){
+    const item = POSTCARD_ITEMS[step.idx];
+    // 信末署名(最后一行 By...)单独抽出来靠右对齐,比较像一封真的信
+    const lines = item.story.split('\n');
+    const lastLine = lines[lines.length-1];
+    const isSignoff = /^By/.test(lastLine.trim());
+    const bodyText = isSignoff ? lines.slice(0,-1).join('\n') : item.story;
+    card.innerHTML = `
+      <div class="modal-emoji">${item.emoji}</div>
+      <h3>${item.name}</h3>
+      <p class="postcard-letter-text">${bodyText}</p>
+      ${isSignoff ? `<p class="postcard-letter-signoff">${lastLine.trim()}</p>` : ''}
+      <button class="modal-btn" id="modal-next">关闭</button>`;
   } else if(step.type==='slot-machine'){
     // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
     // 不是三个转轮各自独立乱抽再看运气,而是先掷骰决定这次中不中,

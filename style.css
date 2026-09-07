@@ -681,6 +681,8 @@ html,body{
 .modal-card h3{margin:0 0 8px;font-size:18px;color:var(--pink);}
 .modal-card p{font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;text-align:left;}
 .modal-emoji{font-size:44px;margin-bottom:6px;}
+.modal-card p.postcard-letter-text{max-height:52vh;overflow-y:auto;}
+.modal-card p.postcard-letter-signoff{text-align:right;margin-top:-6px;}
 .ending-illustration{
   width:100%;border-radius:16px;overflow:hidden;
   margin-bottom:10px;background:#fff;
