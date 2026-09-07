@@ -2332,6 +2332,8 @@ function renderModal(step){
   card.classList.toggle('memento-mode', step.type==='memento' && step.source!=='couple');
   card.classList.toggle('couple-mode', step.type==='memento' && step.source==='couple');
   card.classList.toggle('milestone-mode', step.type==='milestone-summary');
+  // 明信片新样式先只在天津(idx 0)试做,其他明信片维持原本的纯文字弹窗
+  card.classList.toggle('postcard-photo-mode', step.type==='postcard-letter' && step.idx===0);
 
   if(step.type==='about'){
     card.innerHTML = `
@@ -2589,17 +2591,31 @@ function renderModal(step){
       <button class="modal-btn" id="modal-next">好期待</button>`;
   } else if(step.type==='postcard-letter'){
     const item = POSTCARD_ITEMS[step.idx];
-    // 信末署名(最后一行 By...)单独抽出来靠右对齐,比较像一封真的信
-    const lines = item.story.split('\n');
-    const lastLine = lines[lines.length-1];
-    const isSignoff = /^By/.test(lastLine.trim());
-    const bodyText = isSignoff ? lines.slice(0,-1).join('\n') : item.story;
-    card.innerHTML = `
-      <div class="modal-emoji">${item.emoji}</div>
-      <h3>${item.name}</h3>
-      <p class="postcard-letter-text">${bodyText}</p>
-      ${isSignoff ? `<p class="postcard-letter-signoff">${lastLine.trim()}</p>` : ''}
-      <button class="modal-btn" id="modal-next">关闭</button>`;
+    if(step.idx===0){
+      // 天津(试做款):信件本身手写体贴在明信片图档上,信件结束(By..那行)之后的文章接在明信片下面
+      const storyLines = item.story.split('\n');
+      const signIdx = storyLines.findIndex(l=> /^By/.test(l.trim()));
+      const letterText = (signIdx>=0 ? storyLines.slice(0,signIdx+1) : storyLines).join('\n');
+      const articleText = signIdx>=0 ? storyLines.slice(signIdx+1).join('\n').trim() : '';
+      card.innerHTML = `
+        <div class="postcard-photo-card">
+          <div class="postcard-photo-text">${letterText}</div>
+        </div>
+        ${articleText ? `<p class="postcard-letter-text">${articleText}</p>` : ''}
+        <button class="modal-btn" id="modal-next" style="margin-top:12px;">关闭</button>`;
+    } else {
+      // 信末署名(最后一行 By...)单独抽出来靠右对齐,比较像一封真的信
+      const lines = item.story.split('\n');
+      const lastLine = lines[lines.length-1];
+      const isSignoff = /^By/.test(lastLine.trim());
+      const bodyText = isSignoff ? lines.slice(0,-1).join('\n') : item.story;
+      card.innerHTML = `
+        <div class="modal-emoji">${item.emoji}</div>
+        <h3>${item.name}</h3>
+        <p class="postcard-letter-text">${bodyText}</p>
+        ${isSignoff ? `<p class="postcard-letter-signoff">${lastLine.trim()}</p>` : ''}
+        <button class="modal-btn" id="modal-next">关闭</button>`;
+    }
   } else if(step.type==='slot-machine'){
     // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
     // 不是三个转轮各自独立乱抽再看运气,而是先掷骰决定这次中不中,

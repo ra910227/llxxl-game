@@ -683,6 +683,38 @@ html,body{
 .modal-emoji{font-size:44px;margin-bottom:6px;}
 .modal-card p.postcard-letter-text{max-height:52vh;overflow-y:auto;}
 .modal-card p.postcard-letter-signoff{text-align:right;margin-top:-6px;}
+
+/* 明信片手写信样式(目前只有天津那张试做):信件本身贴在明信片图档的空白处,手写体字型 */
+.modal-card.postcard-photo-mode{
+  background:none;box-shadow:none;padding:0;
+  max-width:480px;width:min(96vw,480px);
+  max-height:88vh;
+  display:flex;flex-direction:column;align-items:center;
+  animation:pop .25s ease;
+}
+.postcard-photo-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:4620/3180;
+  background-image:url('assets/ui/postcard.jpg');
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  border-radius:6px;
+  box-shadow:0 10px 30px var(--shadow);
+}
+.postcard-photo-text{
+  position:absolute;
+  left:6%;top:21%;width:42%;height:45%;
+  overflow-y:auto;
+  font-family:'Zhi Mang Xing','PingFang SC',cursive;
+  font-size:17px;line-height:1.55;
+  color:#5a4632;
+  white-space:pre-line;
+  text-align:left;
+}
+.modal-card.postcard-photo-mode p.postcard-letter-text{
+  margin-top:14px;max-height:30vh;
+}
 .ending-illustration{
   width:100%;border-radius:16px;overflow:hidden;
   margin-bottom:10px;background:#fff;
