@@ -7,7 +7,7 @@
    ============================================================ */
 
 const TOTAL_LEVELS = 79;
-const HOME_CYCLE = 6;                       // 小远每隔几关回家一次(6关 x 13张明信片,79关内剛好收全)
+const HOME_CYCLE = 6;                       // 小远每隔几关回家一次(6关 x 12张明信片,收满后剩下的关卡回家只是单纯团聚,不再附赠明信片)
 const MILESTONES = [9,19,29,39,49,59,69,79]; // 日记解锁关卡
 
 // 无尽挑战关的月兔排行榜后端(Cloudflare Worker),部署好之后把网址换成实际的
@@ -194,7 +194,6 @@ My wife, my Husband and my love.
 By远`},
   {emoji:'🌸', name:'杭州・西湖', story:``},
   {emoji:'🎆', name:'上海・迪士尼', story:``},
-  {emoji:'⛰️', name:'贵州・小远家', story:``},
 ];
 
 // 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
@@ -436,7 +435,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -900,10 +899,14 @@ function refreshMap(){
   const wrap0 = document.createElement('div');
   wrap0.className = 'map-node-wrap';
   const node0 = document.createElement('button');
-  node0.className = 'map-node map-node-diary0';
+  node0.className = 'map-node map-node-diary0' + (STATE.prologueSeen ? '' : ' prologue-highlight');
   node0.title = '恋爱日记 · 楔子';
   applyIconCrop(node0, 'assets/ui/icon_diary.png', HOTSPOTS.diary, 56, 56);
-  node0.addEventListener('click', ()=> showModalQueue([{type:'diary', level:0, reread:true}]));
+  node0.addEventListener('click', ()=>{
+    // 第一次进关卡地图时序章会闪烁提示,避免有人没读序章就直接从第1关开始按;点过一次后就不再强调
+    if(!STATE.prologueSeen){ STATE.prologueSeen = true; saveState(); }
+    showModalQueue([{type:'diary', level:0, reread:true}]);
+  });
   wrap0.appendChild(node0);
   list.appendChild(wrap0);
 
@@ -2319,6 +2322,7 @@ function onLevelWin(levelNum){
       }
       saveState();
       queue.push({type:'xiaoyuan', postcardIdx});
+      if(postcardIdx!==null) queue.push({type:'postcard-letter', idx:postcardIdx});
       queue.push({type:'slot-machine'});
     }
 
@@ -2384,7 +2388,7 @@ function renderModal(step){
         <div class="about-credits-row"><b>主美：</b>英招招</div>
         <div class="about-credits-row"><b>主架：</b>易烊珺</div>
         <div class="about-credits-row"><b>美术：</b>叭叭叭、硬梆梆</div>
-        <div class="about-credits-row"><b>文字：</b>不吃生姜、无敌小可</div>
+        <div class="about-credits-row"><b>文字：</b>不吃生姜、无敌小可、粥粥煮粥、硬梆梆硬</div>
         <div class="about-credits-row"><b>特别感谢：</b>南十字星老师、D老师</div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
@@ -2613,7 +2617,8 @@ function renderModal(step){
     return;
   } else if(step.type==='xiaoyuan'){
     const postcard = step.postcardIdx!==null ? POSTCARD_ITEMS[step.postcardIdx] : null;
-    const bodyLine = postcard ? `他带回一张明信片:${postcard.emoji} ${postcard.name}` : '这次没带新的明信片,但他带回了满满的拥抱。';
+    // 明信片本身接下来会有一张专属的揭晓画面,这里只讲团聚,不重复讲是哪张明信片
+    const bodyLine = postcard ? '他这次还带了一张明信片回来。' : '这次没带新的明信片,但他带回了满满的拥抱。';
     card.innerHTML = `
       <div class="modal-emoji">🏠</div>
       <h3>小远回家了</h3>
@@ -2621,21 +2626,31 @@ function renderModal(step){
       <button class="modal-btn" id="modal-next">好期待</button>`;
   } else if(step.type==='postcard-letter'){
     const item = POSTCARD_ITEMS[step.idx];
-    // 信件本身(到署名 By.. 那行为止)斜体放大呈现,署名之后如果还有文章,
-    // 中间加一条分隔线再接原本样式的文章
-    const lines = item.story.split('\n');
-    const signIdx = lines.findIndex(l=> /^By/.test(l.trim()));
-    const letterLines = signIdx>=0 ? lines.slice(0,signIdx) : lines;
-    const signoffLine = signIdx>=0 ? lines[signIdx].trim() : null;
-    const narrativeText = signIdx>=0 ? lines.slice(signIdx+1).join('\n').trim() : '';
+    const headingPrefix = step.reread ? '' : '获得明信片 · ';
+    const hasStory = item.story.trim().length>0;
+    let bodyHtml;
+    if(hasStory){
+      // 信件本身(到署名 By.. 那行为止)斜体呈现,署名之后如果还有文章,
+      // 中间加一条分隔线再接原本样式的文章
+      const lines = item.story.split('\n');
+      const signIdx = lines.findIndex(l=> /^By/.test(l.trim()));
+      const letterLines = signIdx>=0 ? lines.slice(0,signIdx) : lines;
+      const signoffLine = signIdx>=0 ? lines[signIdx].trim() : null;
+      const narrativeText = signIdx>=0 ? lines.slice(signIdx+1).join('\n').trim() : '';
+      bodyHtml = `
+        <p class="postcard-letter-text">${letterLines.join('\n')}</p>
+        ${signoffLine ? `<p class="postcard-letter-signoff">${signoffLine}</p>` : ''}
+        ${narrativeText ? `<hr class="postcard-divider">` : ''}
+        ${narrativeText ? `<p>${narrativeText}</p>` : ''}`;
+    } else {
+      bodyHtml = `<p>收集到一张来自远方的明信片。</p>`;
+    }
     card.innerHTML = `
       <div class="modal-emoji">${item.emoji}</div>
-      <h3>${item.name}</h3>
-      <p class="postcard-letter-text">${letterLines.join('\n')}</p>
-      ${signoffLine ? `<p class="postcard-letter-signoff">${signoffLine}</p>` : ''}
-      ${narrativeText ? `<hr class="postcard-divider">` : ''}
-      ${narrativeText ? `<p>${narrativeText}</p>` : ''}
-      <button class="modal-btn" id="modal-next">关闭</button>`;
+      <h3>${headingPrefix}${item.name}</h3>
+      ${bodyHtml}
+      <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
+      ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">去明信片册看看</button>`}`;
   } else if(step.type==='slot-machine'){
     // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
     // 不是三个转轮各自独立乱抽再看运气,而是先掷骰决定这次中不中,
@@ -2763,7 +2778,7 @@ function renderModal(step){
     // 要等玩家从纪念品册/明信片册按返回回到首页时接着播,不能直接消失
     document.getElementById('modal-overlay').hidden = true;
     showScreen('screen-home');
-    openAlbum(step.source==='couple' ? 'postcard' : 'memento');
+    openAlbum((step.source==='couple' || step.type==='postcard-letter') ? 'postcard' : 'memento');
   });
 }
 

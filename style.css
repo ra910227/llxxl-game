@@ -293,6 +293,14 @@ html,body{
   background-color:#fff;
   border:3px solid var(--pink);
 }
+/* 还没点过序章的玩家,进关卡地图时序章按钮闪烁提示,避免有人直接从第1关开始按 */
+.map-node-diary0.prologue-highlight{
+  animation: prologueGlow 1.3s ease-in-out infinite;
+}
+@keyframes prologueGlow{
+  0%,100%{ box-shadow:0 5px 12px var(--shadow), 0 0 0 0 rgba(232,137,154,0.6); }
+  50%{ box-shadow:0 5px 12px var(--shadow), 0 0 0 10px rgba(232,137,154,0); }
+}
 
 .map-node-wrap{
   position:relative;
