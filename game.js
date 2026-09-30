@@ -68,7 +68,7 @@ const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成�
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
-  {emoji:'🏙️', name:'天津・天津之眼', story:`派派,
+  {emoji:'🏙️', name:'天津・天津之眼', img:'assets/postcards/0.jpeg', story:`派派,
 恭喜你上大学了!可惜你开学这天刚好冲到我天津的演唱会,但我看到你传给我的入学照,很帅气呢。
 今天开始你也是成人了,祝福你学业顺利,尽情体验精彩丰富的大学生活。
 我记忆中那个中文不好要我照顾会撒娇会恶作剧的坏小孩,感觉一下子就长大了……但我偶尔也希望你不要长大得太快,做一个小孩其实没什么不好的。
@@ -93,7 +93,7 @@ By远
 药片粘在舌头上,苦得他把眼泪都呛出来。
 是真的很苦——但这可能也是长大的一环,突如其来、毫无心理防备地,长大了。
 而他只能被动接受了它,即使那时他已经不怎么想要长大了。`},
-  {emoji:'🍺', name:'青岛・啤酒博物馆', story:`Dear 派派,
+  {emoji:'🍺', name:'青岛・啤酒博物馆', img:'assets/postcards/1.jpeg', story:`派派,
 我代言了青岛啤酒,这真是神奇的合作,感谢粉丝支持、感谢赞助商邀约。
 
 我寄了赞助商给我的三箱啤酒给你,记得在家慢慢喝（虽然你喝不醉但在外还是要小心）。
@@ -107,7 +107,7 @@ By远
 吻了他。
 
 他并没有比他高很多,还偷偷地垫了脚,一个没站稳,不幸地连带着小远也踉跄了,好在他在吻和橘子汽水之间选择了牺牲后者。`},
-  {emoji:'🌆', name:'广州・月亮桥', story:`派派,
+  {emoji:'🌆', name:'广州・月亮桥', img:'assets/postcards/2.jpeg', story:`派派,
 我们中秋节一起来广州那次你还记得吗?
 那天云雾遮住了夜空,中秋等不来月圆,你很难过。
 你说我们两个的CP名就叫『花好月圆』,两人出游怎么却连个月圆都看不到呢。
@@ -123,8 +123,8 @@ By远
 他戴了深色的口罩,夜很黑,我却能看见他的眼眸——是笑着的,带着鼓励跟诱惑。
 于是他上前一步,无声地、用力地牵住了彼此的手,十指紧扣,像永远分不开一样的用力。
 寒风呼啸的夜里,他比我要高的体温像烙铁一样从手心手梢传过来,那一小块皮肤像要烧着似的,滚烫得让人心悸。`},
-  {emoji:'🌶️', name:'重庆・火锅', story:``},
-  {emoji:'🐫', name:'新疆・艾里克湖', story:`派派,
+  {emoji:'🌶️', name:'重庆・火锅', img:'assets/postcards/3.jpeg', story:``},
+  {emoji:'🐫', name:'新疆・艾里克湖', img:'assets/postcards/4.jpeg', story:`派派,
 你有看过晚上九点的落日吗?这次来新疆拍旅游美食综艺,我看到了戈壁沙漠、体验了高空走索（我没忍住尖叫,我真的很怕高）,新疆美食也很好吃,尤其是大盘鸡跟烤羊肉。
 我记得你喜欢看夕阳,因为从落下那刻,你就开始期待它的升起。
 By远
@@ -136,7 +136,7 @@ By远
 十月的天还是这样热,手肘的皮肤、鼓动的心脏炙热地要烧了起来,像此刻的斜阳——燃烧着、沉沉地进了远方的山谷中。
 
 天空从橘黄色逐渐褪成蓝色,没有太阳的天台迅速冷了下来,小派拉起了外套从背后搂住小远,深埋入怀里,像两只在孤寂的秋夜相互依偎取暖的小兽。`},
-  {emoji:'🌴', name:'海南（三亚）・天涯海角', story:`派派,
+  {emoji:'🌴', name:'海南（三亚）・天涯海角', img:'assets/postcards/5.jpeg', story:`派派,
 我又到三亚了,我读书的地方,
 离我们相遇的海花岛也不过短短300公里。
 
@@ -151,7 +151,7 @@ By远
 小远说过他的家乡在中国西南方,离海是很远的,在三亚读完大学后就去了上海做练习生,很少能有机会去看看海。
 
 "我其实很喜欢海,也喜欢海风。大学…在考虑要不要做练习生那段时间,经常就散步到海边去,想象如果我有一艘小船,我应该按航海图上的规划路线航行吗?最后我决定把航海图扔进海里,让我的心掌舵——"他指了指自己的心口处,"希望派派也可以用自己的心掌舵。"`},
-  {emoji:'🍁', name:'南京・百家湖摩天轮', story:`派派,
+  {emoji:'🍁', name:'南京・百家湖摩天轮', img:'assets/postcards/6.jpeg', story:`派派,
 我今天来了你上次待的地方。
 你来我的南京演唱会,但你不能入场。我们一起去坐摩天轮,但你的照片里不能有我。
 当我在场馆里享受舞台时,你自己在摩天轮上一圈一圈地坐着,是什么心情呢?
@@ -172,7 +172,7 @@ By远
 ——尽管在分别的年岁里,自己对他的思念不减反增地滋长着。
 
 小派实在不懂,他如此从容地来了又走、走了又来,为什么、凭什么留自己一个人在风里?`},
-  {emoji:'🎡', name:'长沙・橘子洲头', story:`Dear 派派,
+  {emoji:'🎡', name:'长沙・橘子洲头', img:'assets/postcards/7.jpeg', story:`派派,
 我来长沙参加音乐综艺节目,合作制的舞台竞赛,我好喜欢我们团的每个人,一起做音乐的日子真的很快乐。
 
 然后我就想到了我们的以前,在练舞室待到最后,十一个人一起磨一首歌。不是每个人都能帮到忙,但就想待在一起,笑闹不断,从不觉得孤单。
@@ -181,8 +181,8 @@ By远
 
 ……我想念过去,一回头你就在身边的日子。
 By远`},
-  {emoji:'🐼', name:'成都・熊猫', story:``},
-  {emoji:'🏝️', name:'厦门・鼓浪屿', story:`派派,
+  {emoji:'🐼', name:'成都・熊猫', img:'assets/postcards/8.jpeg', story:``},
+  {emoji:'🏝️', name:'厦门・鼓浪屿', img:'assets/postcards/9.png', story:`派派,
 我在鼓浪屿听到一个故事,给我很深的感触。
 文学大家林语堂先生当年认识妻子,因家境悬殊而不被认可,直至两人成婚,他在征得妻子同意后,烧毁了婚书。你猜猜为什么?
 因为林语堂先生相信,他与妻子这辈子用不到婚书——婚书只在离婚时方用到,而他们永远不会走向那条路。
@@ -192,8 +192,8 @@ By远`},
 My wife, my Husband and my love.
 
 By远`},
-  {emoji:'🌸', name:'杭州・西湖', story:``},
-  {emoji:'🎆', name:'上海・迪士尼', story:``},
+  {emoji:'🌸', name:'杭州・西湖', img:'assets/postcards/10.jpeg', story:``},
+  {emoji:'🎆', name:'上海・迪士尼', img:'assets/postcards/11.jpeg', story:``},
 ];
 
 // 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
@@ -1008,7 +1008,7 @@ function openAlbum(type){
       const has = STATE.postcards.includes(i);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      const photoInner = has ? item.emoji : '？';
+      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? item.emoji : '？');
       const caption = has ? item.name : '';
       div.innerHTML = `
         <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
@@ -2645,8 +2645,11 @@ function renderModal(step){
     } else {
       bodyHtml = `<p>收集到一张来自远方的明信片。</p>`;
     }
+    const photoHtml = item.img
+      ? `<div class="ending-illustration"><img src="${item.img}" alt="" style="width:100%;display:block;"></div>`
+      : `<div class="modal-emoji">${item.emoji}</div>`;
     card.innerHTML = `
-      <div class="modal-emoji">${item.emoji}</div>
+      ${photoHtml}
       <h3>${headingPrefix}${item.name}</h3>
       ${bodyHtml}
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
