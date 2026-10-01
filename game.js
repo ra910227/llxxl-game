@@ -435,7 +435,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, moonTutorialSeen:false, butterflyTutorialSeen:false, sunTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -1085,10 +1085,20 @@ function openBoard(levelNum){
   showScreen('screen-board');
   renderBoard();
 
+  const introQueue = [];
   if(!STATE.levelTutorialSeen){
     STATE.levelTutorialSeen = true;
+    introQueue.push({type:'tutorial-level'});
+  }
+  NEW_SKILL_TUTORIALS.forEach(t=>{
+    if(levelNum>=t.level && !STATE[t.flag]){
+      STATE[t.flag] = true;
+      introQueue.push({type:'tutorial-skill', skill:t});
+    }
+  });
+  if(introQueue.length){
     saveState();
-    showModalQueue([{type:'tutorial-level'}], 'screen-board');
+    showModalQueue(introQueue, 'screen-board');
   }
 }
 
@@ -1267,6 +1277,16 @@ function escapeHtml(s){
 
 const MOON_WEIGHT = 0.5;       // 60关前:月亮出现权重只有其他图案的一半,避免炸弹太频繁让关卡变得太轻松
 const MOON_BOOST_WEIGHT = 1.2; // 60关后:月亮出现权重提高,帮助玩家更容易凑出特殊清版效果
+
+// 新技能第一次登场时跳一次性教学弹窗,进关卡时检查(见 openBoard),看过一次就存进 STATE 不再跳
+const NEW_SKILL_TUTORIALS = [
+  { level:10, flag:'moonTutorialSeen', icon:'🌙', title:'新技能:月亮炸弹',
+    lines:['「月亮」图案连成3个以上,会以中心炸开周围3x3区域!','冰冻格也会一并解除喔。'] },
+  { level:40, flag:'butterflyTutorialSeen', icon:'🦋', title:'新技能:私奔蝴蝶',
+    lines:['「蝴蝶」图案4连以上,会清空整排或整列!'] },
+  { level:60, flag:'sunTutorialSeen', icon:'☀️', title:'新技能:早安太阳',
+    lines:['「太阳」图案4连以上,会以中心十字型清空一整排+一整列!'] },
+];
 
 // 蝴蝶整排特效40关解锁(见 resolveCascade),但出现权重要到60关才跟着提高(40-59关维持基准权重1,
 // 这段只是解锁清版能力,不额外加码出现机率);太阳十字特效60关解锁,权重也是60关才开始提高
@@ -2525,6 +2545,15 @@ function renderModal(step){
         <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>步数用完前要达到目标分数才算过关。</div></div>
       </div>
       <button class="modal-btn" id="modal-next">开始挑战</button>`;
+  } else if(step.type==='tutorial-skill'){
+    const skill = step.skill;
+    card.innerHTML = `
+      <div class="modal-emoji">${skill.icon}</div>
+      <h3>${skill.title}</h3>
+      <div class="tutorial-list">
+        ${skill.lines.map(l=>`<div class="tutorial-row"><span class="tutorial-icon">${skill.icon}</span><div>${l}</div></div>`).join('')}
+      </div>
+      <button class="modal-btn" id="modal-next">知道了</button>`;
   } else if(step.type==='backup'){
     const code = encodeSaveCode(STATE);
     card.innerHTML = `
