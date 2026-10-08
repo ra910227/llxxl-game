@@ -1,5 +1,5 @@
 /* 離線快取:第一次打開後把遊戲需要的檔案都存起來,之後沒網路也能開 */
-const CACHE_NAME = 'llxxl-cache-v39';
+const CACHE_NAME = 'llxxl-cache-v41';
 const ASSETS = [
   './',
   './index.html',
@@ -11,13 +11,13 @@ const ASSETS = [
   './assets/icons/icon-512.png',
   './assets/icons/icon-512-maskable.png',
   './assets/ui/diary_card_bg.jpg',
-  './assets/ui/home_bg.jpg',
-  './assets/ui/icon_diary.png',
+  './assets/ui/home_bg.webp',
+  './assets/ui/icon_diary.webp',
   './assets/ui/icon_endless.gif',
-  './assets/ui/icon_gift.png',
-  './assets/ui/icon_postcard.png',
-  './assets/ui/icon_status_avatar.png',
-  './assets/ui/icon_piggy.png',
+  './assets/ui/icon_gift.webp',
+  './assets/ui/icon_postcard.webp',
+  './assets/ui/icon_status_avatar.webp',
+  './assets/ui/icon_piggy.webp',
   './assets/ui/coin.webp',
   './assets/ui/coin2.webp',
   './assets/ui/milestone_card_bg.jpg',
@@ -62,18 +62,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 其他静态资源(图片、带 ?v= 的 js/css):缓存优先,没有才下载。以前每次打开都会在背景把所有图片重新下载一遍,
+  // 网速慢时会跟首页要看的图抢频宽。图片内容有更新时,记得把上面的 CACHE_NAME 版本号加一。
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((res) => {
-          if (res && res.status === 200) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
+      if (cached) return cached;
+      return fetch(event.request).then((res) => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return res;
+      });
     })
   );
 });

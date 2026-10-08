@@ -68,7 +68,7 @@ const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成�
 
 /* ---------------- 收藏册占位内容 ---------------- */
 const POSTCARD_ITEMS = [
-  {emoji:'🏙️', name:'天津・天津之眼', img:'assets/postcards/0.jpeg', story:`派派,
+  {emoji:'🏙️', name:'天津・天津之眼', img:'assets/postcards/0.webp', story:`派派,
 恭喜你上大学了!可惜你开学这天刚好冲到我天津的演唱会,但我看到你传给我的入学照,很帅气呢。
 今天开始你也是成人了,祝福你学业顺利,尽情体验精彩丰富的大学生活。
 我记忆中那个中文不好要我照顾会撒娇会恶作剧的坏小孩,感觉一下子就长大了……但我偶尔也希望你不要长大得太快,做一个小孩其实没什么不好的。
@@ -93,7 +93,7 @@ const POSTCARD_ITEMS = [
 药片粘在舌头上,苦得他把眼泪都呛出来。
 是真的很苦——但这可能也是长大的一环,突如其来、毫无心理防备地,长大了。
 而他只能被动接受了它,即使那时他已经不怎么想要长大了。`},
-  {emoji:'🍺', name:'青岛・啤酒博物馆', img:'assets/postcards/1.jpeg', story:`派派,
+  {emoji:'🍺', name:'青岛・啤酒博物馆', img:'assets/postcards/1.webp', story:`派派,
 我代言了青岛啤酒,这真是神奇的合作,感谢粉丝支持、感谢赞助商邀约。
 
 我寄了赞助商给我的三箱啤酒给你,记得在家慢慢喝（虽然你喝不醉但在外还是要小心）。
@@ -107,7 +107,7 @@ const POSTCARD_ITEMS = [
 吻了他。
 
 他并没有比他高很多,还偷偷地垫了脚,一个没站稳,不幸地连带着小远也踉跄了,好在他在吻和橘子汽水之间选择了牺牲后者。`},
-  {emoji:'🌆', name:'广州・月亮桥', img:'assets/postcards/2.jpeg', story:`派派,
+  {emoji:'🌆', name:'广州・月亮桥', img:'assets/postcards/2.webp', story:`派派,
 我们中秋节一起来广州那次你还记得吗?
 那天云雾遮住了夜空,中秋等不来月圆,你很难过。
 你说我们两个的CP名就叫『花好月圆』,两人出游怎么却连个月圆都看不到呢。
@@ -123,13 +123,13 @@ const POSTCARD_ITEMS = [
 他戴了深色的口罩,夜很黑,我却能看见他的眼眸——是笑着的,带着鼓励跟诱惑。
 于是他上前一步,无声地、用力地牵住了彼此的手,十指紧扣,像永远分不开一样的用力。
 寒风呼啸的夜里,他比我要高的体温像烙铁一样从手心手梢传过来,那一小块皮肤像要烧着似的,滚烫得让人心悸。`},
-  {emoji:'🌶️', name:'重庆・火锅', img:'assets/postcards/3.jpeg', story:`派派,
+  {emoji:'🌶️', name:'重庆・火锅', img:'assets/postcards/3.webp', story:`派派,
 记得我以前说过，我喜欢一个人吃饭，直到遇到你们。
 我以前觉得吃饭是社交、是消耗能量的事，直到跟你们组了男团。来自世界各国的大家相处却像家人一样自在，我滑手机看动画、你们打打闹闹⋯⋯想起来，每次吃火锅都很热闹呢。
 团解散后，我好久没有一个人吃火锅了。今天一个恍神，点超过一个人的量，边吃边想到你，如果你也在就好了。
 
 远`},
-  {emoji:'🐫', name:'新疆・艾里克湖', img:'assets/postcards/4.jpeg', story:`派派,
+  {emoji:'🐫', name:'新疆・艾里克湖', img:'assets/postcards/4.webp', story:`派派,
 你有看过晚上九点的落日吗?这次来新疆拍旅游美食综艺,我看到了戈壁沙漠、体验了高空走索（我没忍住尖叫,我真的很怕高）,新疆美食也很好吃,尤其是大盘鸡跟烤羊肉。
 我记得你喜欢看夕阳,因为从落下那刻,你就开始期待它的升起。
 远
@@ -141,7 +141,7 @@ const POSTCARD_ITEMS = [
 十月的天还是这样热,手肘的皮肤、鼓动的心脏炙热地要烧了起来,像此刻的斜阳——燃烧着、沉沉地进了远方的山谷中。
 
 天空从橘黄色逐渐褪成蓝色,没有太阳的天台迅速冷了下来,小派拉起了外套从背后搂住小远,深埋入怀里,像两只在孤寂的秋夜相互依偎取暖的小兽。`},
-  {emoji:'🌴', name:'海南（三亚）・天涯海角', img:'assets/postcards/5.jpeg', story:`派派,
+  {emoji:'🌴', name:'海南（三亚）・天涯海角', img:'assets/postcards/5.webp', story:`派派,
 我又到三亚了,我读书的地方,
 离我们相遇的海花岛也不过短短300公里。
 
@@ -156,7 +156,7 @@ const POSTCARD_ITEMS = [
 小远说过他的家乡在中国西南方,离海是很远的,在三亚读完大学后就去了上海做练习生,很少能有机会去看看海。
 
 "我其实很喜欢海,也喜欢海风。大学…在考虑要不要做练习生那段时间,经常就散步到海边去,想象如果我有一艘小船,我应该按航海图上的规划路线航行吗?最后我决定把航海图扔进海里,让我的心掌舵——"他指了指自己的心口处,"希望派派也可以用自己的心掌舵。"`},
-  {emoji:'🍁', name:'南京・百家湖摩天轮', img:'assets/postcards/6.jpeg', story:`派派,
+  {emoji:'🍁', name:'南京・百家湖摩天轮', img:'assets/postcards/6.webp', story:`派派,
 我今天来了你上次待的地方。
 你来我的南京演唱会,但你不能入场。我们一起去坐摩天轮,但你的照片里不能有我。
 当我在场馆里享受舞台时,你自己在摩天轮上一圈一圈地坐着,是什么心情呢?
@@ -177,7 +177,7 @@ const POSTCARD_ITEMS = [
 ——尽管在分别的年岁里,自己对他的思念不减反增地滋长着。
 
 小派实在不懂,他如此从容地来了又走、走了又来,为什么、凭什么留自己一个人在风里?`},
-  {emoji:'🎡', name:'长沙・橘子洲头', img:'assets/postcards/7.jpeg', story:`派派,
+  {emoji:'🎡', name:'长沙・橘子洲头', img:'assets/postcards/7.webp', story:`派派,
 我来长沙参加音乐综艺节目,合作制的舞台竞赛,我好喜欢我们团的每个人,一起做音乐的日子真的很快乐。
 
 然后我就想到了我们的以前,在练舞室待到最后,十一个人一起磨一首歌。不是每个人都能帮到忙,但就想待在一起,笑闹不断,从不觉得孤单。
@@ -186,7 +186,7 @@ const POSTCARD_ITEMS = [
 
 ……我想念过去,一回头你就在身边的日子。
 远`},
-  {emoji:'🐼', name:'成都・熊猫', img:'assets/postcards/8.jpeg', story:`派派,
+  {emoji:'🐼', name:'成都・熊猫', img:'assets/postcards/8.webp', story:`派派,
 好久没写明信片给你，太久没动笔有太多想说的，但忽然之间又不知道要说什么。我不知道为什么会走到这一步……我今天来了你一直想来的成都，抱了你一直想抱的熊猫，录了一首歌，希望你能听见。
 “应该继续假装乐观，还是不再伪装
 偶尔夜晚，还是有思念一个人的习惯
@@ -196,7 +196,7 @@ const POSTCARD_ITEMS = [
 ⋯⋯我可能没有想像中勇敢，能逞强忘掉曾经有你陪伴。
 
 远`},
-  {emoji:'🏝️', name:'厦门・鼓浪屿', img:'assets/postcards/9.png', story:`派派,
+  {emoji:'🏝️', name:'厦门・鼓浪屿', img:'assets/postcards/9.webp', story:`派派,
 我在鼓浪屿听到一个故事,感触很深。
 文学大家林语堂先生与妻子相识之初,因两家家境悬殊,婚事一度不被认可。直到两人成婚,他征得妻子同意后,把婚书烧了。你猜,这是为什么?
 因为林先生相信,他们这辈子都用不上婚书——婚书只有在离婚时才用得着,而他们永远不会走到那一步。
@@ -205,7 +205,7 @@ const POSTCARD_ITEMS = [
 My wife, my husband, and my love.
 
 远`},
-  {emoji:'🌸', name:'杭州・西湖', img:'assets/postcards/10.jpeg', story:`派派,
+  {emoji:'🌸', name:'杭州・西湖', img:'assets/postcards/10.webp', story:`派派,
 这次终于实现了「一起来西湖玩」的约定。
 从成团后在杭州举办的第一场全员线下见面会,到解散前在苏州的演唱会,我们始终没能好好玩一趟苏杭。你说你想来看看白娘子撑伞走过的断桥,还说如果你是许仙,一定不会被爱人现出蛇身吓到,一定不会害心爱的人被镇压百年。
 
@@ -213,7 +213,7 @@ My wife, my husband, and my love.
 你就是这样勇敢、炙热、真诚地爱著一个人，而我很幸运，是那个被你深爱的人。
 
 远`},
-  {emoji:'🎆', name:'上海・迪士尼', img:'assets/postcards/11.jpeg', story:`派派,
+  {emoji:'🎆', name:'上海・迪士尼', img:'assets/postcards/11.webp', story:`派派,
 今天是不是你梦想中的画面?我有好好记得你跟我说过的每一个梦想,我们还有时间,慢慢一起实现。
 我们一起来了迪士尼,所有童话故事开始与结束的地方。你说小时候你真的相信,只要王子吻了公主,他们从此就会过著幸福快乐的日子,happily ever after。后来才发现,现实里的恋爱是粗茶淡饭,是你跑我追,是在很多小小的失望里,抓住大大的满足。
 我们一起看了最绚烂的烟火,然后在烟火下接吻。
@@ -224,10 +224,10 @@ My wife, my husband, and my love.
 // 两人出游的合照:跟上面的出差明信片一起收在「明信片册」里,但触发关卡固定、有照片+故事,格式跟纪念品卡片相同
 const COUPLE_PHOTO_LEVELS = [12, 23, 41, 57, 71];
 const COUPLE_PHOTO_ITEMS = {
-  12:{name:`男团毕业抓拍照片`, img:`assets/gifts/12.jpg`, story:`最后的告别舞台，小远忍不住在台上哭了。小派一直以为，如果分别来临时第一个会哭的肯定是情绪明显的自己，没想到却是他心目中最坚强的远哥。`},
-  23:{name:`男团访谈截图照片`, img:`assets/gifts/23.jpg`, story:`偷偷摸摸地谈恋爱，小远虽然因为男团道德很小心，但有时仍会情不自禁地做出亲密动作。不像小派身为团内最小的外国籍成员，怎么撒娇都没有人奇怪。而那几次稀少的情不自禁，总是让小派甜蜜许久。
+  12:{name:`男团毕业抓拍照片`, img:`assets/gifts/12.webp`, story:`最后的告别舞台，小远忍不住在台上哭了。小派一直以为，如果分别来临时第一个会哭的肯定是情绪明显的自己，没想到却是他心目中最坚强的远哥。`},
+  23:{name:`男团访谈截图照片`, img:`assets/gifts/23.webp`, story:`偷偷摸摸地谈恋爱，小远虽然因为男团道德很小心，但有时仍会情不自禁地做出亲密动作。不像小派身为团内最小的外国籍成员，怎么撒娇都没有人奇怪。而那几次稀少的情不自禁，总是让小派甜蜜许久。
 这次访谈是挑战互相对视看谁先笑，结果小远笑出来同时忍不住摸了摸小派的鼻头，一扫而过的碰触像春风轻捎过心尖，笑容映在小派的眼眸闪闪发亮。`},
-  41:{name:`环球影城合照`, img:`assets/gifts/41.jpg`, story:`小派盯着天气预报找到了一个凉快的晴天,预订了两张环球影城门票,又网购了两套巫师袍。
+  41:{name:`环球影城合照`, img:`assets/gifts/41.webp`, story:`小派盯着天气预报找到了一个凉快的晴天,预订了两张环球影城门票,又网购了两套巫师袍。
 小派当然是不管前方如何都应勇向前的格兰芬多,小远则是明知可能无果却依旧奋不顾身的赫奇帕奇!
 小远口嫌体正直,穿上衣服拿起魔法棒玩的不亦乐乎,一会帕绰糯一会啃大瓜,小派拿着胶卷相机给两人拍了好多照,到了最标致的地球前,小派请求旁边的一位姐姐帮忙,给二人拍了张合照。
 近点,再近点,姐姐指挥到。
@@ -235,7 +235,7 @@ const COUPLE_PHOTO_ITEMS = {
 不愧是英勇的格兰芬多,但下一秒,拿剑的勇士便涨红了脸,因为那位带着黄色围巾的巫师悄悄垫脚,在他耳边低声道:"我以为刚刚我们应该接吻的。"
 
 近些,再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
-  57:{name:`泰国行合照`, img:`assets/gifts/57.jpg`, story:`那是小远第二次跟小派去泰国见家长,还记得第一次见到玫瑰女士,玫瑰女士直接推开小派拥抱小远,两个人是不用明说也能让家人感知到爱的亲密关系。
+  57:{name:`泰国行合照`, img:`assets/gifts/57.webp`, story:`那是小远第二次跟小派去泰国见家长,还记得第一次见到玫瑰女士,玫瑰女士直接推开小派拥抱小远,两个人是不用明说也能让家人感知到爱的亲密关系。
 浪漫少女小派不知道从哪里知道了在摩天轮最高点接吻就能永远在一起的都市传说,拉着小远再访了他们男团解散前去过的摩天轮。`},
   71:{name:`Pocky对小派的意义`, img:`assets/gifts/71.gif`, story:`小派本来没那么爱吃Pocky，他平均爱着所有甜点零食。但因为有一次小远要帮他戒甜食，在他想用到一半的时候，突然凑了过来，咬走了一半的Pocky。
 如此近距离地看着小远的美丽脸庞，呼吸吐息都显得暧昧起来——小远的厚唇湿润着，带着水蜜桃唇膏的甜香，轻咬着那一半巧克力。小远的睫毛不密但微翘着仿若幼鸟的初羽，轻柔而诱人。小派最终怎么吃掉那包Pocky，他已经不记得了，只记得自己如雷般的心跳声还有那抹唇色。`},
@@ -245,39 +245,39 @@ const COUPLE_PHOTO_ITEMS = {
 const MEMENTO_LEVELS = [0, 5, 7, 15, 17, 21, 25, 27, 31, 35, 37, 45, 47, 55, 65, 67, 75];
 
 const MEMENTO_ITEMS = {
-  0:{name:`家的钥匙`, location:``, img:`assets/gifts/0.png`, story:`「希望哥哥有空可以来找我玩!」
+  0:{name:`家的钥匙`, location:``, img:`assets/gifts/0.webp`, story:`「希望哥哥有空可以来找我玩!」
 全团11个人,小派新房子的钥匙只送给了小远。没收到钥匙的其他人起哄着,小派笑弯了眼,小远红着脸抿嘴收下了。`},
-  5:{name:`故宫小香囊`, location:`书包上的`, img:`assets/gifts/5.png`, story:`小派上学时,同学会问书包上的香囊是去那里买的,小派总是笑着说是哥哥送的。
+  5:{name:`故宫小香囊`, location:`书包上的`, img:`assets/gifts/5.webp`, story:`小派上学时,同学会问书包上的香囊是去那里买的,小派总是笑着说是哥哥送的。
 这是他们第一次一起去故宫玩,一起站在中轴线,一起共享整个世界的纪念。`},
-  7:{name:`蝴蝶结卫衣`, location:`床上的`, img:`assets/gifts/7.png`, story:`这是件特别有纪念意义的衣服。正常来说小远的衣服不喜欢被乱弄,在小派的不屈不挠及小远的放任下,小派在彩排时在卫衣的领口处绑了一个非常适合小远的蝴蝶结,甚至在活动结束后也不允许小远拆掉。
+  7:{name:`蝴蝶结卫衣`, location:`床上的`, img:`assets/gifts/7.webp`, story:`这是件特别有纪念意义的衣服。正常来说小远的衣服不喜欢被乱弄,在小派的不屈不挠及小远的放任下,小派在彩排时在卫衣的领口处绑了一个非常适合小远的蝴蝶结,甚至在活动结束后也不允许小远拆掉。
 某次小远走得急,把衣服落家里了。小派想小远时会穿着对镜自拍,用涂鸦笔在图片上大大圈出蝴蝶结并附以对自己创作的八百字赞美小作文打包发给小远。`},
-  15:{name:`宜家粉绿色情侣对杯`, location:`厨房台面的`, img:`assets/gifts/15.png`, story:`厨房的杯架放着两只粉色、绿色马克杯。粉色马克杯,是为了特别的人准备的,而另一只「最好看的绿色马克杯」通常都在小派手上或书桌上,装着好喝的咖啡。`},
-  17:{name:`绿色围巾`, location:`立式衣架上的`, img:`assets/gifts/17.jpg`, story:`派派暗搓搓晒着爱意,本来说最爱黑白色性冷淡风的他不知道从何时开始喜欢了绿色,甚至变成他口中「最伟大的颜色」。`},
-  21:{name:`远的麦克风`, location:``, img:`assets/gifts/21.png`, story:`小远一直坚持用灵敏度极高的电容麦克风，就连唱跳也要手持电容麦克风，横拿麦克风这已经成为他的招牌动作（小派觉得性感极了）。但小远的麦克风在团期间一直没有订制，粉丝想要订制送他、小派也想……`},
-  25:{name:`狗狗玩偶`, location:`床头的`, img:`assets/gifts/25.png`, story:`一大早小派按下最后一个闹钟,锤打了床头玩偶七下。`},
-  27:{name:`玻璃罩蝴蝶`, location:`客厅书柜上的`, img:`assets/gifts/27.png`, story:`一个周末,派预定了一家手工店,出门做手工,历经九九八十一难,终于做出【玻璃罩蝴蝶】,骄傲拍图并连发18条朋友圈。粉丝问他为什么喜欢蝴蝶,他说:"我喜欢🦋的原因,就是蝴蝶很自由……我觉得它非常的浪漫🌹"
+  15:{name:`宜家粉绿色情侣对杯`, location:`厨房台面的`, img:`assets/gifts/15.webp`, story:`厨房的杯架放着两只粉色、绿色马克杯。粉色马克杯,是为了特别的人准备的,而另一只「最好看的绿色马克杯」通常都在小派手上或书桌上,装着好喝的咖啡。`},
+  17:{name:`绿色围巾`, location:`立式衣架上的`, img:`assets/gifts/17.webp`, story:`派派暗搓搓晒着爱意,本来说最爱黑白色性冷淡风的他不知道从何时开始喜欢了绿色,甚至变成他口中「最伟大的颜色」。`},
+  21:{name:`远的麦克风`, location:``, img:`assets/gifts/21.webp`, story:`小远一直坚持用灵敏度极高的电容麦克风，就连唱跳也要手持电容麦克风，横拿麦克风这已经成为他的招牌动作（小派觉得性感极了）。但小远的麦克风在团期间一直没有订制，粉丝想要订制送他、小派也想……`},
+  25:{name:`狗狗玩偶`, location:`床头的`, img:`assets/gifts/25.webp`, story:`一大早小派按下最后一个闹钟,锤打了床头玩偶七下。`},
+  27:{name:`玻璃罩蝴蝶`, location:`客厅书柜上的`, img:`assets/gifts/27.webp`, story:`一个周末,派预定了一家手工店,出门做手工,历经九九八十一难,终于做出【玻璃罩蝴蝶】,骄傲拍图并连发18条朋友圈。粉丝问他为什么喜欢蝴蝶,他说:"我喜欢🦋的原因,就是蝴蝶很自由……我觉得它非常的浪漫🌹"
 但其实是因为小远的明星符号就是蓝色蝴蝶,可惜不能说。`},
-  31:{name:`星星抱枕`, location:``, img:`assets/gifts/31.png`, story:`自从小派的粉丝名叫「派大星」后，星星就成为派派第二喜欢的元素了！（第一是蝴蝶！他的小远哥！）他以前喜欢海洋，喜欢海的神秘、海的自由，但来到中国后，他跟粉丝有了连结、对这片土地有了依恋，更在这里找到了归属。
+  31:{name:`星星抱枕`, location:``, img:`assets/gifts/31.webp`, story:`自从小派的粉丝名叫「派大星」后，星星就成为派派第二喜欢的元素了！（第一是蝴蝶！他的小远哥！）他以前喜欢海洋，喜欢海的神秘、海的自由，但来到中国后，他跟粉丝有了连结、对这片土地有了依恋，更在这里找到了归属。
 比起海洋王子，小派觉得自己更像是「来自星星的小王子」，在地球的旅行让他懂了爱与被爱，找到属于自己的玫瑰花。`},
-  35:{name:`锁头项链、钥匙项链`, location:`情侣配饰`, img:`assets/gifts/35.png`, story:`自从异地恋生活,小派每次看到小远跟新人的合照都会小小的醋涨了一下。小远知道后,给两人买了情侣配饰【锁、钥匙】,即使小远认识很多新人,那把锁也只有小派可以开。`},
-  37:{name:`黑框眼镜`, location:`客厅桌上的两副`, img:`assets/gifts/37.png`, story:`小远有高度近视,但是不爱带框架眼镜,他总感觉他戴上眼镜看起来很呆,但隐形又很伤眼,有时休息不好连轴转,一戴上隐形头就晕得不得了。
+  35:{name:`锁头项链、钥匙项链`, location:`情侣配饰`, img:`assets/gifts/35.webp`, story:`自从异地恋生活,小派每次看到小远跟新人的合照都会小小的醋涨了一下。小远知道后,给两人买了情侣配饰【锁、钥匙】,即使小远认识很多新人,那把锁也只有小派可以开。`},
+  37:{name:`黑框眼镜`, location:`客厅桌上的两副`, img:`assets/gifts/37.webp`, story:`小远有高度近视,但是不爱带框架眼镜,他总感觉他戴上眼镜看起来很呆,但隐形又很伤眼,有时休息不好连轴转,一戴上隐形头就晕得不得了。
 "在家里可以不用戴眼镜",小派帮他滴完眼药水说,"框架压鼻梁,隐形伤眼睛,你把你自己全部交给我就好。"
 于是小远被小派牵着洗漱吃饭上厕所,两个人靠在沙发上天南海北的聊,聊着聊着小远依偎着身边的温暖缓缓睡去。等他醒来,睡眼朦胧看见小派在他面前笑,不由自主伸手去勾眼镜,被小派一下子按住。
 "干嘛?"小远不满意地嘟囔,只模糊看到小派的脸慢慢凑近。
 "你别凑这么近,我看不清…"说着小远便要推开小派,没料到被人反手捉住压在沙发上,含着雾气的话喷得睫毛重重下垂,随着湿漉漉的吻压下来——
 "你不用看清我,我们接吻吧。"`},
-  45:{name:`辣子鸡`, location:`餐桌上的（只有小远小派一起在厨房的画面才出现）`, img:`assets/gifts/45.png`, story:`晚上放学回到家,小远竟然在家,两个人亲密了一番后小派就被远叫去写作业了。小派吭哧吭哧写完作业,发现远做了小派最爱吃的辣子鸡。
+  45:{name:`辣子鸡`, location:`餐桌上的（只有小远小派一起在厨房的画面才出现）`, img:`assets/gifts/45.webp`, story:`晚上放学回到家,小远竟然在家,两个人亲密了一番后小派就被远叫去写作业了。小派吭哧吭哧写完作业,发现远做了小派最爱吃的辣子鸡。
 男团刚成立的时候,小派刚从泰国来到中国,对中国料理说不上多热爱,直到小远深夜做了【辣子鸡】给他吃,从此这就是他最爱的料理了。他永远都会记得那个夜晚,整个团小远只叫他一个人来吃,他第一次感受到小远的温柔与关爱,他是他最特别的小孩。`},
-  47:{name:`便条纸`, location:`冰箱上的`, img:`assets/gifts/47.jpg`, story:`「派,
+  47:{name:`便条纸`, location:`冰箱上的`, img:`assets/gifts/47.webp`, story:`「派,
 我给你放了你爱吃的菜,记得吃。
 你下次想吃什么再跟我说。」
 小远来北京工作总是来去匆匆,但不管再忙都会给派派煮些拿手菜放在冰箱。派派只要看到冰箱贴就知道又有好吃的。`},
-  55:{name:`垂耳兔粉绿帽`, location:``, img:`assets/gifts/55.jpg`, story:`这个帽子是小远个人巡演的服装,每当他想到小派无法参加自己的演出就感到难受,但只要他还是偶像歌手,他们就不能公开。
+  55:{name:`垂耳兔粉绿帽`, location:``, img:`assets/gifts/55.webp`, story:`这个帽子是小远个人巡演的服装,每当他想到小派无法参加自己的演出就感到难受,但只要他还是偶像歌手,他们就不能公开。
 因为这样,小远喜欢在演出里加入一些只有两个人才看得懂的符号,就像这顶垂耳兔粉绿帽——小派的应援色跟动物塑就是粉色的兔子。`},
-  65:{name:`小王子氛围灯`, location:`二楼窗台矮柜上的`, img:`assets/gifts/65.png`, story:`小派跟小远说过小王子的故事,小王子为了守着他的玫瑰,回到了小小的星球上。
+  65:{name:`小王子氛围灯`, location:`二楼窗台矮柜上的`, img:`assets/gifts/65.webp`, story:`小派跟小远说过小王子的故事,小王子为了守着他的玫瑰,回到了小小的星球上。
 「当你拥有属于你的那一朵玫瑰时,这世界上万千玫瑰对你都不重要了。」
 看到这个礼物,小派气消了大半,他知道即使相隔两地,他们永远属于彼此。`},
-  67:{name:`专辑《闪闪》`, location:`客厅桌上的`, img:`assets/gifts/67.jpg`, story:`因为小远在歌手的路上越走越远,小派除了演员外对于音乐制作也有天赋,俩人在音乐上有了更多合作。派派写曲子、英文歌词,小远再帮小派填成中文、帮录和声。
+  67:{name:`专辑《闪闪》`, location:`客厅桌上的`, img:`assets/gifts/67.webp`, story:`因为小远在歌手的路上越走越远,小派除了演员外对于音乐制作也有天赋,俩人在音乐上有了更多合作。派派写曲子、英文歌词,小远再帮小派填成中文、帮录和声。
 渐渐地,在两人的歌曲里,常可以看到一个制作人署名 HY,这是两个人的暗号——HHYY,花好月圆似当年。`},
   75:{name:`相框及干燥花手链`, location:`一楼窗前矮柜上的邀请函、电影票相框跟干燥花`, story:`派派来中国的第一部电影上映,首映礼小派也给小远寄了邀请函,可小远不巧正好有音综节目的录制,实在去不了,小派心里不高兴表面却也强撑着。
 等路演结束了,小派回到出租屋发现小远悄悄回家给了他一个惊喜,俩人装备齐全遮的严严实实的去看了电影。
@@ -287,9 +287,13 @@ const MEMENTO_ITEMS = {
 
 // 某些日记篇章看完后,接着跳一张图(这里是小派在朋友圈发的「morning sunshine」)
 const DIARY_AFTER_IMAGE = {
-  39: { img:'assets/story/lets_run_away_ig.png' },
-  59: { img:'assets/story/morning_sunshine_ig.png' },
+  39: { img:'assets/story/lets_run_away_ig.webp', thumb:'assets/story/lets_run_away_thumb.webp', name:'朋友圈:Let’s run away' },
+  59: { img:'assets/story/morning_sunshine_ig.webp', thumb:'assets/story/morning_sunshine_thumb.webp', name:'朋友圈:morning sunshine' },
 };
+// 这两张朋友圈贴文也收进明信片册(日记解锁后才有),缩图是对准贴文中间那张图
+function collectedStoryPosts(){
+  return Object.keys(DIARY_AFTER_IMAGE).map(Number).filter(level=> STATE.diaryUnlocked.includes(level));
+}
 
 /* ---------------- 恋爱日记占位文案 ---------------- */
 const DIARY_TEXT = {
@@ -467,7 +471,7 @@ function generateLevelConfig(n){
    存档
    ============================================================ */
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, moonTutorialSeen:false, butterflyTutorialSeen:false, sunTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, storyPostsSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, moonTutorialSeen:false, butterflyTutorialSeen:false, sunTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -839,7 +843,7 @@ function refreshHome(){
     Math.min(100, STATE.totalCleared/TOTAL_LEVELS*100)+'%';
   document.getElementById('gift-count').hidden = STATE.mementos.length <= STATE.mementosSeen;
   document.getElementById('postcard-count').hidden =
-    (STATE.postcards.length + STATE.couplePhotos.length) <= (STATE.postcardsSeen + STATE.couplePhotosSeen);
+    (STATE.postcards.length + STATE.couplePhotos.length + collectedStoryPosts().length) <= (STATE.postcardsSeen + STATE.couplePhotosSeen + STATE.storyPostsSeen);
 
   const info = xiaoyuanCycleInfo();
   const statusEl = document.getElementById('xiaoyuan-status');
@@ -855,7 +859,7 @@ function refreshHome(){
 }
 
 /* 已收集的纪念品会以整张画布(2048x3200)贴图的形式,出现在娃娃屋里各自的定点位置(跟角色立绘同一套裁切逻辑)。
-   图档命名规则:assets/home_items/{关卡数字}.png,例如 assets/home_items/0.png。
+   图档命名规则:assets/home_items/{关卡数字}.png,例如 assets/home_items/0.webp。
    还没画好的项目直接读不到图就整层隐藏,不会出现破图。 */
 let mementoHomeLayers = null;
 function setupMementoHomeLayers(){
@@ -885,7 +889,7 @@ function updateHomeMementos(info){
       show = show && !info.isHome && (STATE.totalCleared % 5 === 0);
     }
     if(show && !img.src){
-      img.src = `assets/home_items/${level}.png`; // 到这时候才真的载入图片
+      img.src = `assets/home_items/${level}.webp`; // 到这时候才真的载入图片
     }
     img.hidden = !show;
   });
@@ -896,6 +900,11 @@ const AWAY_POSE_ORDER = ['char-desk-read', 'char-sofa-tv', 'char-bed-idle', 'cha
 const HOME_POSE_ORDER = [['char-kitchen-cook','char-sofa-kitchen'], ['char-couple-sofa'], ['char-couple-bed']];
 const ALL_CHAR_IDS = ['char-desk-read','char-sofa-tv','char-bed-idle','char-nap-floor1','char-bed-miss',
   'char-sofa-kitchen','char-kitchen-cook','char-couple-sofa','char-couple-bed'];
+function showCharLayer(id){
+  const el = document.getElementById(id);
+  if(!el.getAttribute('src')) el.src = el.dataset.src; // 立绘图片等真的要显示才载入,首页不一次下载全部场景
+  el.hidden = false;
+}
 function updateHomeCharacters(info){
   ALL_CHAR_IDS.forEach(id => document.getElementById(id).hidden = true);
 
@@ -904,12 +913,12 @@ function updateHomeCharacters(info){
     // 结局后固定厨房;平常每次小远回家换一个场景(厨房→沙发→床上)
     const visit = Math.floor(STATE.totalCleared / HOME_CYCLE);
     const idx = married ? 0 : (((visit - 1) % HOME_POSE_ORDER.length) + HOME_POSE_ORDER.length) % HOME_POSE_ORDER.length;
-    HOME_POSE_ORDER[idx].forEach(id => document.getElementById(id).hidden = false);
+    HOME_POSE_ORDER[idx].forEach(showCharLayer);
   } else if(STATE.mementos.includes(7) && STATE.totalCleared % 5 === 0){
     // 蝴蝶结卫衣出现(见 updateHomeMementos)的时候,小派就是躺在床上想小远
-    document.getElementById('char-bed-miss').hidden = false;
+    showCharLayer('char-bed-miss');
   } else {
-    document.getElementById(AWAY_POSE_ORDER[STATE.totalCleared % AWAY_POSE_ORDER.length]).hidden = false;
+    showCharLayer(AWAY_POSE_ORDER[STATE.totalCleared % AWAY_POSE_ORDER.length]);
   }
 }
 
@@ -939,7 +948,7 @@ function refreshMap(){
   const node0 = document.createElement('button');
   node0.className = 'map-node map-node-diary0' + (STATE.prologueSeen ? '' : ' prologue-highlight');
   node0.title = '恋爱日记 · 楔子';
-  applyIconCrop(node0, 'assets/ui/icon_diary.png', HOTSPOTS.diary, 56, 56);
+  applyIconCrop(node0, 'assets/ui/icon_diary.webp', HOTSPOTS.diary, 56, 56);
   node0.addEventListener('click', ()=>{
     // 第一次进关卡地图时序章会闪烁提示,避免有人没读序章就直接从第1关开始按;点过一次后就不再强调
     if(!STATE.prologueSeen){ STATE.prologueSeen = true; saveState(); }
@@ -972,7 +981,7 @@ function refreshMap(){
       const heart = document.createElement('button');
       heart.className = 'diary-heart-btn';
       heart.title = '重读这篇恋爱日记';
-      applyIconCrop(heart, 'assets/ui/icon_diary.png', HOTSPOTS.diary, 28, 28);
+      applyIconCrop(heart, 'assets/ui/icon_diary.webp', HOTSPOTS.diary, 28, 28);
       heart.addEventListener('click', (e)=>{
         e.stopPropagation();
         const rereadQueue = [{type:'diary', level:n, reread:true}];
@@ -1041,6 +1050,7 @@ function openAlbum(type){
   } else {
     STATE.postcardsSeen = STATE.postcards.length;
     STATE.couplePhotosSeen = STATE.couplePhotos.length;
+    STATE.storyPostsSeen = collectedStoryPosts().length;
     saveState();
     document.getElementById('album-title').textContent = '已收集明信片册';
     POSTCARD_ITEMS.forEach((item,i)=>{
@@ -1071,6 +1081,21 @@ function openAlbum(type){
       if(has){
         div.style.cursor = 'pointer';
         div.addEventListener('click', ()=> showModalQueue([{type:'memento', level, source:'couple', reread:true}], 'screen-home'));
+      }
+      grid.appendChild(div);
+    });
+    // 朋友圈贴文(39/59关日记之后那两张):跟合照一样只显示缩图,点进去看完整贴文
+    Object.keys(DIARY_AFTER_IMAGE).map(Number).forEach(level=>{
+      const item = DIARY_AFTER_IMAGE[level];
+      const has = STATE.diaryUnlocked.includes(level);
+      const div = document.createElement('div');
+      div.className = 'album-item album-item-photo-only ' + (has ? '' : 'locked');
+      const photoInner = has ? `<img src="${item.thumb}" alt="">` : '？';
+      div.innerHTML = `<div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>`;
+      div.title = has ? item.name : '尚未收集';
+      if(has){
+        div.style.cursor = 'pointer';
+        div.addEventListener('click', ()=> showModalQueue([{type:'story-image', img:item.img, reread:true}], 'screen-home'));
       }
       grid.appendChild(div);
     });
