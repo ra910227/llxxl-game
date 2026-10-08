@@ -885,19 +885,25 @@ function updateHomeMementos(info){
   });
 }
 
-/* 首页娃娃屋里的角色立绘:小远在家时厨房两人一起,不在家时小派独自在屋里的不同角落 */
-const AWAY_POSE_ORDER = ['char-desk-read', 'char-sofa-tv', 'char-bed-idle'];
+/* 首页娃娃屋里的角色立绘:小远在家时两人一起(厨房/沙发/床上轮流),不在家时小派独自在屋里的不同角落 */
+const AWAY_POSE_ORDER = ['char-desk-read', 'char-sofa-tv', 'char-bed-idle', 'char-nap-floor1'];
+const HOME_POSE_ORDER = [['char-kitchen-cook','char-sofa-kitchen'], ['char-couple-sofa'], ['char-couple-bed']];
+const ALL_CHAR_IDS = ['char-desk-read','char-sofa-tv','char-bed-idle','char-nap-floor1','char-bed-miss',
+  'char-sofa-kitchen','char-kitchen-cook','char-couple-sofa','char-couple-bed'];
 function updateHomeCharacters(info){
-  const allChars = ['char-desk-read','char-sofa-tv','char-bed-idle','char-sofa-kitchen','char-kitchen-cook'];
-  allChars.forEach(id => document.getElementById(id).hidden = true);
+  ALL_CHAR_IDS.forEach(id => document.getElementById(id).hidden = true);
 
   const married = STATE.unlockedLevel > TOTAL_LEVELS;
   if(married || info.isHome){
-    document.getElementById('char-kitchen-cook').hidden = false;
-    document.getElementById('char-sofa-kitchen').hidden = false;
+    // 结局后固定厨房;平常每次小远回家换一个场景(厨房→沙发→床上)
+    const visit = Math.floor(STATE.totalCleared / HOME_CYCLE);
+    const idx = married ? 0 : (((visit - 1) % HOME_POSE_ORDER.length) + HOME_POSE_ORDER.length) % HOME_POSE_ORDER.length;
+    HOME_POSE_ORDER[idx].forEach(id => document.getElementById(id).hidden = false);
+  } else if(STATE.mementos.includes(7) && STATE.totalCleared % 5 === 0){
+    // 蝴蝶结卫衣出现(见 updateHomeMementos)的时候,小派就是躺在床上想小远
+    document.getElementById('char-bed-miss').hidden = false;
   } else {
-    const pos = STATE.totalCleared % HOME_CYCLE;
-    document.getElementById(AWAY_POSE_ORDER[pos % 3]).hidden = false;
+    document.getElementById(AWAY_POSE_ORDER[STATE.totalCleared % AWAY_POSE_ORDER.length]).hidden = false;
   }
 }
 
