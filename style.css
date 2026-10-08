@@ -703,6 +703,8 @@ html,body{
   width:100%;border:none;border-top:1px solid var(--pink-light);
   margin:14px 0;
 }
+.story-image-wrap{display:flex;justify-content:center;}
+.story-image-wrap img{max-width:100%;max-height:72vh;width:auto;height:auto;border-radius:14px;box-shadow:0 2px 10px var(--shadow);}
 .ending-illustration{
   width:100%;border-radius:16px;overflow:hidden;
   margin-bottom:10px;background:#fff;

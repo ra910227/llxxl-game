@@ -285,6 +285,11 @@ const MEMENTO_ITEMS = {
 阿婆似懂非懂地点头,又送了他两个栀子花手链,阿婆说:今生戴花来世漂亮,你这辈子这么漂亮,下辈子一定也要漂漂亮亮的活。小派高兴地点头,拿去给小远戴上,手环清香,萦绕在两人手腕间,花瓣若有似无的相互碰撞,手心热乎乎湿润润的。好紧张,哪怕牵手无数次,再牵手也还是像刚恋爱般紧张。`},
 };
 
+// 某些日记篇章看完后,接着跳一张图(这里是小派在朋友圈发的「morning sunshine」)
+const DIARY_AFTER_IMAGE = {
+  59: { img:'assets/story/morning_sunshine_ig.png' },
+};
+
 /* ---------------- 恋爱日记占位文案 ---------------- */
 const DIARY_TEXT = {
   0:{title:`恋爱日记 · 楔子`, text:`小派和小远在男团内偷偷摸摸地谈了恋爱,两年后男团解散直播的互送礼物环节,小派送给了小远一把[钥匙]。
@@ -970,6 +975,7 @@ function refreshMap(){
       heart.addEventListener('click', (e)=>{
         e.stopPropagation();
         const rereadQueue = [{type:'diary', level:n, reread:true}];
+        if(DIARY_AFTER_IMAGE[n]) rereadQueue.push({type:'story-image', img:DIARY_AFTER_IMAGE[n].img, reread:true});
         if(n === TOTAL_LEVELS) rereadQueue.push({type:'ending', reread:true});
         showModalQueue(rereadQueue);
       });
@@ -2382,6 +2388,7 @@ function onLevelWin(levelNum){
       STATE.diaryUnlocked.push(levelNum);
       saveState();
       queue.push({type:'diary', level:levelNum});
+      if(DIARY_AFTER_IMAGE[levelNum]) queue.push({type:'story-image', img:DIARY_AFTER_IMAGE[levelNum].img});
       if(levelNum === TOTAL_LEVELS) queue.push({type:'ending'});
     }
   }
@@ -2826,6 +2833,10 @@ function renderModal(step){
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '收下这篇日记'}</button>`;
     layoutCardBg('.diary-card', 'diary-mode');
     setupDiaryPagination(d.text);
+  } else if(step.type==='story-image'){
+    card.innerHTML = `
+      <div class="story-image-wrap"><img src="${step.img}" alt=""></div>
+      <button class="modal-btn" id="modal-next" style="margin-top:12px;">${step.reread ? '关闭' : '继续'}</button>`;
   } else if(step.type==='ending'){
     card.innerHTML = `
       <div class="ending-illustration"><img src="assets/story/ending.jpg" alt=""></div>
