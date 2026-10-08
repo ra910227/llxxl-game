@@ -696,7 +696,7 @@ html,body{
   font-style:italic;color:#6f4e37;
 }
 .modal-card p.postcard-letter-signoff{
-  text-align:right;margin-top:-6px;
+  text-align:right;margin:-4px 4px 0 0;
   font-style:italic;color:#6f4e37;
 }
 .postcard-divider{
