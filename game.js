@@ -287,6 +287,7 @@ const MEMENTO_ITEMS = {
 
 // 某些日记篇章看完后,接着跳一张图(这里是小派在朋友圈发的「morning sunshine」)
 const DIARY_AFTER_IMAGE = {
+  39: { img:'assets/story/lets_run_away_ig.png' },
   59: { img:'assets/story/morning_sunshine_ig.png' },
 };
 
