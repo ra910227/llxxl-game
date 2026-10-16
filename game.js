@@ -802,6 +802,55 @@ function layoutHomeCanvas(){
     coinPill.style.top = (layerTop + COIN_PILL_ANCHOR.y*scale)+'px';
     coinPill.style.transform = 'translate(-50%,0)';
   }
+  homeLayout = { scale, layerLeft, layerTop };
+  positionThoughtBubble();
+}
+
+/* 小派头上的思考泡泡:每个姿势一组台词,每次回到首页随机挑一句。
+   tip=小派头部左上角(泡泡的小圆点指向这里,2048x3200 画布座标);泡泡本身一律放在头的左上方,
+   位置由 tip 往左上偏移算出来,落在不挡人、不挡按钮跟按钮字的背景空白处。 */
+const THOUGHT_POSES = {
+  'char-bed-miss':   { tip:{x:1227,y:1040}, texts:['想你了......'] },
+  'char-desk-read':  { tip:{x:895, y:1262}, texts:['远哥什么时候回来......','想要远哥教我......'] },
+  'char-nap-floor1': { tip:{x:839, y:2162}, texts:['Zzz......','远哥......亲亲......'] },
+  'char-couple-sofa':{ tip:{x:771, y:2150}, texts:['好想偷亲他喔......'] },
+  'char-couple-bed': { tip:{x:1231,y:1040}, texts:['❤️'], small:true },
+};
+const THOUGHT_CHANCE = 0.5;
+let homeLayout = null;
+let currentThought = null;
+function positionThoughtBubble(){
+  const el = document.getElementById('thought-bubble');
+  if(!el) return;
+  if(!currentThought || !homeLayout){ el.hidden = true; return; }
+  const { scale, layerLeft, layerTop } = homeLayout;
+  const cfg = currentThought.cfg;
+  el.hidden = false;
+  el.classList.toggle('tb-small', !!cfg.small);
+  document.getElementById('thought-text').textContent = currentThought.text;
+  const w = el.offsetWidth, h = el.offsetHeight;
+  const tx = layerLeft + cfg.tip.x*scale, ty = layerTop + cfg.tip.y*scale;
+  // 泡泡右下角贴近头的左上角,往左上方放
+  const cx = tx - w*0.4 - 6, cy = ty - h/2 - 9;
+  el.style.left = cx+'px';
+  el.style.top = cy+'px';
+  // 两颗小圆点从泡泡边缘朝头的方向排开
+  let vx = tx-cx, vy = ty-cy;
+  const len = Math.hypot(vx,vy) || 1; vx/=len; vy/=len;
+  const edge = 1/Math.sqrt((vx/(w/2))**2 + (vy/(h/2))**2);
+  [['tb-dot1',edge+4,6],['tb-dot2',edge+11,4]].forEach(([id,d,size])=>{
+    const dot = document.getElementById(id);
+    dot.style.width = dot.style.height = size+'px';
+    dot.style.left = (w/2 + vx*d - size/2)+'px';
+    dot.style.top = (h/2 + vy*d - size/2)+'px';
+  });
+}
+function chooseThought(poseId){
+  const cfg = THOUGHT_POSES[poseId];
+  // 每次回首页只有一半机率冒泡泡,另一半什么都不说
+  const speak = cfg && Math.random() < THOUGHT_CHANCE;
+  currentThought = speak ? { cfg, text: cfg.texts[Math.floor(Math.random()*cfg.texts.length)] } : null;
+  positionThoughtBubble();
 }
 window.addEventListener('resize', ()=>{
   if(document.getElementById('screen-home').classList.contains('active')) layoutHomeCanvas();
@@ -929,7 +978,7 @@ function refreshHome(){
   if(STATE.unlockedLevel > TOTAL_LEVELS){
     statusEl.textContent = '小远每天都在家了 🏠💍';
   } else if(info.isHome){
-    statusEl.textContent = '小远在家 🏠(厨房或床上找找看)';
+    statusEl.textContent = '小远在家 🏠(厨房、沙发或床上找找看)';
   } else {
     statusEl.textContent = `小远出差中 ✈️ 还有 ${info.remaining} 关回家`;
   }
@@ -999,6 +1048,8 @@ function updateHomeCharacters(info){
   } else {
     showCharLayer(AWAY_POSE_ORDER[STATE.totalCleared % AWAY_POSE_ORDER.length]);
   }
+  const shownId = ALL_CHAR_IDS.find(id => !document.getElementById(id).hidden);
+  chooseThought(shownId);
 }
 
 document.getElementById('hotspot-avatar').addEventListener('click', ()=> showModalQueue([{type:'about'}], 'screen-home'));

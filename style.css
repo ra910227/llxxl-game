@@ -1008,3 +1008,28 @@ html,body{
 .couple-photo-story{
   margin:0;
 }
+
+/* 首页小派的思考泡泡(位置由 game.js 的 positionThoughtBubble 依画布座标放;不吃点击) */
+.thought-bubble{
+  position:absolute;z-index:6;pointer-events:none;
+  transform:translate(-50%,-50%);
+  padding:6px 13px;
+  font-size:10.5px;line-height:1.3;white-space:nowrap;
+  color:#5a4636;
+}
+.thought-bubble.tb-small{padding:4px 7px;font-size:12px;}
+.tb-shape{
+  position:absolute;inset:0;
+  background:#fff;border-radius:999px;
+  opacity:.7;
+  filter:drop-shadow(.7px 0 0 #8a6f5c) drop-shadow(-.7px 0 0 #8a6f5c) drop-shadow(0 .7px 0 #8a6f5c) drop-shadow(0 -.7px 0 #8a6f5c);
+}
+/* 上缘两个正圆的凸起,让整朵云更圆润 */
+.tb-shape::before,.tb-shape::after{
+  content:"";position:absolute;background:#fff;border-radius:50%;
+}
+.tb-shape::before{width:15px;height:15px;top:-7px;left:16%;}
+.tb-shape::after{width:19px;height:19px;top:-10px;left:46%;}
+.thought-bubble.tb-small .tb-shape::before,.thought-bubble.tb-small .tb-shape::after{display:none;}
+.tb-dot{position:absolute;background:#fff;border-radius:50%;}
+.tb-text{position:relative;}

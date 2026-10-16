@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="小派小远">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="style.css?v=56">
+<link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
 
@@ -39,6 +39,10 @@
       <img class="canvas-layer character-layer" id="char-kitchen-cook" data-src="assets/characters/xiaoyuan_kitchen_cook.webp" alt="" hidden>
       <img class="canvas-layer character-layer" id="char-couple-sofa" data-src="assets/characters/couple_sofa_sweet.webp" alt="" hidden>
       <img class="canvas-layer character-layer" id="char-couple-bed"  data-src="assets/characters/couple_bed_sweet.webp" alt="" hidden>
+      <div id="thought-bubble" class="thought-bubble" hidden>
+        <div class="tb-shape"><i class="tb-dot" id="tb-dot1"></i><i class="tb-dot" id="tb-dot2"></i></div>
+        <span id="thought-text" class="tb-text"></span>
+      </div>
 
       <button id="hotspot-avatar" class="canvas-hotspot" title="游戏玩法与制作团队"></button>
       <div id="hotspot-diary-label" class="hotspot-label">恋爱日记</div>
@@ -128,6 +132,6 @@
 
 </div>
 
-<script src="game.js?v=99"></script>
+<script src="game.js?v=102"></script>
 </body>
 </html>
