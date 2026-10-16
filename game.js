@@ -853,6 +853,7 @@ const HOME_TOUR_STEPS = [
   { id:'hotspot-gift',     text:`小远送的礼物、生活回忆的纪念品……收集这些承载浪漫故事的物品，来一点点装饰家中各个角落。` },
   { id:'hotspot-postcard', text:`收藏了小远在外巡演寄回来的明信片及两人出游的合照，可以随时翻阅。` },
   { id:'hotspot-piggy',    text:`<b>恋爱存款</b>：谈恋爱总是要花钱，小派在桌上放了个存钱筒，每天存一点，存到能够给小远买礼物。每1小时存钱筒会累积不等数金币，点击领取远派金币，可在关卡内购买特殊技能。` },
+  { id:'btn-backup',       text:`<b>存档备份</b>：进度只存在这个浏览器里。换手机或清除浏览器资料，进度会不见。记得偶尔点这里，把存档码复制起来存好。` },
 ];
 let homeTourEls = null;
 function maybeShowHomeTutorial(){
@@ -2544,6 +2545,7 @@ function renderModal(step){
           <div class="tutorial-row"><span class="tutorial-icon">🎁</span><div>${HOME_TOUR_STEPS[1].text}</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">💌</span><div>${HOME_TOUR_STEPS[2].text}</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">💰</span><div>${HOME_TOUR_STEPS[3].text}</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">💾</span><div>${HOME_TOUR_STEPS[4].text}</div></div>
         </div>
       </div>
       <div class="about-panel" id="about-panel-credits">

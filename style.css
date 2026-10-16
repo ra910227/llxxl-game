@@ -793,7 +793,7 @@ html,body{
   background:linear-gradient(90deg,var(--pink),var(--apricot));
   color:#fff;
 }
-.about-panel{display:none;text-align:left;max-height:44vh;overflow-y:auto;}
+.about-panel{display:none;text-align:left;max-height:58vh;overflow-y:auto;}
 .about-panel.active{display:block;}
 .about-credits-title{
   text-align:center;font-size:14px;font-weight:800;color:var(--pink);
