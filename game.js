@@ -334,8 +334,8 @@ const COUPLE_PHOTO_ITEMS = {
 近些,再靠近些。勇敢的求爱者会遇到一双结结实实捧住他炽热心脏的手。`},
   57:{name:`泰国行合照`, img:`assets/gifts/57.webp`, story:`那是小远第二次跟小派去泰国见家长,还记得第一次见到玫瑰女士,玫瑰女士直接推开小派拥抱小远,两个人是不用明说也能让家人感知到爱的亲密关系。
 浪漫少女小派不知道从哪里知道了在摩天轮最高点接吻就能永远在一起的都市传说,拉着小远再访了他们男团解散前去过的摩天轮。`},
-  71:{name:`Pocky对小派的意义`, img:`assets/gifts/71.gif`, story:`小派本来没那么爱吃Pocky，他平均爱着所有甜点零食。但因为有一次小远要帮他戒甜食，在他想用到一半的时候，突然凑了过来，咬走了一半的Pocky。
-如此近距离地看着小远的美丽脸庞，呼吸吐息都显得暧昧起来——小远的厚唇湿润着，带着水蜜桃唇膏的甜香，轻咬着那一半巧克力。小远的睫毛不密但微翘着仿若幼鸟的初羽，轻柔而诱人。小派最终怎么吃掉那包Pocky，他已经不记得了，只记得自己如雷般的心跳声还有那抹唇色。`},
+  71:{name:`Pocky对小派的意义`, img:`assets/gifts/71.gif`, story:`小派本来没那么爱吃Pocky，他平均爱着所有甜点零食。但因为有一次小远要帮他戒甜食，在他享用到一半的时候，突然凑了过来，咬走了一半的Pocky。
+如此近距离地看着小远的美丽脸庞，呼吸吐息都显得暧昧起来——小远的厚唇湿润着，带着水蜜桃唇膏的甜香，轻咬着那一半巧克力。小远的睫毛不密但微翘着仿若幼鸟的初羽，轻柔而诱人。小派最终怎么吃掉那包Pocky，他已经不记得了，只记得自己如雷般的心跳声，还有那甜甜软软的嘴唇。`},
 };
 // 跟恋爱日记撞关的几个(原本 10/20/30/40/50/60/70)刻意往前错开几关,
 // 避免「获得纪念品」跟「戀愛日記」两个弹窗同一整数关卡一次全部跳出来。
@@ -1365,6 +1365,9 @@ const EVENT = {
   end:   Date.parse('2026-10-31T12:00:00+08:00'),
   grace: 5*60*1000,          // 结束后服务器多给的补传时间(要跟 leaderboard-worker 的 GRACE_MS 一致)
 };
+// 文字里提到的「远狗/派兔」直接用棋盘上的图案,不用 emoji,玩家才对得上
+const ICON_DOG = '<img class="inline-tile" src="assets/tiles/dogface.png" alt="远狗">';
+const ICON_BUNNY = '<img class="inline-tile" src="assets/tiles/bunny.png" alt="派兔">';
 const COIN_PER_MATCH = 1;    // 每个兔兔/狗狗组合赚几枚金币(服务器用同一个数字检查,要一起改)
 let serverOffsetMs = 0;
 function eventNow(){ return Date.now() + serverOffsetMs; }
@@ -1468,8 +1471,8 @@ function renderEndlessStats(){
   el.innerHTML = `
     <span>🏆排名分 <b>${endlessPoints(BOARD)}</b></span>
     <span>🪙已花金币 <b>${BOARD.coinsSpent||0}</b></span>
-    <span>🐰兔兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
-    <span>🐶狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
+    <span>${ICON_BUNNY}派兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
+    <span>${ICON_DOG}远狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
     <span>☀️早安太阳 <b>${BOARD.stats.sunBursts}</b></span>
     <span>🌕月亮合体 <b>${BOARD.stats.moonBombs}</b></span>
@@ -1594,8 +1597,8 @@ function maybeShowEventIntro(){
 // 9个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
 const ACHIEVEMENT_TITLES = [
   { key:'points',          icon:'👑', name:'月兔国国王',         desc:'排名分最高(月兔数 − 花掉的金币)' },
-  { key:'dogfaceMatches',  icon:'🐶', name:'最爱狗狗的人',       desc:'狗狗组合次数最多' },
-  { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人',       desc:'兔兔组合次数最多' },
+  { key:'dogfaceMatches',  icon:ICON_DOG, name:'最爱远狗的人',       desc:'远狗组合次数最多' },
+  { key:'bunnyMatches',    icon:ICON_BUNNY, name:'最爱派兔的人',       desc:'派兔组合次数最多' },
   { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人', desc:'私奔蝴蝶(4连清整排/整列)次数最多' },
   { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的人',   desc:'早安太阳(4连十字清除)次数最多' },
   { key:'moonBombs',       icon:'🌕', name:'代表月亮惩罚你',     desc:'月亮炸弹(3连炸开3×3)次数最多' },
@@ -1629,7 +1632,7 @@ function renderLeaderboardList(entries){
       <div class="leaderboard-rank">${i+1}</div>
       <div style="flex:1;min-width:0;">
         <div class="leaderboard-name">${escapeHtml(e.name)}</div>
-        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐶${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🌝${e.moonPoundings||0}</div>
+        <div class="leaderboard-detail">${ICON_BUNNY}${e.bunnyMatches||0} ${ICON_DOG}${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🌝${e.moonPoundings||0}</div>
       </div>
       <div class="leaderboard-rabbits">🏆${e.points}<div class="leaderboard-sub">🐇${e.rabbits} − 🪙${e.coinsSpent||0}</div></div>
     </div>`).join('');
@@ -2538,7 +2541,7 @@ function resolveCascade(combo){
     if(type===DOGFACE_IDX || type===XIAOYUAN_IDX){
       const add = cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
-      specialMsg = `🐶 狗狗组合!步数 +${add}`;
+      specialMsg = `远狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
       if(BOARD.endless){ BOARD.stats.dogfaceMatches++; earnEndlessCoins(COIN_PER_MATCH); }
       else STATE.milestoneStats.dogfaceMatches++;
@@ -2546,7 +2549,7 @@ function resolveCascade(combo){
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
       const add = cfg.level>=50 ? 2 : 1;
       bonusMoves += add;
-      specialMsg = `🐰 兔兔组合!步数 +${add}`;
+      specialMsg = `派兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
       if(BOARD.endless){ BOARD.stats.bunnyMatches++; earnEndlessCoins(COIN_PER_MATCH); }
       else STATE.milestoneStats.bunnyMatches++;
@@ -2791,8 +2794,8 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">月兔大挑战 · 说明</h3>
       <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
-        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>引来月兔</b>:凑出一组🐶和一组🐰,就引来 1 只月兔。3 只月兔合成 1 个满月🌝,拖到棋盘任一格,变出一颗月亮(用掉一个满月会扣 3 只月兔)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🪙</span><div><b>金币</b>:每凑出一组🐶或🐰赚 ${COIN_PER_MATCH} 枚。点金币按钮可以买技能,<b>每花 1 枚,排名分 −1</b>。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>引来月兔</b>:凑出一组${ICON_DOG}远狗和一组${ICON_BUNNY}派兔,就引来 1 只月兔。3 只月兔合成 1 个满月🌝,拖到棋盘任一格,变出一颗月亮(用掉一个满月会扣 3 只月兔)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🪙</span><div><b>金币</b>:每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔赚 ${COIN_PER_MATCH} 枚。点金币按钮可以买技能,<b>每花 1 枚,排名分 −1</b>。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🏆</span><div><b>排名分</b> = 月兔数 − 花掉的金币。限时赛榜单就是看这个数字。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成 3 个以上,以中心炸开周围 3×3 区域。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>:4 连以上,清空整排或整列。</div></div>
@@ -2805,12 +2808,12 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">特殊技能说明</h3>
       <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
-        <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div><b>狗狗/小远</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div><b>兔兔/小派</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">${ICON_DOG}</span><div><b>远狗/小远</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">${ICON_BUNNY}</span><div><b>派兔/小派</b>:配对成功加步数(50关前+1,50关后+2)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成3个以上,以中心炸开周围3x3区域(冰冻格也一并解除)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>(40关起):4连以上,清空整排或整列。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>早安太阳</b>(60关起):4连以上,以中心十字型清空一整排+一整列。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>月兔捣药</b>:凑齐一组狗狗+一组兔兔就吸引一只月兔,三只一起捣药捣出一轮满月🌝。可拖到棋盘任一非冰冻格,直接变出一颗月亮(不消耗步数)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>月兔捣药</b>:凑齐一组远狗+一组派兔就吸引一只月兔,三只一起捣药捣出一轮满月🌝。可拖到棋盘任一非冰冻格,直接变出一颗月亮(不消耗步数)。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4连消除得分*1.5倍,5连以上*2倍。</div></div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
@@ -2823,14 +2826,14 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">${BOARD && BOARD.endless ? '月兔大挑战 · 金币技能' : '远派金币技能'}</h3>
       <p style="text-align:center;">目前持有 <img src="assets/ui/coin.webp" alt="" style="width:16px;height:16px;vertical-align:-3px;"> <b>${coinBalance()}</b> 枚</p>
-      ${BOARD && BOARD.endless ? `<p style="text-align:center;font-size:11px;color:var(--ink-soft);margin-top:-4px;">金币靠兔兔、狗狗组合赚到(每组 +${COIN_PER_MATCH} 枚);每花 1 枚,排名分 −1。</p>` : ''}
+      ${BOARD && BOARD.endless ? `<p style="text-align:center;font-size:11px;color:var(--ink-soft);margin-top:-4px;">金币靠派兔、远狗组合赚到(每组 +${COIN_PER_MATCH} 枚);每花 1 枚,排名分 −1。</p>` : ''}
       <div class="coin-skill-row ${canSwap?'':'coin-skill-disabled'}" id="coin-skill-swap">
         <div class="coin-skill-name">🔀 元素互换<span class="coin-skill-cost">${COIN_SKILL_COST.swap}枚</span></div>
         <div class="coin-skill-desc">选两个非冰冻格,直接互换内容,不占用步数</div>
       </div>
       <div class="coin-skill-row ${canCompanion?'':'coin-skill-disabled'}" id="coin-skill-companion">
         <div class="coin-skill-name">🧸 陪伴娃娃<span class="coin-skill-cost">${COIN_SKILL_COST.companion}枚</span></div>
-        <div class="coin-skill-desc">场上每只兔兔/狗狗旁边都多变出一只同类</div>
+        <div class="coin-skill-desc">场上每只派兔/远狗旁边都多变出一只同类</div>
       </div>
       <div class="coin-skill-row ${canCatchStar?'':'coin-skill-disabled'}" id="coin-skill-catchstar">
         <div class="coin-skill-name">⭐ 捕星星<span class="coin-skill-cost">${COIN_SKILL_COST.catchStar}枚</span></div>
@@ -2842,7 +2845,7 @@ function renderModal(step){
       </div>
       <div class="coin-skill-row ${canLoveFull?'':'coin-skill-disabled'}" id="coin-skill-lovefull">
         <div class="coin-skill-name">💕 爱心满满<span class="coin-skill-cost">${COIN_SKILL_COST.loveFull}枚</span></div>
-        <div class="coin-skill-desc">除了兔兔/狗狗外,场上全部变成爱心</div>
+        <div class="coin-skill-desc">除了派兔/远狗外,场上全部变成爱心</div>
       </div>
       <button class="modal-btn secondary" id="modal-next" style="margin-top:10px;">取消</button>`;
     if(canSwap){
@@ -2942,8 +2945,8 @@ function renderModal(step){
         <p class="event-intro-when">🗓 <b>10月20日 12:00 – 10月31日 12:00</b>(北京时间)</p>
         <div class="tutorial-list">
           <div class="tutorial-row"><span class="tutorial-icon">1️⃣</span><div>点首页右上角的「月兔大挑战」,从空白棋盘开始,没有步数限制。</div></div>
-          <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑出一组🐶和一组🐰,就会引来一只月兔。3 只月兔合成一个满月🌝,拖到棋盘上能变出一颗月亮,但每用掉一个满月会扣 3 只月兔。</div></div>
-          <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组🐶或🐰,就赚 ${COIN_PER_MATCH} 枚金币🪙。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑出一组${ICON_DOG}远狗和一组${ICON_BUNNY}派兔,就会引来一只月兔。3 只月兔合成一个满月🌝,拖到棋盘上能变出一颗月亮,但每用掉一个满月会扣 3 只月兔。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔,就赚 ${COIN_PER_MATCH} 枚金币🪙。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">4️⃣</span><div><b>排名分 = 月兔数 − 花掉的金币数</b>。想留下成绩就按「上传成绩」,同一个名字只保留你的最高纪录,可以重复上传。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">5️⃣</span><div>一个名字只属于一个人,被别人用了要换一个。想换名字重传也可以,榜上只会有你一笔。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>10/20 12:00 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>
@@ -3049,8 +3052,8 @@ function renderModal(step){
         <div class="milestone-card-inner">
           <h3>远派恋爱金币结算</h3>
           <div class="tutorial-list" style="margin:6px 0;">
-            <div class="tutorial-row"><span class="tutorial-icon">🐰</span><div>兔兔组合 <b>${s.bunnyMatches}</b> 次${badge('bunnyMatches')}</div></div>
-            <div class="tutorial-row"><span class="tutorial-icon">🐶</span><div>狗狗组合 <b>${s.dogfaceMatches}</b> 次${badge('dogfaceMatches')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">${ICON_BUNNY}</span><div>派兔组合 <b>${s.bunnyMatches}</b> 次${badge('bunnyMatches')}</div></div>
+            <div class="tutorial-row"><span class="tutorial-icon">${ICON_DOG}</span><div>远狗组合 <b>${s.dogfaceMatches}</b> 次${badge('dogfaceMatches')}</div></div>
             <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div>引出月兔 <b>${s.rabbitsGained}</b> 只${badge('rabbitsGained')}</div></div>
             <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div>私奔蝴蝶 <b>${s.butterflyBursts}</b> 次${badge('butterflyBursts')}</div></div>
             <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div>早安太阳 <b>${s.sunBursts}</b> 次${badge('sunBursts')}</div></div>
