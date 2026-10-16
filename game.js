@@ -2789,6 +2789,20 @@ function renderModal(step){
         tabPairs.forEach(([t2,p2])=>{ t2.classList.toggle('active', t2===tab); p2.classList.toggle('active', p2===panel); });
       });
     });
+  } else if(step.type==='skills' && BOARD && BOARD.endless){
+    card.innerHTML = `
+      <h3 style="text-align:center;">月兔大挑战 · 说明</h3>
+      <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
+        <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>引来月兔</b>:凑出一组🐶和一组🐰,就引来 1 只月兔。3 只月兔合成 1 个满月🌝,拖到棋盘任一格,变出一颗月亮(用掉一个满月会扣 3 只月兔)。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🪙</span><div><b>金币</b>:每凑出一组🐶或🐰赚 ${COIN_PER_MATCH} 枚。点金币按钮可以买技能,<b>每花 1 枚,排名分 −1</b>。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🏆</span><div><b>排名分</b> = 月兔数 − 花掉的金币。限时赛榜单就是看这个数字。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成 3 个以上,以中心炸开周围 3×3 区域。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>:4 连以上,清空整排或整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">☀️</span><div><b>早安太阳</b>:4 连以上,以中心十字型清空一整排+一整列。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">✨</span><div><b>连击加成</b>:4 连得分 ×1.5,5 连以上 ×2。只会增加「积分」,不影响排名分。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">♾️</span><div>这里没有步数限制,想玩多久都可以,进度会自动存档。</div></div>
+      </div>
+      <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
   } else if(step.type==='skills'){
     card.innerHTML = `
       <h3 style="text-align:center;">特殊技能说明</h3>
@@ -2934,6 +2948,7 @@ function renderModal(step){
           <div class="tutorial-row"><span class="tutorial-icon">5️⃣</span><div>一个名字只属于一个人,被别人用了要换一个。想换名字重传也可以,榜上只会有你一笔。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>10/20 12:00 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">7️⃣</span><div>活动结束后榜单会先审核,公布后才看得到最终名次。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">✨</span><div>小技巧:🌙月亮连 3 个会炸开周围 3×3;🦋蝴蝶、☀️太阳连 4 个以上能清整排整列/十字。连消还有积分加成,不过积分不影响排名分。右上角的「？」有完整说明。</div></div>
         </div>
         <p class="event-intro-tip">💾 进度只存在这个浏览器,换手机前请先到首页点「存档备份」。</p>
       </div>
