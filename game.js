@@ -67,8 +67,27 @@ const HEART_IDX = TILE_TYPES.findIndex(t=>t.name==='heart');
 const SUN_IDX = TILE_TYPES.findIndex(t=>t.name==='sun'); // 60关后:配对成功清空十字型两排
 
 /* ---------------- 收藏册占位内容 ---------------- */
+// 明信片实景照的来源与授权(都来自 Wikimedia Commons,南京那张是自己拍的);「照片来源」分页会逐条列出
+const CC = v => ({ name:'CC BY '+v, url:'https://creativecommons.org/licenses/by/'+v+'/' });
+const CC0 = { name:'CC0', url:'https://creativecommons.org/publicdomain/zero/1.0/' };
+const PHOTO_CREDITS = [
+  { place:'天津・天津之眼',     author:'H2v5o68z',          lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Tianjin_Eye_10.jpg' },
+  { place:'青岛・啤酒博物馆',   author:'Suginami',          lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Tsingtao_Brewery_Museum_outside_2024.jpg' },
+  { place:'广州・月亮桥',       author:'自己拍摄',          lic:null,      src:null },
+  { place:'重庆・火锅',         author:'Hawyih',            lic:{ name:'公有领域' }, src:'https://commons.wikimedia.org/wiki/File:Chongqing_hotpot.1.jpg' },
+  { place:'新疆・喀纳斯湖',     author:'Muye Ma',           lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Kanas_Lake,_Altay,_China_(Unsplash).jpg' },
+  { place:'海南（三亚）・天涯海角', author:'Anna Frodesiak', lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Tianya_Haijiao_-_01.jpg' },
+  { place:'南京・百家湖摩天轮', author:'自己拍摄',          lic:null,      src:null },
+  { place:'长沙・橘子洲头',     author:'Huangdan2060',      lic:CC('3.0'), src:'https://commons.wikimedia.org/wiki/File:Orange_Isle_2021122625.jpg' },
+  { place:'成都・熊猫',         author:'George Lu',         lic:CC('2.0'), src:'https://commons.wikimedia.org/wiki/File:Panda_in_Chengdu_Research_Base_of_Giant_Panda_Breeding_-_7708872342.jpg' },
+  { place:'厦门・鼓浪屿',       author:'周流劲火',          lic:CC('2.5'), src:'https://commons.wikimedia.org/wiki/File:Gulangyu_at_dusk.jpg' },
+  { place:'杭州・西湖',         author:'CatOnMars',         lic:CC('4.0'), src:'https://commons.wikimedia.org/wiki/File:Huanglong_%26_Broken_Bridge_-_Hangzhou_City_%26_West_Lake_near_Broken_Bridge.jpg' },
+  { place:'上海・迪士尼',       author:'Riku Lu',           lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Enchanted_Storybook_Castle_(125424).jpg' },
+];
+const PHOTO_CREDIT_NOTE = '照片均已缩小尺寸;标有 CC BY 的需注明作者与授权,点作者旁的授权名称可看条款,点来源可看原图页面。';
+
 const POSTCARD_ITEMS = [
-  {emoji:'🏙️', name:'天津・天津之眼', img:'assets/postcards/0.webp', story:`派派,
+  {emoji:'🏙️', name:'天津・天津之眼', img:'assets/postcards_photo/0.webp', artImg:'assets/postcards/0.webp', story:`派派,
 恭喜你上大学了!可惜你开学这天刚好冲到我天津的演唱会,但我看到你传给我的入学照,很帅气呢。
 今天开始你也是成人了,祝福你学业顺利,尽情体验精彩丰富的大学生活。
 我记忆中那个中文不好要我照顾会撒娇会恶作剧的坏小孩,感觉一下子就长大了……但我偶尔也希望你不要长大得太快,做一个小孩其实没什么不好的。
@@ -93,7 +112,7 @@ const POSTCARD_ITEMS = [
 药片粘在舌头上,苦得他把眼泪都呛出来。
 是真的很苦——但这可能也是长大的一环,突如其来、毫无心理防备地,长大了。
 而他只能被动接受了它,即使那时他已经不怎么想要长大了。`},
-  {emoji:'🍺', name:'青岛・啤酒博物馆', img:'assets/postcards/1.webp', story:`派派,
+  {emoji:'🍺', name:'青岛・啤酒博物馆', img:'assets/postcards_photo/1.webp', artImg:'assets/postcards/1.webp', story:`派派,
 我代言了青岛啤酒,这真是神奇的合作,感谢粉丝支持、感谢赞助商邀约。
 
 我寄了赞助商给我的三箱啤酒给你,记得在家慢慢喝（虽然你喝不醉但在外还是要小心）。
@@ -107,7 +126,7 @@ const POSTCARD_ITEMS = [
 吻了他。
 
 他并没有比他高很多,还偷偷地垫了脚,一个没站稳,不幸地连带着小远也踉跄了,好在他在吻和橘子汽水之间选择了牺牲后者。`},
-  {emoji:'🌆', name:'广州・月亮桥', img:'assets/postcards/2.webp', story:`派派,
+  {emoji:'🌆', name:'广州・月亮桥', img:'assets/postcards_photo/2.webp', artImg:'assets/postcards/2.webp', story:`派派,
 我们中秋节一起来广州那次你还记得吗?
 那天云雾遮住了夜空,中秋等不来月圆,你很难过。
 你说我们两个的CP名就叫『花好月圆』,两人出游怎么却连个月圆都看不到呢。
@@ -123,7 +142,7 @@ const POSTCARD_ITEMS = [
 他戴了深色的口罩,夜很黑,我却能看见他的眼眸——是笑着的,带着鼓励跟诱惑。
 于是他上前一步,无声地、用力地牵住了彼此的手,十指紧扣,像永远分不开一样的用力。
 寒风呼啸的夜里,他比我要高的体温像烙铁一样从手心手梢传过来,那一小块皮肤像要烧着似的,滚烫得让人心悸。`},
-  {emoji:'🌶️', name:'重庆・火锅', img:'assets/postcards/3.webp', story:`派派,
+  {emoji:'🌶️', name:'重庆・火锅', img:'assets/postcards_photo/3.webp', artImg:'assets/postcards/3.webp', story:`派派,
 记得我以前说过，我喜欢一个人吃饭，直到遇到你们。
 我以前觉得吃饭是社交、是消耗能量的事，直到跟你们组了男团。来自世界各国的大家相处却像家人一样自在，我滑手机看动画、你们打打闹闹⋯⋯想起来，每次吃火锅都很热闹呢。
 团解散后，我好久没有一个人吃火锅了。今天一个恍神，点超过一个人的量，边吃边想到你，如果你也在就好了。
@@ -140,8 +159,8 @@ const POSTCARD_ITEMS = [
 小远哈哈大笑，给他递来冰柠檬茶，说派派要不吃鸳鸯锅吧？被小派严肃拒绝，伸着长长的火锅筷在锅底里捞小远下进去的海螺片。
 
 小远支着头看小派又辣又觉得好吃、鼓着腮帮子嚼嚼嚼对他连连竖起大拇指的模样，心里想，两个人一起吃火锅，也很好嘛。`},
-  {emoji:'🐫', name:'新疆・艾里克湖', img:'assets/postcards/4.webp', story:`派派,
-你有看过晚上九点的落日吗?这次来新疆拍旅游美食综艺,我看到了戈壁沙漠、体验了高空走索（我没忍住尖叫,我真的很怕高）,新疆美食也很好吃,尤其是大盘鸡跟烤羊肉。
+  {emoji:'🐫', name:'新疆・喀纳斯湖', img:'assets/postcards_photo/4.webp', artImg:'assets/postcards/4.webp', story:`派派,
+你有看过晚上九点的落日吗?这次来新疆拍旅游美食综艺,我看到了草原湖泊、体验了高空走索（我没忍住尖叫,我真的很怕高）,新疆美食也很好吃,尤其是大盘鸡跟烤羊肉。
 我记得你喜欢看夕阳,因为从落下那刻,你就开始期待它的升起。
 远
 
@@ -152,7 +171,7 @@ const POSTCARD_ITEMS = [
 十月的天还是这样热,手肘的皮肤、鼓动的心脏炙热地要烧了起来,像此刻的斜阳——燃烧着、沉沉地进了远方的山谷中。
 
 天空从橘黄色逐渐褪成蓝色,没有太阳的天台迅速冷了下来,小派拉起了外套从背后搂住小远,深埋入怀里,像两只在孤寂的秋夜相互依偎取暖的小兽。`},
-  {emoji:'🌴', name:'海南（三亚）・天涯海角', img:'assets/postcards/5.webp', story:`派派,
+  {emoji:'🌴', name:'海南（三亚）・天涯海角', img:'assets/postcards_photo/5.webp', artImg:'assets/postcards/5.webp', story:`派派,
 我又到三亚了,我读书的地方,
 离我们相遇的海花岛也不过短短300公里。
 
@@ -167,7 +186,7 @@ const POSTCARD_ITEMS = [
 小远说过他的家乡在中国西南方,离海是很远的,在三亚读完大学后就去了上海做练习生,很少能有机会去看看海。
 
 "我其实很喜欢海,也喜欢海风。大学…在考虑要不要做练习生那段时间,经常就散步到海边去,想象如果我有一艘小船,我应该按航海图上的规划路线航行吗?最后我决定把航海图扔进海里,让我的心掌舵——"他指了指自己的心口处,"希望派派也可以用自己的心掌舵。"`},
-  {emoji:'🍁', name:'南京・百家湖摩天轮', img:'assets/postcards/6.webp', story:`派派,
+  {emoji:'🍁', name:'南京・百家湖摩天轮', img:'assets/postcards_photo/6.webp', artImg:'assets/postcards/6.webp', story:`派派,
 我今天来了你上次待的地方。
 你来我的南京演唱会,但你不能入场。我们一起去坐摩天轮,但你的照片里不能有我。
 当我在场馆里享受舞台时,你自己在摩天轮上一圈一圈地坐着,是什么心情呢?
@@ -188,7 +207,7 @@ const POSTCARD_ITEMS = [
 ——尽管在分别的年岁里,自己对他的思念不减反增地滋长着。
 
 小派实在不懂,他如此从容地来了又走、走了又来,为什么、凭什么留自己一个人在风里?`},
-  {emoji:'🎡', name:'长沙・橘子洲头', img:'assets/postcards/7.webp', story:`派派,
+  {emoji:'🎡', name:'长沙・橘子洲头', img:'assets/postcards_photo/7.webp', artImg:'assets/postcards/7.webp', story:`派派,
 我来长沙参加音乐综艺节目,合作制的舞台竞赛,我好喜欢我们团的每个人,一起做音乐的日子真的很快乐。
 
 然后我就想到了我们的以前,在练舞室待到最后,十一个人一起磨一首歌。不是每个人都能帮到忙,但就想待在一起,笑闹不断,从不觉得孤单。
@@ -207,7 +226,7 @@ INTO1来过长沙好多好多次，每次一来，万人迷的群里总要呼喊
 小远很会点菜，每个口味的小龙虾都好好吃，就是小派不太会剥虾，老是被小龙虾扎到手。小远就隔三差五剥好虾再沾满汤汁送到小派嘴里，还不忘拿餐巾纸替小派擦擦嘴。当然还要防止小派恶作剧地轻咬他的手指。虽然也没有用心防就是了。小派得逞又满足地嘿嘿笑，被小远敲打：“好好吃饭！”
 小派剥得慢，但坚持不懈，到最后也攒下一小碗虾肉。他摘下手套，心满意足地放到小远面前。小远很惊讶，说是给我的吗，小派就得意洋洋地点点头。
 虽然碗里的虾坑坑洼洼缺头短尾，小远还是很高兴，又剥好一只虾往小派嘴里塞进去。`},
-  {emoji:'🐼', name:'成都・熊猫', img:'assets/postcards/8.webp', story:`派派,
+  {emoji:'🐼', name:'成都・熊猫', img:'assets/postcards_photo/8.webp', artImg:'assets/postcards/8.webp', story:`派派,
 好久没写明信片给你，太久没动笔有太多想说的，但忽然之间又不知道要说什么。我不知道为什么会走到这一步……我今天来了你一直想来的成都，抱了你一直想抱的熊猫，录了一首歌，希望你能听见。
 “应该继续假装乐观，还是不再伪装
 偶尔夜晚，还是有思念一个人的习惯
@@ -217,7 +236,7 @@ INTO1来过长沙好多好多次，每次一来，万人迷的群里总要呼喊
 ⋯⋯我可能没有想像中勇敢，能逞强忘掉曾经有你陪伴。
 
 远`},
-  {emoji:'🏝️', name:'厦门・鼓浪屿', img:'assets/postcards/9.webp', story:`派派,
+  {emoji:'🏝️', name:'厦门・鼓浪屿', img:'assets/postcards_photo/9.webp', artImg:'assets/postcards/9.webp', story:`派派,
 我在鼓浪屿听到一个故事,感触很深。
 文学大家林语堂先生与妻子相识之初,因两家家境悬殊,婚事一度不被认可。直到两人成婚,他征得妻子同意后,把婚书烧了。你猜,这是为什么?
 因为林先生相信,他们这辈子都用不上婚书——婚书只有在离婚时才用得着,而他们永远不会走到那一步。
@@ -236,7 +255,7 @@ My wife, my husband, and my love.
 
 婚礼不就是新人穿着西装礼服一起走红毯接受他人祝福么？小远说，我们早就走过很多次了呀。
 有没有仪式，有没有证明，我都早已准备与你共白头。`},
-  {emoji:'🌸', name:'杭州・西湖', img:'assets/postcards/10.webp', story:`派派,
+  {emoji:'🌸', name:'杭州・西湖', img:'assets/postcards_photo/10.webp', artImg:'assets/postcards/10.webp', story:`派派,
 这次终于实现了「一起来西湖玩」的约定。
 从成团后在杭州举办的第一场全员线下见面会,到解散前在苏州的演唱会,我们始终没能好好玩一趟苏杭。你说你想来看看白娘子撑伞走过的断桥,还说如果你是许仙,一定不会被爱人现出蛇身吓到,一定不会害心爱的人被镇压百年。
 
@@ -260,7 +279,7 @@ INTO1的工作安排得很紧密，出差去任何地方都是匆匆忙忙地来
 对了，你愿不愿意和我一起在一年伊始的春天里，什么都不做地、就这样一起发呆？
 一直到太阳西落，月亮升起。
 四季轮转。我们一直在一起。`},
-  {emoji:'🎆', name:'上海・迪士尼', img:'assets/postcards/11.webp', story:`派派,
+  {emoji:'🎆', name:'上海・迪士尼', img:'assets/postcards_photo/11.webp', artImg:'assets/postcards/11.webp', story:`派派,
 今天是不是你梦想中的画面?我有好好记得你跟我说过的每一个梦想,我们还有时间,慢慢一起实现。
 我们一起来了迪士尼,所有童话故事开始与结束的地方。你说小时候你真的相信,只要王子吻了公主,他们从此就会过著幸福快乐的日子,happily ever after。后来才发现,现实里的恋爱是粗茶淡饭,是你跑我追,是在很多小小的失望里,抓住大大的满足。
 我们一起看了最绚烂的烟火,然后在烟火下接吻。
@@ -2589,6 +2608,7 @@ function renderModal(step){
       <div class="about-tabs">
         <button class="about-tab-btn active" id="about-tab-play">游戏玩法</button>
         <button class="about-tab-btn" id="about-tab-credits">主创团队</button>
+        <button class="about-tab-btn" id="about-tab-photos">照片来源</button>
       </div>
       <div class="about-panel active" id="about-panel-play">
         <div class="tutorial-list">
@@ -2607,18 +2627,21 @@ function renderModal(step){
         <div class="about-credits-row"><b>文字：</b>不吃生姜、无敌小可、粥粥煮粥、硬梆梆硬</div>
         <div class="about-credits-row"><b>特别感谢：</b>南十字星老师、D老师</div>
       </div>
+      <div class="about-panel" id="about-panel-photos">
+        <div class="photo-credit-list">${PHOTO_CREDITS.map(c=>`
+          <div class="photo-credit-row">
+            <b>${c.place}</b>
+            <span>${c.author}${c.lic ? ' · '+(c.lic.url ? `<a href="${c.lic.url}" target="_blank" rel="noopener">${c.lic.name}</a>` : c.lic.name) : ''}${c.src ? ` · <a href="${c.src}" target="_blank" rel="noopener">来源</a>` : ''}</span>
+          </div>`).join('')}</div>
+        <p class="photo-credit-note">${PHOTO_CREDIT_NOTE}</p>
+      </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
-    const playTab = card.querySelector('#about-tab-play');
-    const creditsTab = card.querySelector('#about-tab-credits');
-    const playPanel = card.querySelector('#about-panel-play');
-    const creditsPanel = card.querySelector('#about-panel-credits');
-    playTab.addEventListener('click', ()=>{
-      playTab.classList.add('active'); creditsTab.classList.remove('active');
-      playPanel.classList.add('active'); creditsPanel.classList.remove('active');
-    });
-    creditsTab.addEventListener('click', ()=>{
-      creditsTab.classList.add('active'); playTab.classList.remove('active');
-      creditsPanel.classList.add('active'); playPanel.classList.remove('active');
+    const tabPairs = [['play','#about-tab-play','#about-panel-play'],['credits','#about-tab-credits','#about-panel-credits'],['photos','#about-tab-photos','#about-panel-photos']]
+      .map(([k,t,p])=>[card.querySelector(t),card.querySelector(p)]);
+    tabPairs.forEach(([tab,panel])=>{
+      tab.addEventListener('click', ()=>{
+        tabPairs.forEach(([t2,p2])=>{ t2.classList.toggle('active', t2===tab); p2.classList.toggle('active', p2===panel); });
+      });
     });
   } else if(step.type==='skills'){
     card.innerHTML = `
@@ -2871,7 +2894,7 @@ function renderModal(step){
       bodyHtml = `<p>收集到一张来自远方的明信片。</p>`;
     }
     const photoHtml = item.img
-      ? `<div class="ending-illustration"><img src="${item.img}" alt="" style="width:100%;display:block;"></div>`
+      ? `<div class="postcard-photo"><img src="${item.img}" alt=""></div>`
       : `<div class="modal-emoji">${item.emoji}</div>`;
     card.innerHTML = `
       ${photoHtml}
