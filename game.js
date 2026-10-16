@@ -1172,6 +1172,10 @@ function refreshMap(){
 /* ============================================================
    收藏册
    ============================================================ */
+// 相簿格子只显示小圆图,用缩小的缩图(assets/…/thumb/N.webp),点进去的弹窗才载入大图,开相簿不用一次下载全部原图
+function albumThumb(src){
+  return src.replace(/\/([0-9]+)\.(?:webp|gif)$/, '/thumb/$1.webp');
+}
 function openAlbum(type){
   const grid = document.getElementById('album-grid');
   grid.innerHTML = '';
@@ -1185,7 +1189,7 @@ function openAlbum(type){
       const has = STATE.mementos.includes(level);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? '💝' : '？');
+      const photoInner = has && item.img ? `<img src="${albumThumb(item.img)}" alt="" loading="lazy" decoding="async">` : (has ? '💝' : '？');
       div.innerHTML = `
         <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
         <div class="album-item-label">${has ? item.name : ''}</div>`;
@@ -1206,7 +1210,7 @@ function openAlbum(type){
       const has = STATE.postcards.includes(i);
       const div = document.createElement('div');
       div.className = 'album-item ' + (has ? '' : 'locked');
-      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? item.emoji : '？');
+      const photoInner = has && item.img ? `<img src="${albumThumb(item.img)}" alt="" loading="lazy" decoding="async">` : (has ? item.emoji : '？');
       const caption = has ? item.name : '';
       div.innerHTML = `
         <div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>
@@ -1224,7 +1228,7 @@ function openAlbum(type){
       const has = STATE.couplePhotos.includes(level);
       const div = document.createElement('div');
       div.className = 'album-item album-item-photo-only ' + (has ? '' : 'locked');
-      const photoInner = has && item.img ? `<img src="${item.img}" alt="">` : (has ? '💌' : '？');
+      const photoInner = has && item.img ? `<img src="${albumThumb(item.img)}" alt="" loading="lazy" decoding="async">` : (has ? '💌' : '？');
       div.innerHTML = `<div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>`;
       div.title = has ? item.name : '尚未收集';
       if(has){
@@ -1239,7 +1243,7 @@ function openAlbum(type){
       const has = STATE.diaryUnlocked.includes(level);
       const div = document.createElement('div');
       div.className = 'album-item album-item-photo-only ' + (has ? '' : 'locked');
-      const photoInner = has ? `<img src="${item.thumb}" alt="">` : '？';
+      const photoInner = has ? `<img src="${item.thumb}" alt="" loading="lazy" decoding="async">` : '？';
       div.innerHTML = `<div class="album-item-circle-wrap"><div class="album-item-circle">${photoInner}</div></div>`;
       div.title = has ? item.name : '尚未收集';
       if(has){
@@ -1645,10 +1649,13 @@ function showBoardToast(msg, duration){
 }
 
 // 预先把特效图载入浏览器缓存并解码好,避免技能第一次触发时才现抓图/现解码造成的画面卡顿
-['assets/effects/moon_burst.jpg','assets/effects/sun_burst.webp','assets/effects/butterfly_burst.webp'].forEach(src=>{
-  const im = new Image();
-  im.src = src;
-});
+// (等首页画面载完、空档时才开始,不跟首页的图抢频宽)
+window.addEventListener('load', ()=> setTimeout(()=>{
+  ['assets/effects/moon_burst.jpg','assets/effects/sun_burst.webp','assets/effects/butterfly_burst.webp'].forEach(src=>{
+    const im = new Image();
+    im.src = src;
+  });
+}, 3000));
 
 // 各特效图的显示时长,给自己的自动隐藏计时器用,也给下面「多个特效排队播放」用,只有这一份数字来源
 const BURST_DURATIONS = { moon:1000, sun:1300, butterfly:1600, swap:1600, companion:1600, catchStar:1600, bottleCollect:1600, loveFull:1600 };
