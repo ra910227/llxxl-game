@@ -567,8 +567,14 @@ function generateLevelConfig(n){
 /* ============================================================
    存档
    ============================================================ */
+// 玩家编号:第一次打开(或旧存档第一次更新后打开)自动产生,存在存档里,上传限时赛成绩时用来绑定名字
+function makePlayerId(){
+  try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  const hex = n => Array.from({length:n}, ()=> Math.floor(Math.random()*16).toString(16)).join('');
+  return `${hex(8)}-${hex(4)}-4${hex(3)}-a${hex(3)}-${hex(12)}`;
+}
 function loadState(){
-  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, storyPostsSeen:0, lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, moonTutorialSeen:false, butterflyTutorialSeen:false, sunTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
+  const defaults = { unlockedLevel:1, totalCleared:0, mementos:[0], postcards:[], couplePhotos:[], diaryUnlocked:[], mementosSeen:0, postcardsSeen:0, couplePhotosSeen:0, storyPostsSeen:0, playerId:makePlayerId(), eventIntroSeen:'', lives:MAX_LIVES, nextRegenAt:null, homeTutorialSeen:false, levelTutorialSeen:false, moonTutorialSeen:false, butterflyTutorialSeen:false, sunTutorialSeen:false, prologueSeen:false, endless:null, playerName:'', milestoneStats:emptyMilestoneStats(), milestoneHistory:{}, coins:0, piggyReadyAt:null, piggyClicksSinceJackpot:0, piggyJackpotThreshold:null };
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -668,11 +674,26 @@ function updatePiggyUI(){
   const layer = document.getElementById('piggy-layer');
   if(layer) layer.classList.toggle('piggy-ready', isPiggyReady());
 }
+// 月兔大挑战里用的是「这一局自己赚的金币」(BOARD.coins),不动主线的远派金币;每花 1 枚,排名分 -1
+function coinBalance(){ return (BOARD && BOARD.endless) ? (BOARD.coins||0) : STATE.coins; }
+function spendCoins(n){
+  if(BOARD && BOARD.endless){
+    BOARD.coins = (BOARD.coins||0) - n;
+    BOARD.coinsSpent = (BOARD.coinsSpent||0) + n;
+    saveEndlessProgress();
+  } else {
+    STATE.coins -= n;
+    saveState();
+  }
+  updateCoinDisplays();
+}
 function updateCoinDisplays(){
   const c1 = document.getElementById('coin-count');
   if(c1) c1.textContent = STATE.coins;
   const c2 = document.getElementById('board-coin-count');
-  if(c2) c2.textContent = STATE.coins;
+  if(c2) c2.textContent = coinBalance();
+  const c3 = document.getElementById('endless-coin-count');
+  if(c3) c3.textContent = (BOARD && BOARD.endless) ? (BOARD.coins||0) : 0;
 }
 function showCoinGainPopup(amount){
   const el = document.getElementById('coin-gain-popup');
@@ -882,11 +903,14 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   stopLivesTimer();
+  stopEventTicker();
+  if(id==='screen-board' && BOARD && BOARD.endless) startEventTicker();   // 弹窗关掉回到月兔大挑战时,倒数继续跑
   if(id==='screen-home'){
     refreshHome();
     layoutHomeCanvas();
     startLivesTimer();
     maybeShowHomeTutorial();
+    maybeShowEventIntro();
   }
   if(id==='screen-map') refreshMap();
 }
@@ -906,6 +930,8 @@ document.getElementById('btn-board-help').addEventListener('click', ()=> showMod
 document.getElementById('board-coin-btn').addEventListener('click', openCoinSkillsModal);
 document.getElementById('hotspot-endless').addEventListener('click', openEndlessBoard);
 document.getElementById('hotspot-piggy').addEventListener('click', claimPiggyBank);
+document.getElementById('btn-event-help').addEventListener('click', ()=> showModalQueue([{type:'event-intro', reread:true}], 'screen-board'));
+document.getElementById('btn-endless-coin').addEventListener('click', openCoinSkillsModal);
 document.getElementById('btn-endless-submit').addEventListener('click', ()=> showModalQueue([{type:'endless-submit'}], 'screen-board'));
 document.getElementById('btn-endless-rank').addEventListener('click', ()=> showModalQueue([{type:'leaderboard'}], 'screen-board'));
 document.getElementById('btn-endless-restart').addEventListener('click', ()=>{
@@ -965,6 +991,7 @@ function endHomeTour(){
   if(!homeTourEls) return;
   homeTourEls.dim.remove(); homeTourEls.hi.remove(); homeTourEls.cap.remove();
   homeTourEls = null;
+  maybeShowEventIntro();
 }
 
 /* ============================================================
@@ -1328,6 +1355,41 @@ function endlessConfig(){
   // level 故意设 79,让蝴蝶/太阳特效、月亮/兔兔/狗狗权重加成全部都是满级效果
   return { level:79, rows:ENDLESS_ROWS, cols:ENDLESS_COLS, tileTypes:11, moves:Infinity, targetScore:Infinity, numFrozen:0, isMilestone:false, isSpecialLevel:false };
 }
+/* ============================================================
+   限时赛:2026/10/20 12:00 ~ 10/31 12:00(北京时间),时间以排行榜服务器为准(开游戏时跟服务器对时,
+   连不上才退回手机时间);只有「限时赛期间开始的那一局」才能上传,开赛前的是练习局,开赛后第一次进来会从空白重新开始。
+   ============================================================ */
+const EVENT = {
+  id: '2026-10',
+  start: Date.parse('2026-10-20T12:00:00+08:00'),
+  end:   Date.parse('2026-10-31T12:00:00+08:00'),
+  grace: 5*60*1000,          // 结束后服务器多给的补传时间(要跟 leaderboard-worker 的 GRACE_MS 一致)
+};
+const COIN_PER_MATCH = 1;    // 每个兔兔/狗狗组合赚几枚金币(服务器用同一个数字检查,要一起改)
+let serverOffsetMs = 0;
+function eventNow(){ return Date.now() + serverOffsetMs; }
+function eventPhase(){
+  const n = eventNow();
+  return n < EVENT.start ? 'before' : (n < EVENT.end ? 'live' : 'ended');
+}
+async function syncEventClock(){
+  try{
+    const res = await fetch(LEADERBOARD_API + '/status', { cache:'no-store' });
+    const d = await res.json();
+    if(d && d.ok && Number.isFinite(d.now)) serverOffsetMs = d.now - Date.now();
+  }catch(e){ /* 连不上就用手机时间 */ }
+}
+function earnEndlessCoins(n){
+  BOARD.coins = (BOARD.coins||0) + n;
+  BOARD.coinsEarned = (BOARD.coinsEarned||0) + n;
+}
+// 排名分 = 现有月兔数 − 花掉的金币数(最低 0)
+function endlessPoints(src){
+  return Math.max(0, endlessRabbitTotal(src) - (src.coinsSpent||0));
+}
+function newRunMeta(){
+  return { period: eventPhase()==='live' ? EVENT.id : 'practice', runStartedAt: eventNow() };
+}
 function emptyEndlessStats(){
   return { bunnyMatches:0, dogfaceMatches:0, butterflyBursts:0, sunBursts:0, moonBombs:0, moonPoundings:0 };
 }
@@ -1341,7 +1403,10 @@ function endlessRabbitTotal(src){
 }
 function openEndlessBoard(){
   const cfg = endlessConfig();
-  const saved = STATE.endless;
+  let saved = STATE.endless;
+  // 限时赛开始后,练习局的进度不带过来:第一次进来就从空白棋盘重新开始
+  if(saved && eventPhase()==='live' && saved.period!==EVENT.id) saved = null;
+  syncEventClock();
   BOARD = {
     config: cfg,
     cells: null,
@@ -1354,6 +1419,10 @@ function openEndlessBoard(){
     rabbitCount: 0,
     fullMoonCount: 0,
     stats: emptyEndlessStats(),
+    coins: 0,
+    coinsEarned: 0,
+    coinsSpent: 0,
+    ...newRunMeta(),
   };
   if(saved && saved.cells && saved.cells.length===cfg.rows && saved.cells[0].length===cfg.cols){
     BOARD.cells = saved.cells;
@@ -1363,6 +1432,11 @@ function openEndlessBoard(){
     BOARD.bunnyPending = saved.bunnyPending||0;
     BOARD.score = saved.score||0;
     BOARD.stats = Object.assign(emptyEndlessStats(), saved.stats||{});
+    BOARD.coins = saved.coins||0;
+    BOARD.coinsEarned = saved.coinsEarned||0;
+    BOARD.coinsSpent = saved.coinsSpent||0;
+    BOARD.period = saved.period || 'practice';
+    BOARD.runStartedAt = saved.runStartedAt || BOARD.runStartedAt;
   } else {
     BOARD.cells = generateSolvableBoard(cfg);
   }
@@ -1374,10 +1448,12 @@ function openEndlessBoard(){
   document.querySelector('.board-score-wrap').hidden = true;
   document.getElementById('endless-panel').hidden = false;
   renderEndlessStats();
+  updateCoinDisplays();
 
   selectedCell = null;
   showScreen('screen-board');
   renderBoard();
+  startEventTicker();
 }
 function resetEndlessBoard(){
   STATE.endless = null;
@@ -1388,7 +1464,10 @@ function renderEndlessStats(){
   const el = document.getElementById('endless-stats');
   if(!el || !BOARD || !BOARD.endless) return;
   document.getElementById('board-moves-left').textContent = endlessRabbitTotal(BOARD);
+  updateCoinDisplays();
   el.innerHTML = `
+    <span>🏆排名分 <b>${endlessPoints(BOARD)}</b></span>
+    <span>🪙已花金币 <b>${BOARD.coinsSpent||0}</b></span>
     <span>🐰兔兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
     <span>🐶狗狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
@@ -1407,6 +1486,11 @@ function saveEndlessProgress(){
     bunnyPending: BOARD.bunnyPending,
     score: BOARD.score,
     stats: BOARD.stats,
+    coins: BOARD.coins||0,
+    coinsEarned: BOARD.coinsEarned||0,
+    coinsSpent: BOARD.coinsSpent||0,
+    period: BOARD.period,
+    runStartedAt: BOARD.runStartedAt,
   };
   saveState();
   renderEndlessStats();
@@ -1422,7 +1506,11 @@ async function submitLeaderboardScore(name){
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       name,
+      playerId: STATE.playerId,
+      runStartedAt: src.runStartedAt || 0,
       rabbits: endlessRabbitTotal(src),
+      coinsSpent: src.coinsSpent||0,
+      coinsEarned: src.coinsEarned||0,
       score: src.score||0,
       bunnyMatches: stats.bunnyMatches,
       dogfaceMatches: stats.dogfaceMatches,
@@ -1434,17 +1522,78 @@ async function submitLeaderboardScore(name){
   });
   const data = await res.json();
   if(!data.ok) throw new Error(data.error || 'submit_failed');
-  return data.entries;
+  return data;   // { updated, best(排名分), entries|null }
 }
 async function fetchLeaderboard(){
   const res = await fetch(LEADERBOARD_API + '/leaderboard');
   const data = await res.json();
   if(!data.ok) throw new Error(data.error || 'fetch_failed');
-  return data.entries;
+  return data;   // { pending, phase, published, entries }
 }
+const SUBMIT_ERRORS = {
+  name_taken: '这个名字已经有人使用了,请换一个名字。',
+  not_started: '限时赛还没开始,现在是练习模式。',
+  ended: '限时赛已经结束,无法再上传了。',
+  run_before_start: '这一局是限时赛开始前玩的(练习局),不能上传。请按🔄重新开始一局。',
+  stats_inconsistent: '成绩资料不符合规则,无法上传。',
+  empty_name: '请先输入名字',
+};
+function uploadBlockReason(){
+  if(eventPhase()==='before') return '限时赛还没开始(10/20 12:00),现在是练习模式,还不能上传。';
+  if(eventNow() > EVENT.end + EVENT.grace) return '限时赛已经结束,无法再上传了。榜单审核后会公布最终名次。';
+  if(!BOARD || !BOARD.endless || BOARD.period!==EVENT.id) return '这一局不是限时赛期间开始的(练习局),不能上传。请按🔄重新开始一局。';
+  return '';
+}
+
+/* 月兔大挑战的倒数计时:每秒更新;开赛的那一刻自动换成正式局,结束的那一刻跳出上传提示 */
+let eventTicker = null, lastEventPhase = null;
+function eventCountdownText(){
+  const now = eventNow(), phase = eventPhase();
+  const fmt = ms => {
+    const s = Math.max(0, Math.floor(ms/1000));
+    const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
+    return (d ? d+'天 ' : '') + `${h}时 ${m}分 ${sec}秒`;
+  };
+  if(phase==='before') return `⏳ 限时赛 10/20 12:00 开始,还有 ${fmt(EVENT.start-now)}(现在是练习局,不计入榜单)`;
+  if(phase==='live')   return `🏁 限时赛进行中 · 距结束 ${fmt(EVENT.end-now)}`;
+  return '🏁 限时赛已结束 · 榜单审核后公布';
+}
+function stopEventTicker(){ if(eventTicker){ clearInterval(eventTicker); eventTicker = null; } }
+function startEventTicker(){
+  stopEventTicker();
+  lastEventPhase = eventPhase();
+  tickEvent();
+  eventTicker = setInterval(tickEvent, 1000);
+}
+function tickEvent(){
+  const el = document.getElementById('event-countdown-text');
+  if(el) el.textContent = eventCountdownText();
+  const phase = eventPhase();
+  if(phase===lastEventPhase) return;
+  const prev = lastEventPhase;
+  lastEventPhase = phase;
+  if(!BOARD || !BOARD.endless) return;
+  if(prev==='before' && phase==='live'){
+    resetEndlessBoard();
+    showModalQueue([{type:'event-intro', started:true}], 'screen-board');
+  } else if(prev==='live' && phase==='ended' && BOARD.period===EVENT.id){
+    showModalQueue([{type:'endless-end'}], 'screen-board');
+  }
+}
+// 每次登入游戏(回到首页)跳一次限时赛说明;新玩家等首页导览看完才跳
+function maybeShowEventIntro(){
+  if(STATE.eventIntroSeen===EVENT.id) return;
+  if(!STATE.homeTutorialSeen || homeTourEls) return;
+  if(eventNow() > EVENT.end + EVENT.grace) return;
+  if(!document.getElementById('modal-overlay').hidden) return;
+  STATE.eventIntroSeen = EVENT.id;
+  saveState();
+  showModalQueue([{type:'event-intro'}], 'screen-home');
+}
+
 // 9个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
 const ACHIEVEMENT_TITLES = [
-  { key:'rabbits',         icon:'👑', name:'月兔国国王' },
+  { key:'points',          icon:'👑', name:'月兔国国王' },
   { key:'dogfaceMatches',  icon:'🐶', name:'最爱狗狗的人' },
   { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人' },
   { compute:e=>(e.butterflyBursts||0)+(e.sunBursts||0)+(e.moonBombs||0)+(e.moonPoundings||0), icon:'🍵', name:'最游刃有余的人' },
@@ -1483,9 +1632,9 @@ function renderLeaderboardList(entries){
       <div class="leaderboard-rank">${i+1}</div>
       <div style="flex:1;min-width:0;">
         <div class="leaderboard-name">${escapeHtml(e.name)}</div>
-        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐶${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🐇${e.moonPoundings||0}</div>
+        <div class="leaderboard-detail">🐰${e.bunnyMatches||0} 🐶${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🌝${e.moonPoundings||0}</div>
       </div>
-      <div class="leaderboard-rabbits">🐇${e.rabbits}</div>
+      <div class="leaderboard-rabbits">🏆${e.points}<div class="leaderboard-sub">🐇${e.rabbits} − 🪙${e.coinsSpent||0}</div></div>
     </div>`).join('');
 }
 function escapeHtml(s){
@@ -1801,7 +1950,7 @@ const COIN_SKILL_COST = { swap: 1, companion: 7, catchStar: 9, bottleCollect: 17
 const SKILL_FLASH_DURATION = 350;
 
 function openCoinSkillsModal(){
-  if(!BOARD || BOARD.endless) return;
+  if(!BOARD) return;
   showModalQueue([{type:'coin-skills'}], 'screen-board');
 }
 
@@ -1846,9 +1995,7 @@ function handleCoinSwapPick(r,c){
     BOARD.coinSwapFirst = null;
     return;
   }
-  STATE.coins -= COIN_SKILL_COST.swap;
-  saveState();
-  updateCoinDisplays();
+  spendCoins(COIN_SKILL_COST.swap);
   swapCells(BOARD.cells, r1,c1,r,c);
   exitCoinSwapMode();
   BOARD.busy = true;
@@ -1859,7 +2006,7 @@ function handleCoinSwapPick(r,c){
 // 陪伴娃娃:扫描场上所有兔兔/小派、狗狗/小远,各自在一个相邻的非月亮/蝴蝶/太阳格子里多变出一只同类型(优先保留 XIAOPAI/XIAOYUAN 这种剧情关卡的替身图案)。
 // 变出瞬间先播闪光动画,动画结束才叠加特效图,特效图播完才结算连锁
 function useCompanionDoll(){
-  if(STATE.coins < COIN_SKILL_COST.companion) return;
+  if(coinBalance() < COIN_SKILL_COST.companion) return;
   const cfg = BOARD.config;
   const claimed = new Set();
   const sources = [];
@@ -1888,9 +2035,7 @@ function useCompanionDoll(){
       break;
     }
   });
-  STATE.coins -= COIN_SKILL_COST.companion;
-  saveState();
-  updateCoinDisplays();
+  spendCoins(COIN_SKILL_COST.companion);
   BOARD.busy = true;
   renderBoard();
   if(changed){
@@ -1903,7 +2048,7 @@ function useCompanionDoll(){
 
 // 捕星星:场上所有非冰冻的星星先播消失闪光,动画结束才真的消失掉落补位,再叠加特效图,特效图播完才结算连锁
 function useCatchStar(){
-  if(STATE.coins < COIN_SKILL_COST.catchStar) return;
+  if(coinBalance() < COIN_SKILL_COST.catchStar) return;
   const cfg = BOARD.config;
   const targets = [];
   for(let r=0;r<cfg.rows;r++) for(let c=0;c<cfg.cols;c++){
@@ -1911,9 +2056,7 @@ function useCatchStar(){
     if(cell && cell.type===STAR_IDX && !cell.frozen) targets.push([r,c]);
   }
   const changed = targets.length>0;
-  STATE.coins -= COIN_SKILL_COST.catchStar;
-  saveState();
-  updateCoinDisplays();
+  spendCoins(COIN_SKILL_COST.catchStar);
   BOARD.busy = true;
   if(!changed){
     showCatchStarBurst();
@@ -1955,9 +2098,7 @@ function handleBottlePick(r,c){
     const cc2 = BOARD.cells[rr][cc];
     if(cc2 && cc2.type===targetType && !cc2.frozen) targets.push([rr,cc]);
   }
-  STATE.coins -= COIN_SKILL_COST.bottleCollect;
-  saveState();
-  updateCoinDisplays();
+  spendCoins(COIN_SKILL_COST.bottleCollect);
   BOARD.busy = true;
   targets.forEach(([rr,cc])=>{
     const el = document.querySelector(`.tile[data-r="${rr}"][data-c="${cc}"]`);
@@ -1975,7 +2116,7 @@ function handleBottlePick(r,c){
 // 爱心满满:场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心。
 // 变化瞬间先播闪光动画,动画结束才叠加特效图,特效图播完才结算连锁
 function useLoveFull(){
-  if(STATE.coins < COIN_SKILL_COST.loveFull) return;
+  if(coinBalance() < COIN_SKILL_COST.loveFull) return;
   const cfg = BOARD.config;
   let changed = false;
   const changedCells = [];
@@ -1988,9 +2129,7 @@ function useLoveFull(){
     changedCells.push([r,c]);
     changed = true;
   }
-  STATE.coins -= COIN_SKILL_COST.loveFull;
-  saveState();
-  updateCoinDisplays();
+  spendCoins(COIN_SKILL_COST.loveFull);
   BOARD.busy = true;
   renderBoard();
   if(changed){
@@ -2404,7 +2543,7 @@ function resolveCascade(combo){
       bonusMoves += add;
       specialMsg = `🐶 狗狗组合!步数 +${add}`;
       BOARD.dogfacePending++;
-      if(BOARD.endless) BOARD.stats.dogfaceMatches++;
+      if(BOARD.endless){ BOARD.stats.dogfaceMatches++; earnEndlessCoins(COIN_PER_MATCH); }
       else STATE.milestoneStats.dogfaceMatches++;
     }
     if(type===BUNNY_IDX || type===XIAOPAI_IDX){
@@ -2412,7 +2551,7 @@ function resolveCascade(combo){
       bonusMoves += add;
       specialMsg = `🐰 兔兔组合!步数 +${add}`;
       BOARD.bunnyPending++;
-      if(BOARD.endless) BOARD.stats.bunnyMatches++;
+      if(BOARD.endless){ BOARD.stats.bunnyMatches++; earnEndlessCoins(COIN_PER_MATCH); }
       else STATE.milestoneStats.bunnyMatches++;
     }
   });
@@ -2664,14 +2803,15 @@ function renderModal(step){
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
   } else if(step.type==='coin-skills'){
-    const canSwap = STATE.coins >= COIN_SKILL_COST.swap;
-    const canCompanion = STATE.coins >= COIN_SKILL_COST.companion;
-    const canCatchStar = STATE.coins >= COIN_SKILL_COST.catchStar;
-    const canBottle = STATE.coins >= COIN_SKILL_COST.bottleCollect;
-    const canLoveFull = STATE.coins >= COIN_SKILL_COST.loveFull;
+    const canSwap = coinBalance() >= COIN_SKILL_COST.swap;
+    const canCompanion = coinBalance() >= COIN_SKILL_COST.companion;
+    const canCatchStar = coinBalance() >= COIN_SKILL_COST.catchStar;
+    const canBottle = coinBalance() >= COIN_SKILL_COST.bottleCollect;
+    const canLoveFull = coinBalance() >= COIN_SKILL_COST.loveFull;
     card.innerHTML = `
-      <h3 style="text-align:center;">远派金币技能</h3>
-      <p style="text-align:center;">目前持有 <img src="assets/ui/coin.webp" alt="" style="width:16px;height:16px;vertical-align:-3px;"> <b>${STATE.coins}</b> 枚</p>
+      <h3 style="text-align:center;">${BOARD && BOARD.endless ? '月兔大挑战 · 金币技能' : '远派金币技能'}</h3>
+      <p style="text-align:center;">目前持有 <img src="assets/ui/coin.webp" alt="" style="width:16px;height:16px;vertical-align:-3px;"> <b>${coinBalance()}</b> 枚</p>
+      ${BOARD && BOARD.endless ? `<p style="text-align:center;font-size:11px;color:var(--ink-soft);margin-top:-4px;">金币靠兔兔、狗狗组合赚到(每组 +${COIN_PER_MATCH} 枚);每花 1 枚,排名分 −1。</p>` : ''}
       <div class="coin-skill-row ${canSwap?'':'coin-skill-disabled'}" id="coin-skill-swap">
         <div class="coin-skill-name">🔀 元素互换<span class="coin-skill-cost">${COIN_SKILL_COST.swap}枚</span></div>
         <div class="coin-skill-desc">选两个非冰冻格,直接互换内容,不占用步数</div>
@@ -2724,43 +2864,96 @@ function renderModal(step){
       });
     }
   } else if(step.type==='endless-submit'){
-    card.innerHTML = `
-      <h3 style="text-align:center;">上传成绩</h3>
-      <p>用一个名字记录你的月兔总数,同名会直接覆盖成最新纪录。</p>
-      <input type="text" class="name-input" id="endless-name-input" maxlength="16" placeholder="输入你的名字" value="${escapeHtml(STATE.playerName||'')}">
-      <div id="endless-submit-status" style="min-height:18px;font-size:12px;color:var(--ink-soft);text-align:center;"></div>
-      <button class="modal-btn" id="endless-submit-confirm">送出</button>
-      <button class="modal-btn secondary" id="modal-next">取消</button>`;
-    card.querySelector('#endless-submit-confirm').addEventListener('click', async ()=>{
-      const input = card.querySelector('#endless-name-input');
-      const statusEl = card.querySelector('#endless-submit-status');
-      const name = input.value.trim();
-      if(!name){ statusEl.textContent = '请先输入名字'; return; }
-      statusEl.textContent = '上传中…';
-      try{
-        const entries = await submitLeaderboardScore(name);
-        STATE.playerName = name;
-        saveState();
-        statusEl.textContent = '';
-        showModalQueue([{type:'leaderboard', entries}], modalReturnScreen);
-      }catch(e){
-        statusEl.textContent = '上传失败,请稍后再试';
-      }
-    });
+    const blocked = uploadBlockReason();
+    if(blocked){
+      card.innerHTML = `
+        <h3 style="text-align:center;">上传成绩</h3>
+        <p>${blocked}</p>
+        <button class="modal-btn" id="modal-next">知道了</button>`;
+    } else {
+      card.innerHTML = `
+        <h3 style="text-align:center;">上传成绩</h3>
+        <p>你现在的排名分是 <b>${endlessPoints(BOARD)}</b>(🐇月兔 ${endlessRabbitTotal(BOARD)} − 🪙花掉的金币 ${BOARD.coinsSpent||0})。<br>同一个名字只保留你的最高纪录,可以重复上传;名字被别人用了就要换一个。</p>
+        <input type="text" class="name-input" id="endless-name-input" maxlength="16" placeholder="输入你的名字" value="${escapeHtml(STATE.playerName||'')}">
+        <div id="endless-submit-status" style="min-height:18px;font-size:12px;color:var(--ink-soft);text-align:center;"></div>
+        <button class="modal-btn" id="endless-submit-confirm">送出</button>
+        <button class="modal-btn secondary" id="modal-next">取消</button>`;
+      card.querySelector('#endless-submit-confirm').addEventListener('click', async ()=>{
+        const input = card.querySelector('#endless-name-input');
+        const statusEl = card.querySelector('#endless-submit-status');
+        const name = input.value.trim();
+        if(!name){ statusEl.textContent = '请先输入名字'; return; }
+        statusEl.textContent = '上传中…';
+        try{
+          const data = await submitLeaderboardScore(name);
+          STATE.playerName = name;
+          saveState();
+          statusEl.textContent = '';
+          const notice = data.updated ? `已上传!你的排名分是 ${data.best}` : `这次没有超过你的最高纪录(排名分 ${data.best}),榜上仍是 ${data.best}`;
+          showModalQueue([{type:'leaderboard', entries:data.entries, notice}], modalReturnScreen);
+        }catch(e){
+          statusEl.textContent = SUBMIT_ERRORS[e.message] || '上传失败,请稍后再试';
+        }
+      });
+    }
   } else if(step.type==='leaderboard'){
     card.innerHTML = `
-      <h3 style="text-align:center;">🐇 月兔排行榜</h3>
+      <h3 style="text-align:center;">🐇 月兔限时赛排行榜</h3>
+      <p id="leaderboard-notice" style="text-align:center;font-size:12px;color:var(--ink-soft);margin:0 0 6px;">${step.notice||''}</p>
       <div class="title-list" id="title-list"></div>
       <div class="leaderboard-list" id="leaderboard-list">载入中…</div>
       <button class="modal-btn" id="modal-next">关闭</button>`;
+    const showBoard = data => {
+      const noteEl = card.querySelector('#leaderboard-notice');
+      if(data.pending){
+        card.querySelector('#leaderboard-list').innerHTML = `<p style="text-align:center;color:var(--ink-soft);">限时赛已结束,榜单审核中。<br>公布后这里会显示最终名次!</p>`;
+        card.querySelector('#title-list').innerHTML = '';
+        return;
+      }
+      if(noteEl && !step.notice) noteEl.textContent = data.phase==='live' ? '限时赛进行中,榜单是暂定的' : (data.published ? '🏁 最终榜单' : '');
+      renderLeaderboardList(data.entries);
+    };
     if(step.entries){
-      renderLeaderboardList(step.entries);
+      showBoard({ entries:step.entries, phase:eventPhase() });
     } else {
-      fetchLeaderboard().then(renderLeaderboardList).catch(()=>{
+      fetchLeaderboard().then(showBoard).catch(()=>{
         const el = card.querySelector('#leaderboard-list');
         if(el) el.innerHTML = `<p style="text-align:center;color:var(--ink-soft);">排行榜暂时连不上,稍后再试。</p>`;
       });
     }
+  } else if(step.type==='event-intro'){
+    card.innerHTML = `
+      <h3 style="text-align:center;">🐇 月兔大挑战 · 限时赛</h3>
+      <div class="event-intro-body">
+        <p class="event-intro-when">🗓 <b>10月20日 12:00 – 10月31日 12:00</b>(北京时间)</p>
+        <div class="tutorial-list">
+          <div class="tutorial-row"><span class="tutorial-icon">1️⃣</span><div>点首页右上角的「月兔大挑战」,从空白棋盘开始,没有步数限制。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑出一组🐶和一组🐰,就会引来一只月兔。3 只月兔合成一个满月🌝,拖到棋盘上能变出一颗月亮,但每用掉一个满月会扣 3 只月兔。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组🐶或🐰,就赚 ${COIN_PER_MATCH} 枚金币🪙。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">4️⃣</span><div><b>排名分 = 月兔数 − 花掉的金币数</b>。想留下成绩就按「上传成绩」,同一个名字只保留你的最高纪录,可以重复上传。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">5️⃣</span><div>一个名字只属于一个人,被别人用了要换一个。想换名字重传也可以,榜上只会有你一笔。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>10/20 12:00 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">7️⃣</span><div>活动结束后榜单会先审核,公布后才看得到最终名次。</div></div>
+        </div>
+        <p class="event-intro-tip">💾 进度只存在这个浏览器,换手机前请先到首页点「存档备份」。</p>
+      </div>
+      <button class="modal-btn" id="event-intro-go">${step.reread ? '去月兔大挑战' : '去看看'}</button>
+      <button class="modal-btn secondary" id="modal-next" style="margin-top:8px;">${step.started ? '开始挑战' : '知道了'}</button>`;
+    card.querySelector('#event-intro-go').addEventListener('click', ()=>{
+      modalQueue = [];
+      document.getElementById('modal-overlay').hidden = true;
+      openEndlessBoard();
+    });
+  } else if(step.type==='endless-end'){
+    card.innerHTML = `
+      <div class="modal-emoji">🏁</div>
+      <h3 style="text-align:center;">限时赛结束了!</h3>
+      <p style="text-align:center;">你最终的排名分是 <b>${endlessPoints(BOARD)}</b>。<br>现在可以上传最后一次成绩(结束后 5 分钟内)。<br>榜单审核后会公布最终名次。</p>
+      <button class="modal-btn" id="endless-end-submit">上传成绩</button>
+      <button class="modal-btn secondary" id="modal-next" style="margin-top:8px;">稍后再说</button>`;
+    card.querySelector('#endless-end-submit').addEventListener('click', ()=>{
+      showModalQueue([{type:'endless-submit'}], 'screen-board');
+    });
   } else if(step.type==='tutorial-level'){
     card.innerHTML = `
       <div class="modal-emoji">🧩</div>
@@ -2788,6 +2981,7 @@ function renderModal(step){
       <textarea id="backup-export" class="backup-textarea" readonly></textarea>
       <button class="modal-btn secondary" id="backup-copy" style="margin-top:6px;">复制代码</button>
       <div style="height:14px;"></div>
+      <p style="font-size:11px;color:var(--ink-soft);">你的玩家编号(限时赛用来绑定名字):<br><span style="user-select:all;word-break:break-all;">${STATE.playerId}</span></p>
       <p style="font-size:12px;">还原存档:把之前复制的代码贴到下面,再按还原。</p>
       <textarea id="backup-import" class="backup-textarea" placeholder="贴上存档代码…"></textarea>
       <button class="modal-btn secondary" id="backup-restore" style="margin-top:6px;">还原这组存档</button>
@@ -3180,3 +3374,6 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+// 开游戏时先跟排行榜服务器对时(限时赛倒数计时要用)
+syncEventClock();

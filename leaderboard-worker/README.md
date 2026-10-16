@@ -1,33 +1,44 @@
-# 月兔排行榜 Worker 部署步骤
+# 月兔大挑戰・限時賽排行榜 Worker
 
-## 方法A:用 Cloudflare 网页后台(不用装任何东西,推荐)
+活動時間(北京時間):**2026/10/20 12:00 開始 → 2026/10/31 12:00 結束**(結束後伺服器多給 5 分鐘補傳)。
+時間由伺服器判斷,時間寫在 `worker.js` 最上面的 `START_MS` / `END_MS` / `GRACE_MS`。
 
-1. 到 https://dash.cloudflare.com 注册/登入免费帐号。
-2. 左侧选单找到 **Workers & Pages** → 建一个 KV namespace:
-   - 左侧 **Storage & Databases → KV** → Create namespace,取名 `llxxl-leaderboard`,建好后记下它的 ID。
-3. 回到 **Workers & Pages** → **Create** → **Create Worker**,取名 `llxxl-leaderboard`(名字会变成网址的一部分)。
-4. 建好后进编辑器,把 `worker.js` 的全部内容贴进去,取代预设内容,按 **Deploy**。
-5. 部署完,到该 Worker 的 **Settings → Variables → KV Namespace Bindings**,新增一个绑定:
-   - Variable name 填 `LEADERBOARD`(要跟 worker.js 里用的名字完全一样)
-   - 选刚刚建的 KV namespace
-   - 存档,可能需要重新部署一次才生效。
-6. 部署完成后,Worker 网址会长得像:
-   `https://llxxl-leaderboard.<你的帐号名>.workers.dev`
-   把这个网址给我,我会把它接进游戏里。
+## 規則(伺服器端)
+- 排名依據「排名分」= 月兔數 − 花掉的金幣數(最低 0),由伺服器自己算。
+- 每個玩家編號(遊戲自動產生)只留排名分最高的一筆;沒有超過舊紀錄就不寫入。
+- 一個名字只屬於一個玩家編號。同名但編號不同 → 拒絕(`name_taken`)。同一個玩家改名重傳 → 紀錄搬到新名字,榜上只有一筆。
+- 名字不分大小寫、全形半形(「Rabbit」和「rabbit」視為同一個)。
+- 會檢查成績是否合理:每隻月兔都要用掉一組兔兔+一組狗狗;金幣只靠兔兔/狗狗組合賺,花的不能比賺的多。
+- 活動結束後榜單先隱藏(玩家看到「審核中」),你在管理頁看過、刪掉可疑紀錄後按「公布」才會顯示。
+- 舊榜單(舊版 `entries` 那筆資料)完全沒動,限時賽是獨立的一份,不會混在一起。
 
-## 方法B:用 Wrangler CLI(需要装 Node.js)
+## 部署步驟(用 Cloudflare 網頁後台,跟之前一樣)
 
-```bash
-cd leaderboard-worker
-npm install -g wrangler
-wrangler login          # 会打开浏览器登入 Cloudflare 帐号
-wrangler kv namespace create LEADERBOARD   # 建 KV,把回传的 id 填进 wrangler.toml
-wrangler deploy         # 部署
-```
+> **請先部署這個 Worker,再把遊戲更新推上 GitHub。**
 
-部署完 wrangler 会印出 Worker 网址,一样把网址给我。
+1. 到 https://dash.cloudflare.com → **Workers & Pages** → 開啟你原本的 `llxxl-leaderboard`。
+2. **Edit code**,把 `worker.js` 的全部內容貼上去取代,按 **Deploy**。
+3. **Settings → Bindings**:`LEADERBOARD` 這個 KV 綁定維持原本的就好(不用重建)。
+4. **Settings → Variables and Secrets → Add**:
+   - 類型選 **Secret**,名稱 `ADMIN_TOKEN`,值填一組你自己想的長密碼(管理頁登入用,請不要告訴別人)。
+   - 存檔後重新 Deploy 一次讓它生效。
+5. 打開 `https://llxxl-leaderboard.yingbangbang2026.workers.dev/status`,看到 `{"ok":true,"now":...,"phase":"before"...}` 就部署成功了。
+   (`phase`:`before` 未開始 / `live` 進行中 / `grace` 結束後的補傳時間 / `closed` 已結束)
 
-## 测试部署是否成功
+## 管理頁
 
-部署完可以直接在浏览器打开 `<你的Worker网址>/leaderboard`,如果看到
-`{"ok":true,"entries":[]}` 就表示成功了。
+網址:`https://llxxl-leaderboard.yingbangbang2026.workers.dev/admin`
+
+輸入 `ADMIN_TOKEN` 按「載入榜單」可以:
+- 看全部紀錄(排名分、月兔、花/賺金幣、兔兔狗狗次數、玩家編號前 8 碼)。
+- **刪除**可疑紀錄。
+- **公布 / 取消公布**最終榜單(結束後要按公布,玩家才看得到)。
+- **改綁編號**:玩家換手機又沒備份、想繼續用原本的名字時,請他把新手機上的玩家編號(遊戲首頁 →「存檔備份」視窗裡可以看到、可以複製)傳給你,你貼上去就能把名字改綁給他。
+
+## 活動結束後的流程
+1. 10/31 12:05 之後,打開管理頁載入榜單。
+2. 看前幾名的數字是否合理(例如兔兔/狗狗次數遠低於月兔數的就是異常),刪掉可疑的。
+3. 按「公布榜單」。
+
+## 測試
+- 打開 `<Worker 網址>/leaderboard`:活動期間看到 `{"ok":true,"entries":[...]}`;結束後未公布會看到 `"pending":true`。

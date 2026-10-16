@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="小派小远">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="style.css?v=61">
+<link rel="stylesheet" href="style.css?v=62">
 </head>
 <body>
 
@@ -105,8 +105,10 @@
       </div>
     </div>
     <div id="endless-panel" class="endless-panel" hidden>
+      <div class="event-countdown"><span id="event-countdown-text"></span><button id="btn-event-help" class="event-help-btn" title="限时赛说明">规则</button></div>
       <div class="endless-stats" id="endless-stats"></div>
       <div class="endless-actions">
+        <button id="btn-endless-coin" class="modal-btn secondary endless-btn endless-coin-btn" title="用金币买技能(每枚扣 1 点排名分)"><img src="assets/ui/coin.webp" alt=""><span id="endless-coin-count">0</span></button>
         <button id="btn-endless-submit" class="modal-btn secondary endless-btn">上传成绩</button>
         <button id="btn-endless-rank" class="modal-btn secondary endless-btn">排行榜</button>
         <button id="btn-endless-restart" class="modal-btn secondary endless-btn endless-btn-danger endless-btn-icon" title="重新开始">🔄</button>
@@ -132,6 +134,6 @@
 
 </div>
 
-<script src="game.js?v=105"></script>
+<script src="game.js?v=108"></script>
 </body>
 </html>

@@ -1044,3 +1044,13 @@ html,body{
 /* 明信片弹窗里的实景照:竖图也不要撑太高 */
 .postcard-photo{width:100%;border-radius:16px;overflow:hidden;margin-bottom:10px;background:#fff;}
 .postcard-photo img{width:100%;max-height:42vh;object-fit:cover;display:block;}
+
+/* 限时赛:倒数列、金币按钮、规则弹窗、榜单分数 */
+.event-countdown{display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;color:var(--ink);margin-bottom:6px;line-height:1.4;text-align:center;}
+.event-help-btn{border:none;background:#eee0d8;color:var(--ink-soft);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;cursor:pointer;flex-shrink:0;}
+.endless-coin-btn{display:inline-flex;align-items:center;gap:4px;}
+.endless-coin-btn img{width:14px;height:14px;}
+.event-intro-body{max-height:56vh;overflow-y:auto;text-align:left;}
+.event-intro-when{text-align:center;font-size:12.5px;margin:0 0 8px;}
+.event-intro-tip{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;}
+.leaderboard-sub{font-size:10px;font-weight:600;color:var(--ink-soft);text-align:right;margin-top:1px;}
