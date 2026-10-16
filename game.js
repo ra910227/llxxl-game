@@ -1593,15 +1593,12 @@ function maybeShowEventIntro(){
 
 // 9个称号,依据排行榜里各项数字目前的最高持有人现场判定,会随时间变动(别人上传新成绩就可能换人)
 const ACHIEVEMENT_TITLES = [
-  { key:'points',          icon:'👑', name:'月兔国国王' },
-  { key:'dogfaceMatches',  icon:'🐶', name:'最爱狗狗的人' },
-  { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人' },
-  { compute:e=>(e.butterflyBursts||0)+(e.sunBursts||0)+(e.moonBombs||0)+(e.moonPoundings||0), icon:'🍵', name:'最游刃有余的人' },
-  { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人' },
-  { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的人' },
-  { key:'moonBombs',       icon:'🌕', name:'代表月亮惩罚你' },
-  { key:'score',           icon:'💰', name:'最富有的人' },
-  { key:'moonPoundings',   icon:'💊', name:'月兔国最大药头' },
+  { key:'points',          icon:'👑', name:'月兔国国王',         desc:'排名分最高(月兔数 − 花掉的金币)' },
+  { key:'dogfaceMatches',  icon:'🐶', name:'最爱狗狗的人',       desc:'狗狗组合次数最多' },
+  { key:'bunnyMatches',    icon:'🐰', name:'最爱兔兔的人',       desc:'兔兔组合次数最多' },
+  { key:'butterflyBursts', icon:'🦋', name:'最想私奔的蝴蝶恋人', desc:'私奔蝴蝶(4连清整排/整列)次数最多' },
+  { key:'sunBursts',       icon:'☀️', name:'被放闪闪瞎眼的人',   desc:'早安太阳(4连十字清除)次数最多' },
+  { key:'moonBombs',       icon:'🌕', name:'代表月亮惩罚你',     desc:'月亮炸弹(3连炸开3×3)次数最多' },
 ];
 function renderTitleHolders(entries){
   const el = document.getElementById('title-list');
@@ -1612,9 +1609,9 @@ function renderTitleHolders(entries){
       const v = t.compute ? t.compute(e) : (e[t.key]||0);
       if(v>0 && (!best || v>best.value)) best = { name:e.name, value:v };
     });
-    return `<div class="title-row">
+    return `<div class="title-row${t.key==='points' ? ' title-king' : ''}">
       <span class="title-icon">${t.icon}</span>
-      <span class="title-name">${t.name}</span>
+      <span class="title-main"><span class="title-name">${t.name}</span><span class="title-desc">${t.desc}</span></span>
       <span class="title-holder">${best ? escapeHtml(best.name)+' · '+best.value : '尚无人达成'}</span>
     </div>`;
   }).join('');
@@ -2748,6 +2745,7 @@ function renderModal(step){
   card.classList.toggle('couple-mode', step.type==='memento' && step.source==='couple');
   card.classList.toggle('milestone-mode', step.type==='milestone-summary');
   card.classList.toggle('postcard-letter-mode', step.type==='postcard-letter');
+  card.classList.toggle('leaderboard-mode', step.type==='leaderboard');
 
   if(step.type==='about'){
     card.innerHTML = `
@@ -2914,6 +2912,8 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">🐇 月兔限时赛排行榜</h3>
       <p id="leaderboard-notice" style="text-align:center;font-size:12px;color:var(--ink-soft);margin:0 0 6px;">${step.notice||''}</p>
+      <p class="lb-rule">🏆 <b>名次怎么算</b>:排名分 = 月兔数 − 花掉的金币(每花 1 枚金币扣 1 分)。同一个名字只留最高的一笔。</p>
+      <p class="lb-rule">🏅 <b>称号怎么认定</b>:由榜上各项数字最高的人持有,有人超过就会换人;同数字时以排名较前的人为准。</p>
       <div class="title-list" id="title-list"></div>
       <div class="leaderboard-list" id="leaderboard-list">载入中…</div>
       <button class="modal-btn" id="modal-next">关闭</button>`;

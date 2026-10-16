@@ -532,24 +532,24 @@ html,body{
   transform:translate(-50%,-50%) scale(1);
 }
 /* 太阳/蝴蝶/陪伴娃娃/捕星星/爱心满满特效图已经是去背贴纸,不需要卡片白框,改用贴合轮廓的投影;
-   元素互换那张图透明度太高、单独浮贴看不清楚,改回月亮特效的白底白框卡片样式;
-   玻璃瓶特效图本身就是完整的装饰卡面(非去背贴纸),同样沿用白框卡片样式,都不列在这份重置清单里 */
-.sun-burst, .butterfly-burst, .companion-burst, .catch-star-burst, .love-full-burst{
+   元素互换也去掉白底白框,改成贴纸样式,用一圈白边+投影让它在棋盘上看得清楚;
+   玻璃瓶特效图本身就是完整的装饰卡面(非去背贴纸),沿用白框卡片样式,不列在这份重置清单里 */
+.sun-burst, .butterfly-burst, .companion-burst, .catch-star-burst, .love-full-burst, .swap-burst{
   border-radius:0;
   overflow:visible;
   border:none;
   box-shadow:none;
   background:none;
 }
-.sun-burst img, .butterfly-burst img, .companion-burst img, .catch-star-burst img, .love-full-burst img{
+.sun-burst img, .butterfly-burst img, .companion-burst img, .catch-star-burst img, .love-full-burst img, .swap-burst img{
   filter:drop-shadow(0 6px 14px rgba(107,88,80,0.35));
 }
 .sun-burst img{ filter:drop-shadow(0 6px 14px rgba(230,170,60,0.45)); }
 .butterfly-burst img{ filter:drop-shadow(0 6px 14px rgba(140,180,220,0.45)); }
 .companion-burst img{ filter:drop-shadow(0 6px 14px rgba(232,137,154,0.5)); }
 .catch-star-burst img{ filter:drop-shadow(0 6px 14px rgba(230,190,90,0.5)); }
-.swap-burst{ background:#fff; }
 .love-full-burst img{ filter:drop-shadow(0 6px 14px rgba(232,120,140,0.5)); }
+.swap-burst img{ filter:drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 6px 14px rgba(107,88,80,0.45)); }
 .tile{
   border-radius:12px;
   display:flex;align-items:center;justify-content:center;
@@ -1054,3 +1054,32 @@ html,body{
 .event-intro-when{text-align:center;font-size:12.5px;margin:0 0 8px;}
 .event-intro-tip{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;}
 .leaderboard-sub{font-size:10px;font-weight:600;color:var(--ink-soft);text-align:right;margin-top:1px;}
+
+/* 排行榜:名次/称号认定说明 */
+.lb-rule{font-size:11px;line-height:1.55;color:var(--ink-soft);margin:0 0 4px;text-align:left;}
+.lb-rule b{color:var(--pink);}
+.title-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.title-main .title-name{color:var(--ink);font-weight:700;white-space:nowrap;}
+.title-desc{font-size:9.5px;line-height:1.35;color:#a8958a;white-space:normal;}
+.title-row .title-holder{flex:0 0 auto;max-width:38%;}
+
+.modal-card.leaderboard-mode{max-height:90vh;overflow-y:auto;}
+
+/* 月兔国国王:粗体、放大、会发亮 */
+.title-row.title-king{
+  position:relative;
+  padding:8px 8px;margin:0 -4px 4px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#fff3c9,#ffe3ef);
+  font-size:13px;
+  animation:kingGlow 2.2s ease-in-out infinite;
+}
+.title-king .title-icon{font-size:20px;}
+.title-king .title-main .title-name{font-size:15px;font-weight:900;color:#a8456b;}
+.title-king .title-desc{font-size:10px;}
+.title-king .title-holder{font-size:15px;font-weight:900;color:#c4437a;text-shadow:0 0 6px rgba(255,200,80,.85);}
+@keyframes kingGlow{
+  0%,100%{box-shadow:0 0 6px rgba(255,200,90,.55),0 0 0 1px rgba(255,200,90,.6);}
+  50%{box-shadow:0 0 16px 3px rgba(255,190,70,.95),0 0 0 1px rgba(255,190,70,.95);}
+}
+@media (prefers-reduced-motion: reduce){ .title-row.title-king{animation:none;box-shadow:0 0 10px rgba(255,200,90,.8);} }
