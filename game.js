@@ -11,7 +11,9 @@ const HOME_CYCLE = 6;                       // 小远每隔几关回家一次(6�
 const MILESTONES = [9,19,29,39,49,59,69,79]; // 日记解锁关卡
 
 // 无尽挑战关的月兔排行榜后端(Cloudflare Worker),部署好之后把网址换成实际的
-const LEADERBOARD_API = 'https://llxxl-leaderboard.yingbangbang2026.workers.dev';
+// 排行榜 API 的网址清单(依序尝试):workers.dev 在中国大陆连不上(DNS 被污染),所以要再加一个大陆连得上的备援网址。
+const LEADERBOARD_BASES = ['https://llxxl-leaderboard.yingbangbang2026.workers.dev'];
+const LEADERBOARD_API = LEADERBOARD_BASES[0];
 
 const SAVE_KEY = 'llxxl_save_v1';
 
@@ -1375,9 +1377,31 @@ function eventPhase(){
   const n = eventNow();
   return n < EVENT.start ? 'before' : (n < EVENT.end ? 'live' : 'ended');
 }
+// 依序试每个 API 网址,每个最多等 7 秒;成功的那个会记起来,下次优先用(连不上的地方不用每次都先等一轮)
+async function apiFetch(path, opt={}){
+  let bases = LEADERBOARD_BASES.slice();
+  try{
+    const last = localStorage.getItem('llxxl_api_base');
+    if(last && bases.includes(last)) bases = [last, ...bases.filter(b=>b!==last)];
+  }catch(e){}
+  const isGet = !opt.method || opt.method==='GET';
+  let lastErr = new Error('no_api');
+  for(const base of bases){
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=> ctrl.abort(), 7000);
+    try{
+      const url = base + path + (isGet ? (path.includes('?')?'&':'?') + '_=' + Date.now() : '');
+      const res = await fetch(url, { ...opt, cache:'no-store', signal:ctrl.signal });
+      clearTimeout(timer);
+      try{ localStorage.setItem('llxxl_api_base', base); }catch(e){}
+      return res;
+    }catch(e){ clearTimeout(timer); lastErr = e; }
+  }
+  throw lastErr;
+}
 async function syncEventClock(){
   try{
-    const res = await fetch(LEADERBOARD_API + '/status', { cache:'no-store' });
+    const res = await apiFetch('/status');
     const d = await res.json();
     if(d && d.ok && Number.isFinite(d.now)) serverOffsetMs = d.now - Date.now();
   }catch(e){ /* 连不上就用手机时间 */ }
@@ -1504,7 +1528,7 @@ function saveEndlessProgress(){
 async function submitLeaderboardScore(name){
   const src = (BOARD && BOARD.endless) ? BOARD : (STATE.endless || {});
   const stats = src.stats || emptyEndlessStats();
-  const res = await fetch(LEADERBOARD_API + '/submit', {
+  const res = await apiFetch('/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1528,7 +1552,7 @@ async function submitLeaderboardScore(name){
   return data;   // { updated, best(排名分), entries|null }
 }
 async function fetchLeaderboard(){
-  const res = await fetch(LEADERBOARD_API + '/leaderboard');
+  const res = await apiFetch('/leaderboard');
   const data = await res.json();
   if(!data.ok) throw new Error(data.error || 'fetch_failed');
   return data;   // { pending, phase, published, entries }

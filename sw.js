@@ -1,5 +1,5 @@
 /* 離線快取:第一次打開後把遊戲需要的檔案都存起來,之後沒網路也能開 */
-const CACHE_NAME = 'llxxl-cache-v56';
+const CACHE_NAME = 'llxxl-cache-v57';
 const ASSETS = [
   './',
   './index.html',
@@ -42,6 +42,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // 只處理自己網站的檔案。排行榜 API(Worker)是別的網域,一律放行直接打網路;
+  // 以前連它也被快取優先,/status 的時間會停在第一次載入的那一刻,玩家看到的就是兩三天前的時間。
+  if (new URL(event.request.url).origin !== self.location.origin) return;
 
   // 網頁本體(index.html)一律優先打網路拿最新版,避免玩家卡在舊版本(舊的 style.css/game.js 版本號)出不來,
   // 只有離線時才退回快取;其他靜態資源(圖片等)才用快取優先,减少流量。
