@@ -1358,12 +1358,12 @@ function endlessConfig(){
   return { level:79, rows:ENDLESS_ROWS, cols:ENDLESS_COLS, tileTypes:11, moves:Infinity, targetScore:Infinity, numFrozen:0, isMilestone:false, isSpecialLevel:false };
 }
 /* ============================================================
-   限时赛:2026/10/20 12:00 ~ 10/31 12:00(北京时间),时间以排行榜服务器为准(开游戏时跟服务器对时,
+   限时赛:2026/10/20 16:14 ~ 10/31 12:00(北京时间),时间以排行榜服务器为准(开游戏时跟服务器对时,
    连不上才退回手机时间);只有「限时赛期间开始的那一局」才能上传,开赛前的是练习局,开赛后第一次进来会从空白重新开始。
    ============================================================ */
 const EVENT = {
-  id: '2026-10',
-  start: Date.parse('2026-10-20T12:00:00+08:00'),
+  id: '2026-10b',            // 10/20 因时间显示出错重新起算,换一个编号 = 全新榜单、所有人从头开始(旧纪录仍留在后台)
+  start: Date.parse('2026-10-20T16:14:00+08:00'),
   end:   Date.parse('2026-10-31T12:00:00+08:00'),
   grace: 5*60*1000,          // 结束后服务器多给的补传时间(要跟 leaderboard-worker 的 GRACE_MS 一致)
 };
@@ -1372,6 +1372,12 @@ const ICON_DOG = '<img class="inline-tile" src="assets/tiles/dogface.png" alt="�
 const ICON_BUNNY = '<img class="inline-tile" src="assets/tiles/bunny.png" alt="派兔">';
 const COIN_PER_MATCH = 1;    // 每个兔兔/狗狗组合赚几枚金币(服务器用同一个数字检查,要一起改)
 let serverOffsetMs = 0;
+// 把时间戳转成北京时间的文字(说明/倒数里的日期都从 EVENT 算出来,改时间只要改 EVENT)
+function bjLabel(ms){
+  const d = new Date(ms + 8*3600*1000);
+  const p = n => String(n).padStart(2,'0');
+  return { md:`${d.getUTCMonth()+1}/${d.getUTCDate()}`, cn:`${d.getUTCMonth()+1}月${d.getUTCDate()}日`, hm:`${p(d.getUTCHours())}:${p(d.getUTCMinutes())}` };
+}
 function eventNow(){ return Date.now() + serverOffsetMs; }
 function eventPhase(){
   const n = eventNow();
@@ -1566,7 +1572,7 @@ const SUBMIT_ERRORS = {
   empty_name: '请先输入名字',
 };
 function uploadBlockReason(){
-  if(eventPhase()==='before') return '限时赛还没开始(10/20 12:00),现在是练习模式,还不能上传。';
+  if(eventPhase()==='before') return `限时赛还没开始(${bjLabel(EVENT.start).md} ${bjLabel(EVENT.start).hm}),现在是练习模式,还不能上传。`;
   if(eventNow() > EVENT.end + EVENT.grace) return '限时赛已经结束,无法再上传了。榜单审核后会公布最终名次。';
   if(!BOARD || !BOARD.endless || BOARD.period!==EVENT.id) return '这一局不是限时赛期间开始的(练习局),不能上传。请按🔄重新开始一局。';
   return '';
@@ -1581,7 +1587,7 @@ function eventCountdownText(){
     const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
     return (d ? d+'天 ' : '') + `${h}时 ${m}分 ${sec}秒`;
   };
-  if(phase==='before') return `⏳ 限时赛 10/20 12:00 开始,还有 ${fmt(EVENT.start-now)}(现在是练习局,不计入榜单)`;
+  if(phase==='before') return `⏳ 限时赛 ${bjLabel(EVENT.start).md} ${bjLabel(EVENT.start).hm} 开始,还有 ${fmt(EVENT.start-now)}(现在是练习局,不计入榜单)`;
   if(phase==='live')   return `🏁 限时赛进行中 · 距结束 ${fmt(EVENT.end-now)}`;
   return '🏁 限时赛已结束 · 榜单审核后公布';
 }
@@ -2966,17 +2972,18 @@ function renderModal(step){
     card.innerHTML = `
       <h3 style="text-align:center;">🐇 月兔大挑战 · 限时赛</h3>
       <div class="event-intro-body">
-        <p class="event-intro-when">🗓 <b>10月20日 12:00 – 10月31日 12:00</b>(北京时间)</p>
+        <p class="event-intro-when">🗓 <b>${bjLabel(EVENT.start).cn} ${bjLabel(EVENT.start).hm} – ${bjLabel(EVENT.end).cn} ${bjLabel(EVENT.end).hm}</b>(北京时间)</p>
         <div class="tutorial-list">
           <div class="tutorial-row"><span class="tutorial-icon">1️⃣</span><div>点首页右上角的「月兔大挑战」,从空白棋盘开始,没有步数限制。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑出一组${ICON_DOG}远狗和一组${ICON_BUNNY}派兔,就会引来一只月兔。3 只月兔合成一个满月🌝,拖到棋盘上能变出一颗月亮,但每用掉一个满月会扣 3 只月兔。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔,就赚 ${COIN_PER_MATCH} 枚金币🪙。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">4️⃣</span><div><b>排名分 = 月兔数 − 花掉的金币数</b>。想留下成绩就按「上传成绩」,同一个名字只保留你的最高纪录,可以重复上传。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">5️⃣</span><div>一个名字只属于一个人,被别人用了要换一个。想换名字重传也可以,榜上只会有你一笔。</div></div>
-          <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>10/20 12:00 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>${bjLabel(EVENT.start).md} ${bjLabel(EVENT.start).hm} 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">7️⃣</span><div>活动结束后榜单会先审核,公布后才看得到最终名次。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">✨</span><div>小技巧:🌙月亮连 3 个会炸开周围 3×3;🦋蝴蝶、☀️太阳连 4 个以上能清整排整列/十字。连消还有积分加成,不过积分不影响排名分。右上角的「？」有完整说明。</div></div>
         </div>
+        <p class="event-intro-tip">⚠️ 因为之前的时间显示出了问题,限时赛已经<b>重新起算</b>:之前的练习和上传都不计入,所有人从头开始。</p>
         <p class="event-intro-tip">💾 进度只存在这个浏览器,换手机前请先到首页点「存档备份」。</p>
       </div>
       <button class="modal-btn" id="event-intro-go">${step.reread ? '去月兔大挑战' : '去看看'}</button>
