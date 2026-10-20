@@ -12,7 +12,10 @@ const MILESTONES = [9,19,29,39,49,59,69,79]; // 日记解锁关卡
 
 // 无尽挑战关的月兔排行榜后端(Cloudflare Worker),部署好之后把网址换成实际的
 // 排行榜 API 的网址清单(依序尝试):workers.dev 在中国大陆连不上(DNS 被污染),所以要再加一个大陆连得上的备援网址。
-const LEADERBOARD_BASES = ['https://llxxl-leaderboard.yingbangbang2026.workers.dev'];
+const LEADERBOARD_BASES = [
+  'https://llxxl-api.pages.dev',                              // Cloudflare Pages 版:大陆连得上(实测深圳/广州网络可通),全球都能用
+  'https://llxxl-leaderboard.yingbangbang2026.workers.dev',   // 备援:同一份程式、同一个 KV;大陆连不上,海外可用
+];
 const LEADERBOARD_API = LEADERBOARD_BASES[0];
 
 const SAVE_KEY = 'llxxl_save_v1';
