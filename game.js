@@ -1387,17 +1387,28 @@ function eventPhase(){
   return n < EVENT.start ? 'before' : (n < EVENT.end ? 'live' : 'ended');
 }
 // 依序试每个 API 网址,每个最多等 7 秒;成功的那个会记起来,下次优先用(连不上的地方不用每次都先等一轮)
-async function apiFetch(path, opt={}){
+async function apiFetch(path, opt={}, hooks={}){
   let bases = LEADERBOARD_BASES.slice();
   try{
     const last = localStorage.getItem('llxxl_api_base');
     if(last && bases.includes(last)) bases = [last, ...bases.filter(b=>b!==last)];
   }catch(e){}
   const isGet = !opt.method || opt.method==='GET';
-  let lastErr = new Error('no_api');
-  for(const base of bases){
+  // 大陆实测:连上 pages.dev 常要 3~9 秒(上传还要再多读写一次资料库),以前 7 秒就放弃改连 workers.dev(大陆根本连不上),所以才会「偶尔成功偶尔失败」。
+  // 现在每次尝试多等一些,而且大陆时区直接把 workers.dev 排在最后,同一个网址先试两次。
+  const mainland = /^Asia\/(Shanghai|Urumqi|Chongqing|Harbin)$/.test((()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } })());
+  const ms = isGet ? 15000 : 25000;
+  const primary = bases[0], backup = bases.find(b=>b!==primary);
+  const plan = mainland
+    ? [[primary,ms],[primary,ms],[backup,8000]]
+    : [[primary,ms],[backup,10000],[primary,ms]];
+  let lastErr = new Error('network');
+  for(let i=0;i<plan.length;i++){
+    const [base,timeout] = plan[i];
+    if(!base) continue;
+    if(i>0 && hooks.onRetry) hooks.onRetry(i);
     const ctrl = new AbortController();
-    const timer = setTimeout(()=> ctrl.abort(), 7000);
+    const timer = setTimeout(()=> ctrl.abort(), timeout);
     try{
       const url = base + path + (isGet ? (path.includes('?')?'&':'?') + '_=' + Date.now() : '');
       const res = await fetch(url, { ...opt, cache:'no-store', signal:ctrl.signal });
@@ -1406,7 +1417,7 @@ async function apiFetch(path, opt={}){
       return res;
     }catch(e){ clearTimeout(timer); lastErr = e; }
   }
-  throw lastErr;
+  const err = new Error('network'); err.cause = lastErr; throw err;
 }
 async function syncEventClock(){
   try{
@@ -1534,7 +1545,7 @@ function saveEndlessProgress(){
 
 /* 排行榜:呼叫 LEADERBOARD_API(Cloudflare Worker)。网址还没换成真的之前会直接回传错误,
    呼叫端要处理失败情况(不能让排行榜功能挡住正常游玩)。 */
-async function submitLeaderboardScore(name){
+async function submitLeaderboardScore(name, hooks={}){
   const src = (BOARD && BOARD.endless) ? BOARD : (STATE.endless || {});
   const stats = src.stats || emptyEndlessStats();
   const res = await apiFetch('/submit', {
@@ -1555,8 +1566,9 @@ async function submitLeaderboardScore(name){
       moonPoundings: stats.moonPoundings,
       moonBombs: stats.moonBombs,
     }),
-  });
-  const data = await res.json();
+  }, hooks);
+  let data;
+  try{ data = await res.json(); }catch(e){ throw new Error('bad_response'); }   // 被网络设备拦截时可能回的是网页而不是资料
   if(!data.ok) throw new Error(data.error || 'submit_failed');
   return data;   // { updated, best(排名分), entries|null }
 }
@@ -1567,6 +1579,8 @@ async function fetchLeaderboard(){
   return data;   // { pending, phase, published, entries }
 }
 const SUBMIT_ERRORS = {
+  network: '连不上排行榜服务器(网络较慢或不稳)。你的成绩没有丢,请再按一次「送出」;也可以换 Wi-Fi/行动网络,或关掉省流量模式再试。',
+  bad_response: '排行榜回传的资料不对(可能被网络拦截)。请换个网络(Wi-Fi/行动网络)再按一次「送出」。',
   name_taken: '这个名字已经有人使用了,请换一个名字。',
   not_started: '限时赛还没开始,现在是练习模式。',
   ended: '限时赛已经结束,无法再上传了。',
@@ -2934,14 +2948,18 @@ function renderModal(step){
         if(!name){ statusEl.textContent = '请先输入名字'; return; }
         statusEl.textContent = '上传中…';
         try{
-          const data = await submitLeaderboardScore(name);
+          const slowTimer = setTimeout(()=>{ statusEl.textContent = '网络较慢,还在努力连线…请不要关掉视窗'; }, 6000);
+          let data;
+          try{
+            data = await submitLeaderboardScore(name, { onRetry:()=>{ statusEl.textContent = '连线较慢,正在重试…请不要关掉视窗'; } });
+          } finally { clearTimeout(slowTimer); }
           STATE.playerName = name;
           saveState();
           statusEl.textContent = '';
           const notice = data.updated ? `已上传!你的排名分是 ${data.best}` : `这次没有超过你的最高纪录(排名分 ${data.best}),榜上仍是 ${data.best}`;
           showModalQueue([{type:'leaderboard', entries:data.entries, notice}], modalReturnScreen);
         }catch(e){
-          statusEl.textContent = SUBMIT_ERRORS[e.message] || '上传失败,请稍后再试';
+          statusEl.textContent = SUBMIT_ERRORS[e.message] || ('上传失败,请稍后再试(' + (e.message||'未知错误') + ')');
         }
       });
     }
@@ -2969,7 +2987,7 @@ function renderModal(step){
     } else {
       fetchLeaderboard().then(showBoard).catch(()=>{
         const el = card.querySelector('#leaderboard-list');
-        if(el) el.innerHTML = `<p style="text-align:center;color:var(--ink-soft);">排行榜暂时连不上,稍后再试。</p>`;
+        if(el) el.innerHTML = `<p style="text-align:center;color:var(--ink-soft);">排行榜暂时连不上(网络较慢时请稍等几秒再开),稍后再试。</p>`;
       });
     }
   } else if(step.type==='event-intro'){
