@@ -1978,6 +1978,7 @@ function showLoveFullBurst(){
    玻璃瓶(17枚):点一个非冰冻格取样它的图案,场上所有该图案(非冰冻格)全部消失;
    爱心满满(19枚):场上除了兔兔/小派、狗狗/小远以外的非冰冻格,全部变成爱心
    ============================================================ */
+const SLOT_WIN_RATE = 0.089;   // 迷你拉霸机每次中大奖(97 枚)的机率;安慰奖固定 9 枚
 const COIN_SKILL_COST = { swap: 1, companion: 7, catchStar: 9, bottleCollect: 17, loveFull: 19 };
 // 技能生效的那一刻,场上先有一拍(350ms)的闪光/消失动画,让玩家看清楚发生了什么,动画播完才叠加大图特效
 const SKILL_FLASH_DURATION = 350;
@@ -3156,11 +3157,11 @@ function renderModal(step){
       <button class="modal-btn diary-close-btn" id="modal-next">${step.reread ? '关闭' : '继续游玩'}</button>
       ${step.reread ? '' : `<button class="modal-btn secondary diary-close-btn" id="modal-goto-album">去明信片册看看</button>`}`;
   } else if(step.type==='slot-machine'){
-    // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率直接固定订在1/5,
+    // 从13种图案里随机抽7张当这次的转轮候选池;中奖机率固定订在 SLOT_WIN_RATE(约 8.9%,整场 13 次至少中一次的机率约 70%),
     // 不是三个转轮各自独立乱抽再看运气,而是先掷骰决定这次中不中,
     // 中了三个转轮就都摆同一张,没中就随机摆但保证不会凑巧三个一样
     const pool = TILE_TYPES.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0,7);
-    const jackpot = Math.random() < 0.2;
+    const jackpot = Math.random() < SLOT_WIN_RATE;
     let results;
     if(jackpot){
       const winType = pool[Math.floor(Math.random()*pool.length)];
