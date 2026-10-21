@@ -1373,6 +1373,7 @@ const EVENT = {
 // 文字里提到的「远狗/派兔」直接用棋盘上的图案,不用 emoji,玩家才对得上
 const ICON_DOG = '<img class="inline-tile" src="assets/tiles/dogface.png" alt="远狗">';
 const ICON_BUNNY = '<img class="inline-tile" src="assets/tiles/bunny.png" alt="派兔">';
+const ICON_COIN = '<img class="inline-tile" src="assets/ui/coin.webp" alt="金币">';
 const COIN_PER_MATCH = 1;    // 每个兔兔/狗狗组合赚几枚金币(服务器用同一个数字检查,要一起改)
 let serverOffsetMs = 0;
 // 把时间戳转成北京时间的文字(说明/倒数里的日期都从 EVENT 算出来,改时间只要改 EVENT)
@@ -1514,7 +1515,7 @@ function renderEndlessStats(){
   updateCoinDisplays();
   el.innerHTML = `
     <span>🏆排名分 <b>${endlessPoints(BOARD)}</b></span>
-    <span>🪙已花金币 <b>${BOARD.coinsSpent||0}</b></span>
+    <span>${ICON_COIN}已花金币 <b>${BOARD.coinsSpent||0}</b></span>
     <span>${ICON_BUNNY}派兔组合 <b>${BOARD.stats.bunnyMatches}</b></span>
     <span>${ICON_DOG}远狗组合 <b>${BOARD.stats.dogfaceMatches}</b></span>
     <span>🦋私奔蝴蝶 <b>${BOARD.stats.butterflyBursts}</b></span>
@@ -1681,7 +1682,7 @@ function renderLeaderboardList(entries){
         <div class="leaderboard-name">${escapeHtml(e.name)}</div>
         <div class="leaderboard-detail">${ICON_BUNNY}${e.bunnyMatches||0} ${ICON_DOG}${e.dogfaceMatches||0} 🦋${e.butterflyBursts||0} ☀️${e.sunBursts||0} 🌝${e.moonPoundings||0}</div>
       </div>
-      <div class="leaderboard-rabbits">🏆${e.points}<div class="leaderboard-sub">🐇${e.rabbits} − 🪙${e.coinsSpent||0}</div></div>
+      <div class="leaderboard-rabbits">🏆${e.points}<div class="leaderboard-sub">月兔 ${e.rabbits} − 金币 ${ICON_COIN}${e.coinsSpent||0}</div></div>
     </div>`).join('');
 }
 function escapeHtml(s){
@@ -2843,7 +2844,7 @@ function renderModal(step){
       <h3 style="text-align:center;">月兔大挑战 · 说明</h3>
       <div class="tutorial-list" style="max-height:56vh;overflow-y:auto;">
         <div class="tutorial-row"><span class="tutorial-icon">🐇</span><div><b>引来月兔</b>:凑出一组${ICON_DOG}远狗和一组${ICON_BUNNY}派兔,就引来 1 只月兔。3 只月兔合成 1 个满月🌝,拖到棋盘任一格,变出一颗月亮(用掉一个满月会扣 3 只月兔)。</div></div>
-        <div class="tutorial-row"><span class="tutorial-icon">🪙</span><div><b>金币</b>:每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔赚 ${COIN_PER_MATCH} 枚。点金币按钮可以买技能,<b>每花 1 枚,排名分 −1</b>。</div></div>
+        <div class="tutorial-row"><span class="tutorial-icon">${ICON_COIN}</span><div><b>金币</b>:每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔赚 ${COIN_PER_MATCH} 枚。点金币按钮可以买技能,<b>每花 1 枚,排名分 −1</b>。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🏆</span><div><b>排名分</b> = 月兔数 − 花掉的金币。限时赛榜单就是看这个数字。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🌙</span><div><b>月亮炸弹</b>:连成 3 个以上,以中心炸开周围 3×3 区域。</div></div>
         <div class="tutorial-row"><span class="tutorial-icon">🦋</span><div><b>私奔蝴蝶</b>:4 连以上,清空整排或整列。</div></div>
@@ -2936,7 +2937,7 @@ function renderModal(step){
     } else {
       card.innerHTML = `
         <h3 style="text-align:center;">上传成绩</h3>
-        <p>你现在的排名分是 <b>${endlessPoints(BOARD)}</b>(🐇月兔 ${endlessRabbitTotal(BOARD)} − 🪙花掉的金币 ${BOARD.coinsSpent||0})。<br>同一个名字只保留你的最高纪录,可以重复上传;名字被别人用了就要换一个。</p>
+        <p>你现在的排名分是 <b>${endlessPoints(BOARD)}</b>(月兔 ${endlessRabbitTotal(BOARD)} − 花掉的金币 ${ICON_COIN}${BOARD.coinsSpent||0})。<br>同一个名字只保留你的最高纪录,可以重复上传;名字被别人用了就要换一个。</p>
         <input type="text" class="name-input" id="endless-name-input" maxlength="16" placeholder="输入你的名字" value="${escapeHtml(STATE.playerName||'')}">
         <div id="endless-submit-status" style="min-height:18px;font-size:12px;color:var(--ink-soft);text-align:center;"></div>
         <button class="modal-btn" id="endless-submit-confirm">送出</button>
@@ -2998,7 +2999,7 @@ function renderModal(step){
         <div class="tutorial-list">
           <div class="tutorial-row"><span class="tutorial-icon">1️⃣</span><div>点首页右上角的「月兔大挑战」,从空白棋盘开始,没有步数限制。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">2️⃣</span><div>凑出一组${ICON_DOG}远狗和一组${ICON_BUNNY}派兔,就会引来一只月兔。3 只月兔合成一个满月🌝,拖到棋盘上能变出一颗月亮,但每用掉一个满月会扣 3 只月兔。</div></div>
-          <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔,就赚 ${COIN_PER_MATCH} 枚金币🪙。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
+          <div class="tutorial-row"><span class="tutorial-icon">3️⃣</span><div>每凑出一组${ICON_DOG}远狗或${ICON_BUNNY}派兔,就赚 ${COIN_PER_MATCH} 枚金币${ICON_COIN}。金币可以买技能帮忙,但<b>每花 1 枚,排名分就 −1</b>。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">4️⃣</span><div><b>排名分 = 月兔数 − 花掉的金币数</b>。想留下成绩就按「上传成绩」,同一个名字只保留你的最高纪录,可以重复上传。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">5️⃣</span><div>一个名字只属于一个人,被别人用了要换一个。想换名字重传也可以,榜上只会有你一笔。</div></div>
           <div class="tutorial-row"><span class="tutorial-icon">6️⃣</span><div>${bjLabel(EVENT.start).md} ${bjLabel(EVENT.start).hm} 前是练习局(不计入榜单),正式开始后第一次进来会从头开始。结束时间一到会提醒你上传,结束后 5 分钟内还能补传。</div></div>

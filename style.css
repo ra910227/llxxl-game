@@ -1087,3 +1087,5 @@ html,body{
 /* 文字里内嵌的棋盘图案(远狗/派兔) */
 .inline-tile{width:1.3em;height:1.3em;vertical-align:-0.3em;border-radius:5px;object-fit:contain;}
 .tutorial-icon .inline-tile{width:1.15em;height:1.15em;vertical-align:-0.2em;}
+
+.leaderboard-sub .inline-tile{width:11px;height:11px;border-radius:50%;vertical-align:-1.5px;margin:0 1px;}
