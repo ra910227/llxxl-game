@@ -1089,3 +1089,18 @@ html,body{
 .tutorial-icon .inline-tile{width:1.15em;height:1.15em;vertical-align:-0.2em;}
 
 .leaderboard-sub .inline-tile{width:11px;height:11px;border-radius:50%;vertical-align:-1.5px;margin:0 1px;}
+
+/* 背景音乐按钮:首页放在头像跟「月兔大挑战」中间(位置由 layoutHomeCanvas 依画布座标放),棋盘放在「？」旁边 */
+.music-btn{cursor:pointer;line-height:1;}
+.music-btn-home{
+  position:absolute;z-index:6;
+  width:30px;height:30px;border:none;border-radius:50%;padding:0;
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);
+  box-shadow:0 3px 10px var(--shadow);
+  font-size:15px;display:flex;align-items:center;justify-content:center;
+  transform:translate(-50%,-50%);
+}
+.music-btn.is-playing{background:linear-gradient(135deg,#ffd9e6,#ffe8bf);box-shadow:0 0 0 2px rgba(232,137,154,.45);}
+.music-btn.is-loading{opacity:.7;animation:musicPulse 1s ease-in-out infinite;}
+@keyframes musicPulse{50%{transform:translate(-50%,-50%) scale(1.12);}}
+.board-help-btn.music-btn.is-loading{animation:none;}

@@ -39,6 +39,7 @@ const HOTSPOTS = {
 // 进度牌:横向贴在头像按键正下方置中(牌子压到的地方刚好是头像图案的留白,视觉上不会挡到东西),纵向对齐「月兔大挑战」白字下缘;爱心牌:放在恋爱日记图示右边,垂直置中对齐
 const PROGRESS_PILL_ANCHOR = {x:(474+856)/2, y:853+40};
 const LIVES_PILL_ANCHOR = {x:705+50, y:(2453+2703)/2};
+const MUSIC_ANCHOR = {x:(856+1200)/2, y:(547+853)/2 - 40}; // 头像与「月兔大挑战」中间的墙面空白处
 const COIN_PILL_ANCHOR = {x:(932+1043)/2, y:1641+24}; // 贴在存钱筒图示正下方,水平置中
 // 恋爱日记卡片背景图同样是「整张画布 2048x3200 + 透明背景」,实际图案只占中间一小块
 const DIARY_BG_BBOX = {x1:616, y1:1001, x2:1431, y2:2199};
@@ -89,6 +90,7 @@ const PHOTO_CREDITS = [
   { place:'杭州・西湖',         author:'CatOnMars',         lic:CC('4.0'), src:'https://commons.wikimedia.org/wiki/File:Huanglong_%26_Broken_Bridge_-_Hangzhou_City_%26_West_Lake_near_Broken_Bridge.jpg' },
   { place:'上海・迪士尼',       author:'Riku Lu',           lic:CC0,       src:'https://commons.wikimedia.org/wiki/File:Enchanted_Storybook_Castle_(125424).jpg' },
 ];
+const MUSIC_CREDIT = 'Love Shot(剪成约 53 秒的循环版)· 版权归原权利人所有。本游戏为非商业的同人作品,音乐默认关闭,玩家按下 🔇 才会载入;若权利人要求,会立即移除。';
 const PHOTO_CREDIT_NOTE = '照片均已缩小尺寸;标有 CC BY 的需注明作者与授权,点作者旁的授权名称可看条款,点来源可看原图页面。';
 
 const POSTCARD_ITEMS = [
@@ -846,6 +848,11 @@ function layoutHomeCanvas(){
     coinPill.style.left = (layerLeft + COIN_PILL_ANCHOR.x*scale)+'px';
     coinPill.style.top = (layerTop + COIN_PILL_ANCHOR.y*scale)+'px';
     coinPill.style.transform = 'translate(-50%,0)';
+  }
+  const musicBtn = document.getElementById('btn-music-home');
+  if(musicBtn){
+    musicBtn.style.left = (layerLeft + MUSIC_ANCHOR.x*scale)+'px';
+    musicBtn.style.top = (layerTop + MUSIC_ANCHOR.y*scale)+'px';
   }
   homeLayout = { scale, layerLeft, layerTop };
   positionThoughtBubble();
@@ -2804,7 +2811,7 @@ function renderModal(step){
       <div class="about-tabs">
         <button class="about-tab-btn active" id="about-tab-play">游戏玩法</button>
         <button class="about-tab-btn" id="about-tab-credits">主创团队</button>
-        <button class="about-tab-btn" id="about-tab-photos">照片来源</button>
+        <button class="about-tab-btn" id="about-tab-photos">素材来源</button>
       </div>
       <div class="about-panel active" id="about-panel-play">
         <div class="tutorial-list">
@@ -2830,6 +2837,7 @@ function renderModal(step){
             <span>${c.author}${c.lic ? ' · '+(c.lic.url ? `<a href="${c.lic.url}" target="_blank" rel="noopener">${c.lic.name}</a>` : c.lic.name) : ''}${c.src ? ` · <a href="${c.src}" target="_blank" rel="noopener">来源</a>` : ''}</span>
           </div>`).join('')}</div>
         <p class="photo-credit-note">${PHOTO_CREDIT_NOTE}</p>
+        <div class="photo-credit-row" style="margin-top:10px;"><b>🎵 背景音乐</b><span>${MUSIC_CREDIT}</span></div>
       </div>
       <button class="modal-btn" id="modal-next" style="margin-top:14px;">关闭</button>`;
     const tabPairs = [['play','#about-tab-play','#about-panel-play'],['credits','#about-tab-credits','#about-panel-credits'],['photos','#about-tab-photos','#about-panel-photos']]
@@ -3446,6 +3454,101 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+/* ============================================================
+   背景音乐:预设关闭,玩家按了 🔇 才下载(约 0.4MB);用 Web Audio 无缝循环(<audio loop> 在接缝处会有小空档),
+   载入后会被 service worker 存起来,下次不用再下载。手机规定一定要玩家点一下才能出声,所以选择会记住,下次第一次点击画面时自动接着播。
+   ============================================================ */
+const MUSIC_SRC = 'assets/audio/love_shot_loop.m4a';
+const MUSIC_VOLUME = 0.45;
+let musicState = 'idle';          // idle | loading | playing
+let musicPref = false;            // 玩家上次有没有开
+try{ musicPref = localStorage.getItem('llxxl_music')==='1'; }catch(e){}
+let musicCtx = null, musicGain = null, musicBuffer = null, musicSource = null, musicLoading = null, musicEl = null;
+function saveMusicPref(on){ musicPref = on; try{ localStorage.setItem('llxxl_music', on?'1':'0'); }catch(e){} }
+function renderMusicButtons(){
+  document.querySelectorAll('.music-btn').forEach(b=>{
+    b.textContent = musicState==='playing' ? '🎵' : (musicState==='loading' ? '⏳' : '🔇');
+    b.classList.toggle('is-playing', musicState==='playing');
+    b.classList.toggle('is-loading', musicState==='loading');
+    b.setAttribute('aria-pressed', musicState==='playing' ? 'true' : 'false');
+    b.title = musicState==='playing' ? '背景音乐:播放中(点一下关闭)' : (musicState==='loading' ? '音乐载入中…' : '背景音乐:已关闭(点一下开启,会下载约 0.4MB)');
+  });
+}
+function getMusicCtx(){
+  if(musicCtx) return musicCtx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return null;
+  musicCtx = new AC();
+  musicGain = musicCtx.createGain(); musicGain.gain.value = 0; musicGain.connect(musicCtx.destination);
+  return musicCtx;
+}
+function loadMusicBuffer(ctx){
+  if(musicBuffer) return Promise.resolve(musicBuffer);
+  if(!musicLoading){
+    musicLoading = fetch(MUSIC_SRC).then(r=>{ if(!r.ok) throw new Error('music_http'); return r.arrayBuffer(); })
+      .then(ab=> new Promise((ok,err)=>{ const p = ctx.decodeAudioData(ab, ok, err); if(p && p.then) p.then(ok,err); }))
+      .then(buf=>{ musicBuffer = buf; return buf; })
+      .catch(e=>{ musicLoading = null; throw e; });
+  }
+  return musicLoading;
+}
+function playMusicBuffer(){
+  if(musicSource){ try{ musicSource.stop(); }catch(e){} }
+  const s = musicCtx.createBufferSource(); s.buffer = musicBuffer; s.loop = true; s.connect(musicGain); s.start(0);
+  musicSource = s;
+  const t = musicCtx.currentTime; musicGain.gain.cancelScheduledValues(t); musicGain.gain.setValueAtTime(0, t); musicGain.gain.linearRampToValueAtTime(MUSIC_VOLUME, t+1.5);
+}
+async function startMusic(){
+  musicState = 'loading'; saveMusicPref(true); renderMusicButtons();
+  const ctx = getMusicCtx();                       // 一定要在点击的当下建立并 resume,iOS 才肯出声
+  try{
+    if(ctx){
+      if(ctx.state==='suspended') ctx.resume();
+      await loadMusicBuffer(ctx);
+      if(musicState!=='loading') return;           // 载入途中玩家又按掉了
+      playMusicBuffer();
+    } else {
+      throw new Error('no_webaudio');
+    }
+    musicState = 'playing';
+  }catch(e){
+    // 备援:不支援 Web Audio 或解码失败时,改用一般的 <audio>(接缝可能有小空档)
+    try{
+      if(!musicEl){ musicEl = new Audio(MUSIC_SRC); musicEl.loop = true; musicEl.volume = MUSIC_VOLUME; }
+      await musicEl.play();
+      musicState = musicState==='loading' ? 'playing' : musicState;
+    }catch(e2){
+      musicState = 'idle'; saveMusicPref(false);
+      try{ showBoardToast && document.getElementById('screen-board').classList.contains('active') && showBoardToast('音乐载入失败,请稍后再试', 2000); }catch(e3){}
+    }
+  }
+  renderMusicButtons();
+}
+function stopMusic(){
+  saveMusicPref(false); musicState = 'idle';
+  if(musicSource){ try{ musicSource.stop(); }catch(e){} musicSource = null; }
+  if(musicEl){ try{ musicEl.pause(); }catch(e){} }
+  renderMusicButtons();
+}
+function toggleMusic(){ if(musicState==='idle') startMusic(); else stopMusic(); }
+document.querySelectorAll('.music-btn').forEach(b=> b.addEventListener('click', e=>{ e.stopPropagation(); toggleMusic(); }));
+// 上次有开的话,等玩家第一次点击画面(手机才允许出声)就接着播
+if(musicPref){
+  const resumeOnFirstTap = e=>{
+    if(e.target.closest && e.target.closest('.music-btn')){ document.removeEventListener('click', resumeOnFirstTap, true); return; }
+    document.removeEventListener('click', resumeOnFirstTap, true);
+    if(musicState==='idle') startMusic();
+  };
+  document.addEventListener('click', resumeOnFirstTap, true);
+}
+// 切到别的 App/分页时暂停,回来再继续
+document.addEventListener('visibilitychange', ()=>{
+  if(!musicCtx) return;
+  if(document.hidden){ if(musicCtx.state==='running') musicCtx.suspend(); if(musicEl) musicEl.pause(); }
+  else if(musicState==='playing'){ musicCtx.resume(); if(musicEl && !musicEl.ended && musicSource===null) musicEl.play().catch(()=>{}); }
+});
+renderMusicButtons();
 
 // 开游戏时先跟排行榜服务器对时(限时赛倒数计时要用)
 syncEventClock();
